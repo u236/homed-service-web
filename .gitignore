@@ -1,0 +1,4 @@
+*.user.*
+*.user
+.DS_Store
+.vscode

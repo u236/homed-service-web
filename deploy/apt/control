@@ -1,0 +1,8 @@
+Package: homed-web
+Version:
+Architecture:
+Maintainer: u236
+Depends: homed-qt
+Section: misc
+Priority: standard
+Description: HOMEd Web Service

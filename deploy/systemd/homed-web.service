@@ -1,0 +1,10 @@
+[Unit]
+Description=HOMEd Web Service
+
+[Service]
+ExecStart=/usr/bin/homed-web
+KillSignal=SIGTERM
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

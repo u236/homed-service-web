@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'Fontello';
+    src: url('../font/fontello.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../font/open-sans-cyrillic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../font/open-sans-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url('../font/roboto-mono-cyrillic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url('../font/roboto-mono-latin.woff2') format('woff2');
+}
+
+[class^="icon-"] {
+    display: inline-block;
+    font-family: 'Fontello';
+    font-style: normal;
+    margin: 0 0.1rem;
+}
+
+.icon-true:before     { content: '\e801'; }
+.icon-false:before    { content: '\e802'; }
+.icon-on:before       { content: '\e803'; }
+.icon-off:before      { content: '\e804'; }
+.icon-list:before     { content: '\e805'; }
+.icon-settings:before { content: '\e806'; }
+.icon-battery:before  { content: '\e807'; }
+.icon-plug:before     { content: '\e808'; }
+.icon-enable:before   { content: '\e809'; }
+.icon-edit:before     { content: '\e810'; }
+.icon-trash:before    { content: '\e811'; }
+.icon-info:before     { content: '\e812'; }
+.icon-code:before     { content: '\e813'; }
+.icon-map:before      { content: '\e814'; }
+.icon-hash:before     { content: '\e815'; }
+.icon-plus:before     { content: '\e816'; }

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+systemctl stop homed-web.service
+systemctl disable homed-web.service
+
+exit 0
