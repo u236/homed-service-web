@@ -3,6 +3,6 @@ ARG     TARGETARCH
 RUN     mkdir /etc/homed
 RUN     ln -s /data/homed-web.conf /etc/homed/homed-web.conf
 RUN     ln -s /data/homed.log /var/log/homed.log
-ADD		deploy/data/usr/share/homed-web /usr/share/homed-web
+ADD     share /usr/share/homed-web
 COPY    homed-web-$TARGETARCH /usr/bin/homed-web
 CMD     ["/usr/bin/homed-web"]
