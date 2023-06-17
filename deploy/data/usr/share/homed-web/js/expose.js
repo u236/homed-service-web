@@ -152,6 +152,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 break;
 
             // bool
+            case 'alarm':
             case 'autoBrightness':
             case 'boost':
             case 'calibration':

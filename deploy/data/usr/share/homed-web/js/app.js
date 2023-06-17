@@ -1,13 +1,9 @@
-var websocket, page, zigbeeData, exposeData = [], deviceData, endpoints, logicalType = ['coordinator', 'router', 'end device'], theme = localStorage.getItem('theme') ?? 'light';
+var websocket, connected, subscriptions = [], page, zigbeeData, deviceData, endpoints, exposeData = [], logicalType = ['coordinator', 'router', 'end device'], theme = localStorage.getItem('theme') ?? 'light';
 
 // startup
 
 window.onload = function()
 {
-    websocket = new WebSocket('ws://' + location.host);
-    websocket.onopen = function() { subscribe('service/zigbee'); };
-    websocket.onmessage = messageReceved;
-
     document.querySelector('#showDevices').addEventListener('click', function() { showPage('deviceList'); });
     document.querySelector('#showMap').addEventListener('click', function() { showPage('networkMap'); });
     document.querySelector('#permitJoin').addEventListener('click', function() { sendCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
@@ -19,6 +15,8 @@ window.onload = function()
 
     window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
+
+    connect();
 };
 
 document.onkeydown = function(event)
@@ -27,9 +25,44 @@ document.onkeydown = function(event)
         closeModal();
 };
 
-function subscribe(topic)
+function connect()
 {
+    websocket = new WebSocket('ws://' + location.host);
+
+    websocket.onopen = function()
+    {
+        console.log("Socket successfully connected!");
+        subscribe('service/zigbee', false);
+        connected = true;
+    };
+
+    websocket.onclose = function()
+    {
+        if (connected)
+            clearPage('Socket closed, reconnecting...');
+
+        setTimeout(function() { connect(); }, 1000);
+        connected = false;
+    };
+
+    websocket.onerror = function() { websocket.close(); };
+    websocket.onmessage = messageReceved;
+}
+
+function subscribe(topic, store = true)
+{
+    if (store && !subscriptions.includes(topic))
+        subscriptions.push(topic);
+
     websocket.send(JSON.stringify({'action': 'subscribe', 'topic': topic}));
+}
+
+function unsubscribe(topic)
+{
+    if (subscriptions.includes(topic))
+        subscriptions.splice(subscriptions.indexOf(topic), 1);
+
+    websocket.send(JSON.stringify({'action': 'unsubscribe', 'topic': topic}));
 }
 
 function sendCommand(data)
@@ -50,11 +83,8 @@ function messageReceved(event)
     {
         if (data.message.status != 'online')
         {
-            // mqtt.unsubscribe(settings.prefix + '/status/zigbee');
-            // mqtt.unsubscribe(settings.prefix + '/event/zigbee');
-            // mqtt.unsubscribe(settings.prefix + '/device/zigbee/#');
-            // mqtt.unsubscribe(settings.prefix + '/expose/zigbee/#');
-            // mqtt.unsubscribe(settings.prefix + '/fd/zigbee/#');
+            while (subscriptions.length)
+                unsubscribe(subscriptions[0]);
 
             clearPage('HOMEd ZigBee Service is OFFLINE');
         }
@@ -173,7 +203,6 @@ function showPage(name, force = false)
 {
     var container = document.querySelector('.content .container');
 
-
     if (!zigbeeData || (page == name && !force))
         return;
 
@@ -188,8 +217,6 @@ function showPage(name, force = false)
             fetch('html/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
             {
                 var exposes = exposeData[deviceData.ieeeAddress] ?? exposeData[deviceData.name];
-
-                console.log(deviceData.ieeeAddress, deviceData.name, exposes);
 
                 container.innerHTML = html;
                 container.querySelector('.rename').addEventListener('click', function() { showModal('deviceRename'); });
@@ -367,19 +394,16 @@ function clearPage(warning = null)
 {
     var container = document.querySelector('.content .container');
 
-    fetch('html/loader.html?' + Date.now()).then(response => response.text()).then(html =>
+    container.innerHTML = '<div class="loader"></div><div class="center warning"></div>';
+    zigbeeData = null;
+
+    if (warning)
     {
-        container.innerHTML = html;
+        container.querySelector('.warning').innerHTML = warning;
+        console.log(warning);
+    }
 
-        if (warning)
-        {
-            container.querySelector('.warning').innerHTML = warning;
-            console.log(warning);
-        }
-
-        zigbeeData = undefined;
-        closeModal();
-    });
+    closeModal();
 }
 
 // modal

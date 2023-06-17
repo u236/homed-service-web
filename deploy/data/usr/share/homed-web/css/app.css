@@ -79,11 +79,7 @@ body[theme="dark"] {
     color: var(--color-highlight);
 }
 
-.homed form label:last-child {
-    margin-bottom: 10px;
-}
-
-.homed input[type="text"], .homed form input[type="password"] {
+.homed input[type="text"] {
     background-color: var(--background-main);
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
@@ -199,6 +195,11 @@ body[theme="dark"] {
     overflow: auto;
 }
 
+.homed .content {
+    min-height: calc(100vh - var(--header-height) - var(--footer-height) - 1px);
+    padding: 0 15px;
+}
+
 .homed .header
 {
     background-color: var(--background-shade);
@@ -220,11 +221,6 @@ body[theme="dark"] {
 
 .homed .header span:hover {
     color: var(--color-highlight);
-}
-
-.homed .content {
-    min-height: calc(100vh - var(--header-height) - var(--footer-height) - 1px);
-    padding: 0 15px;
 }
 
 .homed .footer
@@ -308,9 +304,8 @@ body[theme="dark"] {
 }
 
 .homed .deviceList td {
-    border-top: 1px solid var(--border-shade);
-    padding: 10px;
     min-width: 32px;
+    padding: 10px;
 }
 
 .homed .deviceList .sort {
@@ -376,32 +371,6 @@ body[theme="dark"] {
 .homed .deviceInfo .exposes .control button {
     height: 18px;
     margin: 0 5px;
-}
-
-.homed .presetList {
-    display: none;
-}
-
-.homed .presetList table {
-    margin: 0;
-    margin-bottom: 10px;
-}
-
-.homed .presetList td {
-    cursor: pointer;
-}
-
-.homed .presetList td:last-child {
-    text-align: right;
-    width: 12px;
-}
-
-.homed .presetList td:hover {
-    color: var(--color-warning);
-}
-
-.homed .presetList td:last-child:hover {
-    color: var(--color-error);
 }
 
 .homed #map {
@@ -528,21 +497,12 @@ body[theme="dark"] {
     margin-left: auto;
 }
 
-.homed #permitJoin .enabled {
-    color: green;
-}
-
-.homed #permitJoin .disabled {
-    color: orange;
-}
-
 .homed #footerData {
     padding: 0 5px;
 }
 
 .homed #toggleTheme {
     cursor: pointer;
-    margin-left: auto;
     padding: 0 5px;
 }
 

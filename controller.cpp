@@ -23,7 +23,6 @@ void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
         return;
     }
 
-    // logInfo << "Client" << socket->peerAddress().toString() << "requested" << list.value(1);
     file.setFileName(QString(m_path).append(list.value(1) != "/" ? list.value(1).split('?').value(0) : "/index.html"));
 
     if (!file.exists())
