@@ -5,11 +5,11 @@ class Socket
     subscriptions = new Array();
     connected = false;
 
-    constructor(onopen, onmessage, onclose)
+    constructor(onopen, onclose, onmessage)
     {
         this.onopen = onopen ?? function() {};
-        this.onmessage = onmessage ?? function() {};
         this.onclose = onclose ?? function() {};
+        this.onmessage = onmessage ?? function() {};
         this.connect();
     }
 
@@ -21,28 +21,20 @@ class Socket
 
         socket.ws.onopen = function()
         {
-            console.log('socket successfully connected');
-            socket.connected = true;
             socket.onopen();
+            socket.connected = true;
         };
 
         socket.ws.onclose = function()
         {
             if (socket.connected)
             {
-                console.log('socket closed, reconnecting');
                 this.subscriptions = new Array();
+                socket.onclose();
             }
 
             setTimeout(function() { socket.connect(); }, 1000);
-
             socket.connected = false;
-            socket.onclose();
-        };
-
-        socket.ws.onerror = function()
-        {
-            socket.ws.close();
         };
 
         socket.ws.onmessage = function(event)
@@ -50,6 +42,11 @@ class Socket
             var data = JSON.parse(event.data);
             socket.onmessage(data.topic, data.message);
         }
+
+        socket.ws.onerror = function()
+        {
+            socket.ws.close();
+        };
     }
 
     subscribe(topic)
@@ -74,10 +71,9 @@ class Socket
 
 class Controller
 {
-    services = ['zigbee'];
-
+    services = ['automation', 'zigbee'];
+    socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
     zigbee = new ZigBee(this);
-    socket = new Socket(this.onopen.bind(this), this.onmessage.bind(this));
     status = new Object();
     expose = new Object();
 
@@ -86,6 +82,7 @@ class Controller
         var controller = this;
         var services = document.querySelector('.header .services');
 
+        console.log('socket successfully connected');
         services.innerHTML = '';
 
         controller.services.forEach(service =>
@@ -96,8 +93,13 @@ class Controller
             item.addEventListener('click', function() { controller.showPage(service); localStorage.setItem('page', service); });
 
             controller.socket.subscribe('service/' + service);
-            services.appendChild(item);
+            // services.appendChild(item);
         });
+    }
+
+    onclose()
+    {
+        this.clearPage(this.page, 'socket closed, reconnecting');
     }
 
     onmessage(topic, message)

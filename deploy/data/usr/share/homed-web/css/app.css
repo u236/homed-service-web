@@ -261,6 +261,11 @@ body[theme="dark"] {
     white-space: nowrap;
 }
 
+.homed .header img {
+    height: calc(var(--header-height) - 20px);
+    margin: 10px 5px;
+}
+
 .homed .header span {
     cursor: pointer;
     padding: 0 5px;
@@ -506,6 +511,10 @@ body[theme="dark"] {
 .homed #toggleTheme {
     padding: 0 5px;
     cursor: pointer;
+}
+
+.homed #toggleTheme:hover {
+    color: var(--color-main);
 }
 
 @keyframes homedSpin {

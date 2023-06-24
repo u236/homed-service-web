@@ -255,8 +255,8 @@ class ZigBee
             var zigbee = this;
 
             zigbee.modal.querySelector('.data').innerHTML = html;
-            zigbee.modal.querySelector('.title').innerHTML = this.device.name;
-            zigbee.modal.querySelector('.json').innerHTML = JSON.stringify(this.device, null, 2);
+            zigbee.modal.querySelector('.title').innerHTML = '"' + zigbee.device.name + '"';
+            zigbee.modal.querySelector('.json').innerHTML = JSON.stringify(zigbee.device, null, 2);
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
 
             zigbee.modal.style.display = 'block';
@@ -267,31 +267,32 @@ class ZigBee
     {
         fetch('html/zigbee/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var item = this.controller.status.zigbee.names ? this.device.name : this.device.ieeeAddress;
+            var zigbee = this;
+            var item = zigbee.controller.status.zigbee.names ? zigbee.device.name : zigbee.device.ieeeAddress;
             var list;
 
-            modal.querySelector('.data').innerHTML = html;
+            zigbee.modal.querySelector('.data').innerHTML = html;
 
             list = modal.querySelector('.list');
             list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/zigbee/' + item + '</pre>';
             list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/zigbee/' + item + '</pre>';
 
-            if (this.endpoints.fd.length)
+            if (zigbee.endpoints.fd.length)
             {
                 list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
-                this.endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += '{prefix}/fd/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
+                zigbee.endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += '{prefix}/fd/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
             }
 
-            if (this.endpoints.td.length)
+            if (zigbee.endpoints.td.length)
             {
                 list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
-                this.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
+                zigbee.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
             }
 
-            modal.querySelector('.title').innerHTML = 'Topics for "' + this.device.name + '":';
-            modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+            zigbee.modal.querySelector('.title').innerHTML = 'Topics for "' + zigbee.device.name + '":';
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
 
-            modal.style.display = 'block';
+            zigbee.modal.style.display = 'block';
         });
     }
 
