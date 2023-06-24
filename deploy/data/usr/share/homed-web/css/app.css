@@ -1,14 +1,14 @@
 html, body {
-    font-size: 14px;
     margin: 0;
+    font-size: 14px;
 }
 
 body[theme="light"] {
-    background-color: #eeeeee;
+    background-color: #ffffff;
 }
 
 body[theme="dark"] {
-    background-color: #222222;
+    background-color: #111111;
 }
 
 .homed[theme="light"] {
@@ -51,45 +51,27 @@ body[theme="dark"] {
     --box-shadow:       0 5px 10px rgba(0, 0, 0, 0.25);
     --header-height:    50px;
     --footer-height:    40px;
+    margin: 0;
     background-color: var(--background-main);
-    color: var(--color-main);
     font-family: 'Open Sans';
     font-weight: 400;
-    margin: 0;
+    color: var(--color-main);
 }
 
-.homed pre {
-    border: 1px solid var(--border-shade);
+.homed button {
+    height: 30px;
+    padding: 0 10px;
+    background-color: var(--background-shade);
+    cursor: pointer;
+    border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
-    font-family: 'Roboto Mono';
-    font-size: 13px;
-    overflow-x: auto;
-    padding: 5px;
-}
-
-.homed label {
-    align-items: center;
-    display: flex;
-    font-size: 0.8125rem;
-    margin-bottom: 2px;
+    font-family: var(--font-family);
+    color: var(--color-main);
     text-transform: uppercase;
 }
 
-.homed label:hover {
-    color: var(--color-highlight);
-}
-
-.homed input[type="text"] {
-    background-color: var(--background-main);
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-    color: var(--color-main);
-    font-family: var(--font-family);
-    margin-bottom: 10px;
-    padding: 0 5px;
-    height: 30px;
-    width: 100%;
+.homed button:hover {
+    background-color: var(--background-hover);
 }
 
 .homed input[type="checkbox"] {
@@ -99,36 +81,49 @@ body[theme="dark"] {
 
 .homed input[type="range"] {
     appearance: none;
+    width: 100%;
+    height: 5px;
+    margin-left: -2px;
     background-color: var(--range-main);
     border: 2px solid var(--background-main);
     border-radius: 5px;
-    margin-left: -2px;
-    height: 5px;
-    width: 100%;
 }
 
 .homed input[type="range"]::-webkit-slider-thumb {
     appearance: none;
+    box-shadow: 0 0 2px 0 #000000;
+    width: 13px;
+    height: 13px;
     background-color: #ffffff;
     border-radius: 50%;
-    box-shadow: 0 0 2px 0 #000000;
-    height: 13px;
-    width: 13px;
 }
 
 .homed input[type="range"]::-moz-range-thumb {
+    box-shadow: 0 0 2px #666666;
+    width: 13px;
+    height: 13px;
     background-color: #ffffff;
     border: none;
     border-radius: 50%;
-    box-shadow: 0 0 2px #666666;
-    height: 13px;
-    width: 13px;
+}
+
+.homed input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 10px;
+    padding: 0 5px;
+    background-color: var(--background-main);
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    font-family: var(--font-family);
+    color: var(--color-main);
 }
 
 .homed input[type="time"] {
+    height: 14px;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
-    height: 14px;
 }
 
 .homed input.level {
@@ -139,20 +134,25 @@ body[theme="dark"] {
     background: linear-gradient(to right, #afd0fb, #f5f3f2, #f2a43a);
 }
 
-.homed button {
-    background-color: var(--background-shade);
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    color: var(--color-main);
-    cursor: pointer;
-    font-family: var(--font-family);
-    height: 30px;
-    padding: 0 10px;
+.homed label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+    font-size: 0.8125rem;
     text-transform: uppercase;
 }
 
-.homed button:hover {
-    background-color: var(--background-hover);
+.homed label:hover {
+    color: var(--color-highlight);
+}
+
+.homed pre {
+    overflow-x: auto;
+    padding: 5px;
+    border: 1px solid var(--border-shade);
+    border-radius: var(--border-radius);
+    font-size: 13px;
+    font-family: 'Roboto Mono';
 }
 
 .homed table {
@@ -162,18 +162,18 @@ body[theme="dark"] {
 }
 
 .homed th {
+    padding: 5px 10px;
     border-bottom: 1px solid var(--border-shade);
-    color: var(--color-shade);
     font-size: 0.8125rem;
     font-weight: normal;
-    padding: 5px 10px;
+    color: var(--color-shade);
     text-align: left;
     text-transform: uppercase;
 }
 
 .homed td {
-    border-top: 1px solid var(--border-shade);
     padding: 5px;
+    border-top: 1px solid var(--border-shade);
     white-space: nowrap;
 }
 
@@ -189,82 +189,12 @@ body[theme="dark"] {
     border: none;
 }
 
-.homed .container {
-    margin: 0 auto;
-    max-width: 1000px;
-    overflow: auto;
-}
-
-.homed .content {
-    min-height: calc(100vh - var(--header-height) - var(--footer-height) - 1px);
-    padding: 0 15px;
-}
-
-.homed .header
-{
-    background-color: var(--background-shade);
-    height: var(--header-height);
-    line-height: var(--header-height);
-    padding: 0 15px;
-    white-space: nowrap;
-}
-
-.homed .header .container {
-    display: flex;
-    justify-content: space-between;
-}
-
-.homed .header span {
-    cursor: pointer;
-    padding: 0 5px;
-}
-
-.homed .header span:hover {
-    color: var(--color-highlight);
-}
-
-.homed .footer
-{
-    background-color: var(--background-shade);
-    color: var(--color-shade);
-    font-size: 0.8125rem;
-    height: var(--footer-height);
-    line-height: var(--footer-height);
-    padding: 0 15px;
-    white-space: nowrap;
-}
-
-.homed .footer .container {
-    display: flex;
-    justify-content: space-between;
-}
-
-.homed .buttons {
-    display: inline-flex;
-    gap: 5px;
-    white-space: nowrap;
-}
-
-.homed .checkbox {
-    cursor: pointer;
-}
-
-.homed .loader {
-    animation: homedSpin 1s linear infinite;
-    border: 2px solid var(--border-main);
-    border-top: 2px solid var(--border-loader);
-    border-radius: 50%;
-    margin: 20px auto;
-    height: 20px;
-    width: 20px;
-}
-
 .homed .fade-in {
-  animation: homedFadeIn linear 0.25s;
+    animation: homedFadeIn linear 0.25s;
 }
 
 .homed .fade-out {
-  animation: homedFadeOut linear 0.25s;
+    animation: homedFadeOut linear 0.25s;
 }
 
 .homed .shade {
@@ -295,6 +225,77 @@ body[theme="dark"] {
     background-color: var(--background-error);
 }
 
+.homed .buttons {
+    display: inline-flex;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.homed .loader {
+    animation: homedSpin 1s linear infinite;
+    border: 2px solid var(--border-main);
+    border-top: 2px solid var(--border-loader);
+    border-radius: 50%;
+    margin: 20px auto;
+    height: 20px;
+    width: 20px;
+}
+
+.homed .container {
+    margin: 0 auto;
+    max-width: 1000px;
+    overflow: auto;
+}
+
+.homed .content {
+    min-height: calc(100vh - var(--header-height) - var(--footer-height) - 1px);
+    padding: 0 15px;
+}
+
+.homed .header
+{
+    background-color: var(--background-shade);
+    height: var(--header-height);
+    line-height: var(--header-height);
+    padding: 0 15px;
+    white-space: nowrap;
+}
+
+.homed .header span {
+    cursor: pointer;
+    padding: 0 5px;
+    text-transform: uppercase;
+}
+
+.homed .header span:hover {
+    color: var(--color-highlight);
+}
+
+.homed .header .container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.homed .header .menu {
+    margin-left: auto;
+}
+
+.homed .footer
+{
+    background-color: var(--background-shade);
+    color: var(--color-shade);
+    font-size: 0.8125rem;
+    height: var(--footer-height);
+    line-height: var(--footer-height);
+    padding: 0 15px;
+    white-space: nowrap;
+}
+
+.homed .footer .container {
+    display: flex;
+    justify-content: space-between;
+}
+
 .homed .deviceList tbody tr {
     cursor: pointer;
 }
@@ -316,6 +317,61 @@ body[theme="dark"] {
     color: var(--color-warning);
 }
 
+.homed .deviceMap svg {
+    background-color: var(--background-main);
+    border: 1px solid var(--border-shade);
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+    display: block;
+    margin: 10px 5px;
+    height: calc(100vh - var(--header-height) - var(--footer-height) - 48px);
+    width: calc(100% - 10px);
+}
+
+.homed .deviceMap svg text {
+    fill: var(--color-main);
+    font-size: 12px;
+    paint-order: stroke;
+    stroke: var(--background-main);
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-width: 2px;
+    cursor: pointer;
+}
+
+.homed .deviceMap svg text:hover {
+    fill: var(--color-highlight);
+}
+
+.homed .deviceMap svg .node {
+    fill: var(--background-shade);
+    stroke: var(--color-main);
+    stroke-width: 1.5px;
+}
+
+.homed .deviceMap svg .node:hover {
+    stroke: var(--color-error);
+}
+
+.homed .deviceMap svg .link {
+    stroke: var(--border-main);
+    stroke-width: 1px;
+}
+
+.homed .deviceMap svg .text {
+    fill: var(--color-shade);
+    font-size: 9px;
+}
+
+.homed .deviceMap svg .highlight {
+    stroke: var(--color-warning);
+}
+
+.homed .deviceMap .checkbox {
+    padding: 0 5px;
+    cursor: pointer;
+}
+
 .homed .deviceInfo pre {
     margin: 10px 0;
 }
@@ -325,13 +381,13 @@ body[theme="dark"] {
 }
 
 .homed .deviceInfo td:first-child {
-    min-width: 150px;
     width: 25%;
+    min-width: 150px;
 }
 
 .homed .deviceInfo td:last-child {
-    font-family: 'Roboto Mono';
     font-size: 13px;
+    font-family: 'Roboto Mono';
 }
 
 .homed .deviceInfo .title {
@@ -344,95 +400,45 @@ body[theme="dark"] {
     margin: 10px 4px;
 }
 
-.homed .deviceInfo .exposes .value {
-    padding-right: 20px;
-    min-width: 40px;
+.homed .exposes .value {
     width: 1%;
+    min-width: 40px;
+    padding-right: 20px;
 }
 
-.homed .deviceInfo .exposes .value .color {
-    border-radius: 25%;
-    height: 13px;
+.homed .exposes .value .color {
     width: 13px;
+    height: 13px;
+    border-radius: 25%;
 }
 
-.homed .deviceInfo .exposes .control {
+.homed .exposes .control {
     color: var(--color-shade);
 }
 
-.homed .deviceInfo .exposes .control span {
+.homed .exposes .control span {
     cursor: pointer;
 }
 
-.homed .deviceInfo .exposes .control span:hover {
+.homed .exposes .control span:hover {
     color: var(--color-highlight);
 }
 
-.homed .deviceInfo .exposes .control button {
+.homed .exposes .control button {
     height: 18px;
     margin: 0 5px;
 }
 
-.homed #map {
-    background-color: var(--background-main);
-    border: 1px solid var(--border-shade);
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-    display: block;
-    margin: 10px 5px;
-    height: calc(100vh - var(--header-height) - var(--footer-height) - 60px);
-    width: calc(100% - 10px);
-}
-
-.homed #map text {
-    cursor: pointer;
-    fill: var(--color-main);
-    font-size: 12px;
-    paint-order: stroke;
-    stroke: var(--background-main);
-    stroke-linecap: butt;
-    stroke-linejoin: miter;
-    stroke-width: 2px;
-}
-
-.homed #map text:hover {
-    fill: var(--color-highlight);
-}
-
-.homed #map .node {
-    fill: var(--background-shade);
-    stroke: var(--color-main);
-    stroke-width: 1.5px;
-}
-
-.homed #map .node:hover {
-    stroke: var(--color-error);
-}
-
-.homed #map .link {
-    stroke: var(--border-main);
-    stroke-width: 1px;
-}
-
-.homed #map .text {
-    fill: var(--color-shade);
-    font-size: 9px;
-}
-
-.homed #map .highlight {
-    stroke: var(--color-warning);
-}
-
 .homed #modal {
-    background-color: rgba(0, 0, 0, 0.75);
     display: none;
-    height: 100%;
-    width: 100%;
-    left: 0;
-    top: 0;
-    overflow: auto;
     position: fixed;
     z-index: 1;
+    top: 0;
+    left: 0;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
 }
 
 .homed #modal pre {
@@ -441,19 +447,19 @@ body[theme="dark"] {
 }
 
 .homed #modal .data {
+    box-shadow: var(--box-shadow);
+    max-width: min(600px, calc(100% - 40px));
+    margin: 25px auto;
+    padding: 10px;
     background-color: var(--background-main);
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    margin: 25px auto;
-    padding: 10px;
-    max-width: min(600px, calc(100% - 40px));
 }
 
 .homed #modal .title {
-    font-size: 1.25rem;
     margin: 0;
     margin-bottom: 10px;
+    font-size: 1.25rem;
 }
 
 .homed #toast {
@@ -493,21 +499,13 @@ body[theme="dark"] {
     border-left: 5px solid red;
 }
 
-.homed #permitJoin {
-    margin-left: auto;
-}
-
 .homed #footerData {
     padding: 0 5px;
 }
 
 .homed #toggleTheme {
-    cursor: pointer;
     padding: 0 5px;
-}
-
-.homed #toggleTheme:hover {
-    color: var(--color-main);
+    cursor: pointer;
 }
 
 @keyframes homedSpin {

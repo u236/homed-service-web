@@ -1,597 +1,403 @@
-var websocket, connected, subscriptions = [], page, zigbeeData, deviceData, endpoints, exposeData = [], logicalType = ['coordinator', 'router', 'end device'], theme = localStorage.getItem('theme') ?? 'light';
+var controller, theme = localStorage.getItem('theme') ?? 'dark';
 
-// startup
-
-window.onload = function()
+class Socket
 {
-    document.querySelector('#showDevices').addEventListener('click', function() { showPage('deviceList'); });
-    document.querySelector('#showMap').addEventListener('click', function() { showPage('networkMap'); });
-    document.querySelector('#permitJoin').addEventListener('click', function() { sendCommand({action: 'setPermitJoin', enabled: zigbeeData.permitJoin ? false : true}); });
-    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; localStorage.setItem('theme', theme); location.reload(); });
+    subscriptions = new Array();
+    connected = false;
 
-    document.querySelector('body').setAttribute('theme', theme);
-    document.querySelector('.homed').setAttribute('theme', theme);
-    document.querySelector('#toggleTheme').innerHTML = 'DARK THEME ' + (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>');
-
-    window.addEventListener('hashchange', function() { showPage(location.hash.slice(1)); });
-    window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) closeModal(); });
-
-    connect();
-};
-
-document.onkeydown = function(event)
-{
-    if (event.key == 'Esc' || event.key == 'Escape')
-        closeModal();
-};
-
-function connect()
-{
-    websocket = new WebSocket('ws://' + location.host);
-
-    websocket.onopen = function()
+    constructor(onopen, onmessage, onclose)
     {
-        console.log("Socket successfully connected!");
-        subscribe('service/zigbee', false);
-        connected = true;
-    };
+        this.onopen = onopen ?? function() {};
+        this.onmessage = onmessage ?? function() {};
+        this.onclose = onclose ?? function() {};
+        this.connect();
+    }
 
-    websocket.onclose = function()
+    connect()
     {
-        if (connected)
-            clearPage('Socket closed, reconnecting...');
+        var socket = this;
 
-        setTimeout(function() { connect(); }, 1000);
-        connected = false;
-    };
+        socket.ws = new WebSocket('ws://' + location.host);
 
-    websocket.onerror = function() { websocket.close(); };
-    websocket.onmessage = messageReceved;
-}
-
-function subscribe(topic, store = true)
-{
-    if (store && !subscriptions.includes(topic))
-        subscriptions.push(topic);
-
-    websocket.send(JSON.stringify({'action': 'subscribe', 'topic': topic}));
-}
-
-function unsubscribe(topic)
-{
-    if (subscriptions.includes(topic))
-        subscriptions.splice(subscriptions.indexOf(topic), 1);
-
-    websocket.send(JSON.stringify({'action': 'unsubscribe', 'topic': topic}));
-}
-
-function sendCommand(data)
-{
-    websocket.send(JSON.stringify({'action': 'publish', 'topic': 'command/zigbee', 'message': data}));
-}
-
-function sendData(endpoint, data)
-{
-    websocket.send(JSON.stringify({'action': 'publish', 'topic': 'td/zigbee/' + (zigbeeData.names ? deviceData.name : deviceData.ieeeAddress) + (isNaN(endpoint) ? '' : '/' + endpoint), 'message': data}));
-}
-
-function messageReceved(event)
-{
-    var data = JSON.parse(event.data);
-
-    if (data.topic == 'service/zigbee')
-    {
-        if (data.message.status != 'online')
+        socket.ws.onopen = function()
         {
-            while (subscriptions.length)
-                unsubscribe(subscriptions[0]);
+            console.log('socket successfully connected');
+            socket.connected = true;
+            socket.onopen();
+        };
 
-            clearPage('HOMEd ZigBee Service is OFFLINE');
-        }
-        else
+        socket.ws.onclose = function()
         {
-            subscribe('status/zigbee');
-            subscribe('event/zigbee');
+            if (socket.connected)
+            {
+                console.log('socket closed, reconnecting');
+                this.subscriptions = new Array();
+            }
+
+            setTimeout(function() { socket.connect(); }, 1000);
+
+            socket.connected = false;
+            socket.onclose();
+        };
+
+        socket.ws.onerror = function()
+        {
+            socket.ws.close();
+        };
+
+        socket.ws.onmessage = function(event)
+        {
+            var data = JSON.parse(event.data);
+            socket.onmessage(data.topic, data.message);
         }
     }
-    else if (data.topic == 'status/zigbee')
+
+    subscribe(topic)
     {
-        var check = zigbeeData ? zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : [];
+        if (!this.subscriptions.includes(topic))
+            this.subscriptions.push(topic);
 
-        zigbeeData = data.message;
-        document.querySelector('#permitJoin').innerHTML = (zigbeeData.permitJoin ? '<i class="icon-enable warning"></i>' : '<i class="icon-enable shade"></i>') + ' PERMIT JOIN';
-        document.querySelector('#serviceVersion').innerHTML = zigbeeData.version ?? 'unknown';
+        this.ws.send(JSON.stringify({'action': 'subscribe', 'topic': topic}));
+    }
 
-        if (JSON.stringify(check) != JSON.stringify(zigbeeData.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
+    publish(topic, message)
+    {
+        this.ws.send(JSON.stringify({'action': 'publish', 'topic': topic, 'message': message}));
+    }
+
+    unsubscribe(topic)
+    {
+        this.subscriptions.splice(this.subscriptions.indexOf(topic), 1);
+        this.ws.send(JSON.stringify({'action': 'unsubscribe', 'topic': topic}));
+    }
+}
+
+class Controller
+{
+    services = ['zigbee'];
+
+    zigbee = new ZigBee(this);
+    socket = new Socket(this.onopen.bind(this), this.onmessage.bind(this));
+    status = new Object();
+    expose = new Object();
+
+    onopen()
+    {
+        var controller = this;
+        var services = document.querySelector('.header .services');
+
+        services.innerHTML = '';
+
+        controller.services.forEach(service =>
         {
-            showPage('deviceList', true);
-            return;
-        }
+            var item = document.createElement('span');
 
-        zigbeeData.devices.forEach(device =>
-        {
-            var row = document.querySelector('tr[data-address="' + device.ieeeAddress + '"], tr[data-name="' + device.name + '"]');
+            item.innerHTML = service;
+            item.addEventListener('click', function() { controller.showPage(service); localStorage.setItem('page', service); });
 
-            if (!row)
-                return;
-
-            updateLastSeen(row, device.lastSeen);
+            controller.socket.subscribe('service/' + service);
+            services.appendChild(item);
         });
     }
-    else if (data.topic == 'event/zigbee')
-    {
-        var html = 'Device <b>' + data.message.device + '</b> ';
 
-        switch (data.message.event)
+    onmessage(topic, message)
+    {
+        var list = topic.split('/');
+        var service = list[1];
+
+        switch(list[0])
         {
-            case 'deviceJoined':
-                showToast(html + 'joined network');
-                break;
-
-            case 'deviceLeft':
-                showToast(html + 'left network', 'warning');
-                break;
-
-            case 'deviceNameDuplicate':
-                showToast(html + 'rename failed, name already in use', 'error');
-                break;
-
-            case 'deviceUpdated':
-                showToast(html + 'successfully updated');
-                break;
-
-            case 'interviewError':
-                showToast(html + 'interview error', 'error');
-                break;
-
-            case 'interviewTimeout':
-                showToast(html + 'interview timed out', 'error');
-                break;
-
-            case 'interviewFinished':
-                showToast(html + 'interview finished');
-                break;
-        }
-    }
-    else if (data.topic.startsWith('device/zigbee/'))
-    {
-        var list = data.topic.split('/');
-        var row = document.querySelector('tr[data-address="' + list[2] + '"], tr[data-name="' + list[2] + '"]');
-
-        if (!data.message || !row)
-            return;
-
-        if (data.message.status == 'online')
-        {
-            row.classList.remove('unavailable');
-            row.querySelector('.availability').innerHTML = '<i class="icon-true success"></i>';
-        }
-        else
-        {
-            row.classList.add('unavailable');
-            row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>';
-        }
-    }
-    else if (data.topic.startsWith('expose/zigbee/'))
-    {
-        var list = data.topic.split('/');
-
-        if (!data.message)
-            return;
-
-        exposeData[list[2]] = data.message;
-    }
-    else if (data.topic.startsWith('fd/zigbee/'))
-    {
-        var list = data.topic.split('/');
-        var row = document.querySelector('.deviceList tr[data-address="' + list[2] + '"], .deviceList tr[data-name="' + list[2] + '"]');
-
-        if (row)
-        {
-            row.querySelector('.linkQuality').innerHTML = data.message.linkQuality;
-            return;
-        }
-
-        if (deviceData && ((deviceData.hasOwnProperty('name') && deviceData.name == list[2]) || deviceData.ieeeAddress == list[2]))
-            Object.keys(data.message).forEach(item => { updateExpose(list[3], item, data.message[item]); });
-    }
-}
-
-// page
-
-function showPage(name, force = false)
-{
-    var container = document.querySelector('.content .container');
-
-    if (!zigbeeData || (page == name && !force))
-        return;
-
-    location.hash = name;
-    page = name;
-
-    switch (name)
-    {
-        case 'deviceInfo':
-
-
-            fetch('html/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+            case 'service':
             {
-                var exposes = exposeData[deviceData.ieeeAddress] ?? exposeData[deviceData.name];
-
-                container.innerHTML = html;
-                container.querySelector('.rename').addEventListener('click', function() { showModal('deviceRename'); });
-                container.querySelector('.remove').addEventListener('click', function() { showModal('deviceRemove'); });
-                container.querySelector('.data').addEventListener('click', function() { showModal('deviceData'); });
-                container.querySelector('.topics').addEventListener('click', function() { showModal('deviceTopics'); });
-
-                for (var key in deviceData)
+                if (message.status != 'online')
                 {
-                    var cell = document.querySelector(' .' + key);
+                    if (this.service == service)
+                        this.clearPage(this.page, service + ' service is offline');
 
-                    if (!cell)
-                        continue;
-
-                    cell.innerHTML = parseValue(key, deviceData[key]);
+                    this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == service; }).forEach(topic => { this.socket.unsubscribe(topic); });
+                }
+                else
+                {
+                    this.socket.subscribe('status/' + service);
+                    this.socket.subscribe('event/' + service);
                 }
 
-                if (!deviceData.logicalType)
-                {
-                    container.querySelector('.rename').style.display = 'none';
-                    container.querySelector('.remove').style.display = 'none';
-                    container.querySelector('.exposes').style.display = 'none';
-                    return;
-                }
+                break;
+            }
 
-                endpoints = {fd: [], td: []};
-
-                Object.keys(exposes).forEach(endpoint =>
-                {
-                    if (!isNaN(endpoint))
-                        subscribe('fd/zigbee/' + (zigbeeData.names ? deviceData.name : deviceData.ieeeAddress) + '/' + endpoint);
-
-                    exposes[endpoint].items.forEach(expose => { addExpose(endpoint, expose, exposes[endpoint].options, endpoints); });
-                });
-
-                addExpose('common', 'linkQuality');
-                sendCommand({action: 'getProperties', device: deviceData.ieeeAddress});
-            });
-
-            break;
-
-        case 'networkMap':
-
-            fetch('html/networkMap.html?' + Date.now()).then(response => response.text()).then(html =>
+            case 'status':
             {
-                var map, width, height, link, text, node, routerLinks = false;
-                var data = {nodes: [], links: []};
-                var drag = d3.drag();
-                var simulation = d3.forceSimulation();
-                var symbol = [d3.symbolStar, d3.symbolTriangle, d3.symbolCircle];
-
-                container.innerHTML = html;
-                container.querySelector('input[name="routerLinks"]').addEventListener('change', function() { routerLinks = this.checked; simulation.restart(); });
-
-                map = d3.select('#map');
-                width = parseInt(map.style('width'));
-                height = parseInt(map.style('height'));
-
-                zigbeeData.devices.forEach(device =>
+                switch (service)
                 {
-                    if (device.hasOwnProperty('removed'))
-                        return;
-
-                    data.nodes.push({id: device.networkAddress, name: device.name, type: device.logicalType});
-
-                    if (!device.hasOwnProperty('neighbors'))
-                        return;
-
-                    device.neighbors.forEach(neighbor =>
+                    case 'zigbee':
                     {
-                        if (!zigbeeData.devices.find(item => { return !item.removed && item.networkAddress == neighbor.networkAddress; }))
-                            return;
+                        var check = this.status.zigbee ? this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : new Array();
 
-                        data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.networkAddress});
-                    });
-                });
+                        this.status.zigbee = message;
 
-                link = map.selectAll('.link').data(data.links).enter().append('path').attr('class', 'link').attr('id', function(d, i) { return 'link' + i; });
-                text = map.selectAll('.text').data(data.links).enter().append('text').attr('class', 'text').attr('dy', -1);
-                text.append('textPath').style('text-anchor', 'middle').attr('startOffset', '50%').attr('href', function(d, i) { return '#link' + i; }).text(function(d) { return d.linkQuality; });
-
-                node = map.append('g').selectAll('g').data(data.nodes).enter().append('g');
-                node.append('path').attr('class', 'node').attr('d', d3.symbol().size(100).type(function(d) { return symbol[d.type ?? 2]; }));
-                node.append('text').text(function(d) { return d.name; }).attr('x', 12).attr('y', 3);
-
-                node.select('path').on('mouseenter', function(d)
-                {
-                    text.attr('display', 'none').filter(i => i.source.id == d.id || i.target.id == d.id).attr('display', 'block');
-                    link.attr('display', 'none').filter(i => i.source.id == d.id || i.target.id == d.id).attr('display', 'block').classed('highlight', true);
-                });
-
-                node.select('path').on('mouseleave', function() { text.attr('display', 'block'); link.attr('display', 'block').classed('highlight', false); });
-                node.select('text').on('click', function(d) { deviceData = zigbeeData.devices.filter(i => i.networkAddress == d.id)[0]; showPage('deviceInfo'); });
-
-                drag.on('start', function(d) { if (!d3.event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; });
-                drag.on('drag', function(d) { d.fx = d3.event.x; d.fy = d3.event.y; });
-                drag.on('end', function(d) { if (!d3.event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; });
-
-                simulation.force('center', d3.forceCenter(width / 2, height / 2));
-                simulation.force('charge', d3.forceManyBody().strength(-2000));
-                simulation.force('radial', d3.forceRadial(function(d) { return d.type * 100; }, width / 2, height / 2).strength(1));
-                simulation.force('link', d3.forceLink().id(function(d) { return d.id; }));
-
-                simulation.nodes(data.nodes).on('tick', function()
-                {
-                    link.attr('d', function(d) { if (routerLinks || d.source.type != d.target.type) return 'M ' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y; });
-                    node.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
-                });
-
-                simulation.force('link').links(data.links);
-                drag(node);
-            });
-
-            break;
-
-        default:
-
-            fetch('html/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
-            {
-                container.innerHTML = html;
-
-                zigbeeData.devices.forEach(device =>
-                {
-                    if (!device.hasOwnProperty('removed'))
-                    {
-                        var row = container.querySelector('.deviceList tbody').insertRow(device.logicalType ? -1 : 0);
-
-                        if (!device.name)
-                            device.name = device.ieeeAddress;
-
-                        row.addEventListener('click', function() { deviceData = device; showPage('deviceInfo'); });
-                        row.dataset.address = device.ieeeAddress;
-                        row.dataset.name = device.name;
-
-                        for (var i = 0; i < 9; i++)
+                        if (this.service == 'zigbee')
                         {
-                            var cell = row.insertCell();
+                            if (JSON.stringify(check) != JSON.stringify(this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
+                                this.showPage('zigbee', true);
 
-                            switch (i)
-                            {
-                                case 0: cell.innerHTML = device.name; break;
-                                case 1: cell.innerHTML = device.manufacturerName ?? '-'; break;
-                                case 2: cell.innerHTML = device.modelName ?? '-'; break;
-                                case 3: cell.innerHTML = logicalType[device.logicalType]; break;
-                                case 4: cell.innerHTML = parseValue('powerSource', device.powerSource); cell.classList.add('center'); break;
-                                case 5: cell.innerHTML = parseValue('supported', device.supported); cell.classList.add('center'); break;
-                                case 6: cell.innerHTML = '-'; cell.classList.add('availability', 'center'); break;
-                                case 7: cell.innerHTML = device.linkQuality ?? '-'; cell.classList.add('linkQuality', 'right'); break;
-                                case 8: cell.innerHTML = '-'; cell.classList.add('lastSeen', 'right'); break;
-                            }
+                            document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.status.zigbee.permitJoin ? 'warning' : 'shade');
+                            document.querySelector('#serviceVersion').innerHTML = this.status.zigbee.version;
                         }
 
-                        updateLastSeen(row, device.lastSeen);
-
-                        if (device.logicalType)
+                        this.status.zigbee.devices.forEach(device =>
                         {
-                            var item = zigbeeData.names ? device.name : device.ieeeAddress;
+                            var item = this.status.zigbee.names && device.name ? device.name : device.ieeeAddress;
 
-                            subscribe('device/zigbee/' + item);
-                            subscribe('expose/zigbee/' + item);
-                            subscribe('fd/zigbee/'     + item);
+                            this.socket.subscribe('expose/zigbee/' + item);
+                            this.socket.subscribe('fd/zigbee/' + item);
+
+                            // TODO: update last seen if page matches
+                        });
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+
+            case 'event':
+            {
+                switch (service)
+                {
+                    case 'zigbee':
+                    {
+                        var html = 'Device <b>' + message.device + '</b> ';
+
+                        switch (message.event)
+                        {
+                            case 'deviceJoined':        this.showToast(html + 'joined network'); break;
+                            case 'deviceLeft':          this.showToast(html + 'left network', 'warning');  break;
+                            case 'deviceNameDuplicate': this.showToast(html + 'rename failed, name is already in use', 'error'); break;
+                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); break;
+                            case 'interviewError':      this.showToast(html + 'interview error', 'error'); break;
+                            case 'interviewTimeout':    this.showToast(html + 'interview timed out', 'error'); break;
+                            case 'interviewFinished':   this.showToast(html + 'interview finished'); break;
                         }
                     }
-                });
-
-                container.querySelectorAll('.deviceList th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(this.dataset.index); }) );
-                sortTable(localStorage.getItem('sort') ?? 0);
-            });
-
-            break;
-    }
-}
-
-function clearPage(warning = null)
-{
-    var container = document.querySelector('.content .container');
-
-    container.innerHTML = '<div class="loader"></div><div class="center warning"></div>';
-    zigbeeData = null;
-
-    if (warning)
-    {
-        container.querySelector('.warning').innerHTML = warning;
-        console.log(warning);
-    }
-
-    closeModal();
-}
-
-// modal
-
-function showModal(name)
-{
-    var modal = document.querySelector('#modal');
-
-    switch (name)
-    {
-        case 'deviceRename':
-
-            fetch('html/deviceRename.html?' + Date.now()).then(response => response.text()).then(html =>
-            {
-                modal.querySelector('.data').innerHTML = html;
-
-                modal.querySelector('.title').innerHTML = 'Renaming "' + deviceData.name + '"...';
-                modal.querySelector('input[name="name"]').value = deviceData.name;
-                modal.querySelector('.save').addEventListener('click', function() { renameDevice(deviceData.ieeeAddress, modal.querySelector('input[name="name"]').value); });
-                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
-
-                modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
-
-                modal.style.display = 'block';
-                modal.querySelector('input[name="name"]').focus();
-            });
-
-            break;
-
-        case 'deviceRemove':
-
-            fetch('html/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
-            {
-                modal.querySelector('.data').innerHTML = html;
-
-                modal.querySelector('.title').innerHTML = 'Remove "' + deviceData.name + '"?';
-                modal.querySelector('.graceful').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, false); });
-                modal.querySelector('.force').addEventListener('click', function() { removeDevice(deviceData.ieeeAddress, true); });
-                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
-
-                modal.style.display = 'block';
-            });
-
-            break;
-
-        case 'deviceData':
-
-            fetch('html/deviceData.html?' + Date.now()).then(response => response.text()).then(html =>
-            {
-                modal.querySelector('.data').innerHTML = html;
-
-                modal.querySelector('.title').innerHTML = deviceData.name;
-                modal.querySelector('.json').innerHTML = JSON.stringify(deviceData, null, 4);
-                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
-
-                modal.style.display = 'block';
-            });
-
-            break;
-
-        case 'deviceTopics':
-
-            fetch('html/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
-            {
-                var item = zigbeeData.names ? deviceData.name : deviceData.ieeeAddress;
-                var list;
-
-                modal.querySelector('.data').innerHTML = html;
-
-                list = modal.querySelector('.list');
-                list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/zigbee/' + item + '</pre>';
-                list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/zigbee/' + item + '</pre>';
-
-                if (endpoints.fd.length)
-                {
-                    list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
-                    endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += '{prefix}/fd/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
                 }
 
-                if (endpoints.td.length)
+                break;
+            }
+
+            case 'expose':
+            {
+                var device = list[2];
+
+                if (!this.expose[service])
+                    this.expose[service] = new Object;
+
+                this.expose[service][device] = message;
+                break;
+            }
+
+            case 'device':
+            {
+                var row = document.querySelector('tr[data-device="' + list[2] + '"]');
+
+                if (row && this.page == 'zigbee')
                 {
-                    list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
-                    endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
+                    if (message.status == 'online')
+                    {
+                        row.classList.remove('unavailable');
+                        row.querySelector('.availability').innerHTML = '<i class="icon-true success"></i>';
+                    }
+                    else
+                    {
+                        row.classList.add('unavailable');
+                        row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>';
+                    }
                 }
 
-                modal.querySelector('.title').innerHTML = 'Topics for "' + deviceData.name + '":';
-                modal.querySelector('.cancel').addEventListener('click', function() { closeModal(); });
+                break;
+            }
 
-                modal.style.display = 'block';
-            });
+            case 'fd':
+            {
+                var device = list[2];
+                var endpoint = list[3];
 
-            break;
+                switch(service)
+                {
+                    case 'zigbee':
+                    {
+                        var row = document.querySelector('tr[data-device="' + device + '"]');
 
-        default:
+                        if (row && this.page == 'zigbee')
+                        {
+                            row.querySelector('.linkQuality').innerHTML = message.linkQuality;
+                            break;
+                        }
+
+                        // TODO: refactor this shit
+                        if (this.zigbee.device && (this.zigbee.device.ieeeAddress == device || this.zigbee.device.name == device))
+                            Object.keys(message).forEach(item => { updateExpose(endpoint, item, message[item]); });
+                        //
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+
+            // TODO: remocve it
+            default:
+                console.log(topic, message);
+                break;
+        }
+    }
+
+    setService(service)
+    {
+        var controller = this;
+        var menu = document.querySelector('.menu');
+
+        if (this.service == service)
             return;
+
+        this.service = service;
+        menu.innerHTML = '';
+
+        switch(service)
+        {
+            case 'automation':
+
+                menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
+                menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+
+                menu.querySelector('#list').addEventListener('click', function() { controller.showPage('automation'); });
+                menu.querySelector('#add').addEventListener('click', function() { controller.showPage('automationAdd'); });
+
+                if (this.status.automation)
+                    document.querySelector('#serviceVersion').innerHTML = controller.status.zigbee.version;
+
+                break;
+
+            case 'zigbee':
+
+                menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
+                menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
+                menu.innerHTML += '<span id="permitJoin"><i class="icon-false"></i> Permit Join</span>';
+
+                menu.querySelector('#list').addEventListener('click', function() { controller.showPage('zigbee'); });
+                menu.querySelector('#map').addEventListener('click', function() { controller.showPage('zigbeeMap'); });
+                menu.querySelector('#permitJoin').addEventListener('click', function() { controller.socket.publish('command/zigbee', {'action': 'setPermitJoin', 'enabled': controller.status.zigbee && controller.status.zigbee.permitJoin ? false : true}); });
+
+                if (this.status.zigbee)
+                {
+                    document.querySelector('#permitJoin i').className = 'icon-enable ' + (controller.status.zigbee.permitJoin ? 'warning' : 'shade');
+                    document.querySelector('#serviceVersion').innerHTML = controller.status.zigbee.version;
+                }
+
+                break;
+        }
     }
 
-}
-
-function closeModal()
-{
-    document.querySelector('#modal').style.display = 'none';
-}
-
-// toast
-
-function showToast(message, style = 'success')
-{
-    var item = document.createElement('div');
-
-    item.innerHTML = '<div class="message">' + message + '</div>';
-    item.classList.add('item', 'fade-in', style);
-    item.addEventListener('click', function() { closeToast(this); });
-
-    document.querySelector('#toast').appendChild(item);
-    setTimeout(closeToast, 5000, item);
-}
-
-function closeToast(item)
-{
-    var toast = document.querySelector('#toast');
-
-    if (toast.contains(item))
+    setPage(page)
     {
+        location.hash = page;
+        this.page = page;
+    }
+
+    showPage(page, force = false)
+    {
+        if (this.page == page && !force)
+            return;
+
+        switch (page)
+        {
+            case 'zigbee':
+                this.zigbee.showDeviceList();
+                break;
+
+            case 'zigbeeMap':
+                this.zigbee.showDeviceMap();
+                break;
+
+            case 'zigbeeDevice':
+                this.zigbee.showDeviceInfo();
+                break;
+
+            // TODO: remove it
+            default:
+                this.setService(page)
+                this.setPage(page)
+                this.clearPage(page, page + ' page not found');
+                break;
+        }
+    }
+
+    clearPage(name, warning = null)
+    {
+        var content = document.querySelector('.content .container');
+
+        document.querySelector('#modal').style.display = 'none';
+        content.innerHTML = '<div class="loader"></div><div class="center warning"></div>';
+
+        if (warning)
+        {
+            content.querySelector('.warning').innerHTML = warning;
+            console.log(warning);
+        }
+
+        this.status[name] = null;
+        this.setPage(name);
+    }
+
+    showToast(message, style = 'success')
+    {
+        var controller = this;
+        var item = document.createElement('div');
+
+        item.addEventListener('click', function() { controller.clearToast(this); });
+        item.innerHTML = '<div class="message">' + message + '</div>';
+        item.classList.add('item', 'fade-in', style);
+
+        setTimeout(function() { controller.clearToast(item); }, 5000);
+        document.querySelector('#toast').appendChild(item);
+    }
+
+    clearToast(item)
+    {
+        var toast = document.querySelector('#toast');
+
+        if (!toast.contains(item))
+            return;
+
         setTimeout(function() { toast.removeChild(item); }, 200);
         item.classList.add('fade-out');
     }
 }
 
-// action
-
-function renameDevice(ieeeAddress, name)
+window.onload = function()
 {
-    clearPage();
-    sendCommand({action: 'setDeviceName', device: ieeeAddress, name: name});
-}
+    controller = new Controller();
 
-function removeDevice(ieeeAddress, force)
+    window.addEventListener('hashchange', function() { controller.showPage(location.hash.slice(1)); });
+    window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) document.querySelector('#modal').style.display = 'none'; });
+
+    document.querySelector('body').setAttribute('theme', theme);
+    document.querySelector('.homed').setAttribute('theme', theme);
+    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
+    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; localStorage.setItem('theme', theme); location.reload(); });
+
+    controller.showPage(localStorage.getItem('page') ?? 'zigbee');
+};
+
+document.onkeydown = function(event)
 {
-    clearPage();
-    sendCommand({action: 'removeDevice', device: ieeeAddress, force: force});
-}
+    if (event.key == 'Esc' || event.key == 'Escape')
+        document.querySelector('#modal').style.display = 'none';
+};
 
-// misc
-
-function formData(form)
+function sortTable(table, index, first = true)
 {
-    var data = {};
-    Array.from(form).forEach((input) => { data[input.name] =  input.type == 'checkbox' ? input.checked : input.value; });
-    return data;
-}
-
-function parseValue(key, value)
-{
-    switch (key)
-    {
-        case 'logicalType': return logicalType[value];
-        case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
-
-        case 'networkAddress':
-        case 'manufacturerCode':
-            return '0x' + ('0000' + value.toString(16)).slice(-4);
-
-        case 'supported':
-        case 'interviewFinished':
-            return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
-
-        default: return value;
-    }
-}
-
-function updateLastSeen(row, lastSeen)
-{
-    var cell = row.querySelector('.lastSeen');
-    var interval = Date.now() / 1000 - lastSeen;
-
-    switch (true)
-    {
-        case interval >= 86400: cell.innerHTML = Math.round(interval / 86400) + ' day'; break;
-        case interval >= 3600:  cell.innerHTML = Math.round(interval / 3600) + ' hrs'; break;
-        case interval >= 60:    cell.innerHTML = Math.round(interval / 60) + ' min'; break;
-        default:                cell.innerHTML = 'now'; break;
-    }
-}
-
-function sortTable(index)
-{
-    var table = document.querySelector('.deviceList')
     var check = true;
 
     while (check)
@@ -600,19 +406,24 @@ function sortTable(index)
 
         check = false;
 
-        for (var i = 2; i < rows.length - 1; i++)
+        for (var i = first ? 1 : 2; i < rows.length - 1; i++)
         {
-            if (rows[i].querySelectorAll('td')[index].innerHTML.toLowerCase() > rows[i + 1].querySelectorAll('td')[index].innerHTML.toLowerCase())
-            {
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                check = true;
-                break;
-            }
+            if (rows[i].querySelectorAll('td')[index].innerHTML.toLowerCase() <= rows[i + 1].querySelectorAll('td')[index].innerHTML.toLowerCase())
+                continue;
+
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            check = true;
+            break;
         }
     }
 
     table.querySelectorAll('th.sort').forEach(cell => cell.classList.remove('warning') );
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
-
-    localStorage.setItem('sort', index);
 }
+
+// TODO: refactor this shit
+function sendData(endpoint, data)
+{
+    controller.socket.publish('td/zigbee/' + controller.zigbee.device.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint), data);
+}
+//
