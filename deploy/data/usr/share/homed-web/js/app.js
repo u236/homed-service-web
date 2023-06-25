@@ -133,7 +133,7 @@ class Controller
                 {
                     case 'zigbee':
                     {
-                        var check = this.status.zigbee ? this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : new Array();
+                        var check = this.status.zigbee ? this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : null;
 
                         this.status.zigbee = message;
 
@@ -277,7 +277,7 @@ class Controller
                 menu.querySelector('#add').addEventListener('click', function() { controller.showPage('automationAdd'); });
 
                 if (this.status.automation)
-                    document.querySelector('#serviceVersion').innerHTML = controller.status.zigbee.version;
+                    document.querySelector('#serviceVersion').innerHTML = controller.status.automation.version;
 
                 break;
 

@@ -1,4 +1,5 @@
 #include <QFile>
+#include <QMimeDatabase>
 #include "controller.h"
 
 Controller::Controller(const QString &configFile) : HOMEd(configFile), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
@@ -37,7 +38,7 @@ void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
         return;
     }
 
-    socket->write(QString("HTTP/1.1 200 OK\r\nContent-Length: %1\r\n\r\n").arg(file.size()).toUtf8());
+    socket->write(QString("HTTP/1.1 200 OK\r\nContent-Type: %1\r\nContent-Length: %2\r\n\r\n").arg(QMimeDatabase().mimeTypeForFile( file.fileName() ).name()).arg(file.size()).toUtf8());
     socket->write(file.readAll());
 
     file.close();

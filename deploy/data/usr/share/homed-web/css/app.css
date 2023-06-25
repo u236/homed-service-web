@@ -301,24 +301,28 @@ body[theme="dark"] {
     justify-content: space-between;
 }
 
-.homed .deviceList tbody tr {
+.homed .itemsList tbody tr {
     cursor: pointer;
 }
 
-.homed .deviceList tbody tr:hover {
+.homed .itemsList tbody tr:hover {
     background-color: var(--background-hover);
 }
 
-.homed .deviceList td {
+.homed .itemsList td {
     min-width: 32px;
     padding: 10px;
 }
 
-.homed .deviceList .sort {
+.homed .itemsList .tiny {
+    width: 32px;
+}
+
+.homed .itemsList .sort {
     cursor: pointer;
 }
 
-.homed .deviceList .sort:hover {
+.homed .itemsList .sort:hover {
     color: var(--color-warning);
 }
 
