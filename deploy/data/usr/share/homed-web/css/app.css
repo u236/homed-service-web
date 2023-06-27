@@ -79,6 +79,21 @@ body[theme="dark"] {
     margin-right: 5px;
 }
 
+.homed input[type="number"], .homed input[type="text"], .homed select {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 10px;
+    padding: 0 5px;
+    background-color: var(--background-main);
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    font-family: var(--font-family);
+    color: var(--color-main);
+}
+
 .homed input[type="range"] {
     appearance: none;
     width: 100%;
@@ -105,19 +120,6 @@ body[theme="dark"] {
     background-color: #ffffff;
     border: none;
     border-radius: 50%;
-}
-
-.homed input[type="text"] {
-    box-sizing: border-box;
-    width: 100%;
-    height: 30px;
-    margin-bottom: 10px;
-    padding: 0 5px;
-    background-color: var(--background-main);
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    font-family: var(--font-family);
-    color: var(--color-main);
 }
 
 .homed input[type="time"] {
@@ -153,6 +155,13 @@ body[theme="dark"] {
     border-radius: var(--border-radius);
     font-size: 13px;
     font-family: 'Roboto Mono';
+}
+
+.homed span.value {
+    background-color: var(--background-shade);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    padding: 1px 10px;
 }
 
 .homed table {
@@ -241,6 +250,35 @@ body[theme="dark"] {
     width: 20px;
 }
 
+.homed .dropdown {
+    display: inline-block;
+    position: relative;
+}
+
+.homed .dropdown .list {
+    cursor: pointer;
+    display: none;
+    position: absolute;
+    background-color: var(--background-shade);
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 3px 10px;
+    right: -1px;
+    top: -1px;
+    z-index: 1;
+}
+
+.homed .dropdown .item {
+    padding: 2px 0;
+    text-align: left;
+    text-transform: none;
+}
+
+.homed .dropdown .item:hover {
+    color: var(--color-warning);
+}
+
 .homed .container {
     margin: 0 auto;
     max-width: 1000px;
@@ -301,29 +339,84 @@ body[theme="dark"] {
     justify-content: space-between;
 }
 
-.homed .itemsList tbody tr {
+.homed .itemList tbody tr {
     cursor: pointer;
 }
 
-.homed .itemsList tbody tr:hover {
+.homed .itemList tbody tr:hover {
     background-color: var(--background-hover);
 }
 
-.homed .itemsList td {
+.homed .itemList td {
     min-width: 32px;
     padding: 10px;
 }
 
-.homed .itemsList .tiny {
+.homed .itemList .tiny {
     width: 32px;
 }
 
-.homed .itemsList .sort {
+.homed .itemList .sort {
     cursor: pointer;
 }
 
-.homed .itemsList .sort:hover {
+.homed .itemList .sort:hover {
     color: var(--color-warning);
+}
+
+.homed .automationInfo table {
+    margin-bottom: 20px;
+}
+
+.homed .automationInfo td:first-child {
+    width: 100px;
+}
+
+.homed .automationInfo td.remove {
+    cursor: pointer;
+    text-align: right;
+    width: 14px;
+}
+
+.homed .automationInfo td.remove:hover {
+    color: var(--color-error);
+}
+
+.homed .automationInfo .title {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin: 10px 5px 10px 4px;
+}
+
+.homed .automationInfo .title .name {
+    font-size: 1.25em;
+    font-weight: 700;
+}
+
+.homed .deviceInfo table {
+    margin-bottom: 20px;
+}
+
+.homed .deviceInfo td:first-child {
+    width: 25%;
+    min-width: 150px;
+}
+
+.homed .deviceInfo td:last-child {
+    font-size: 13px;
+    font-family: 'Roboto Mono';
+}
+
+.homed .deviceInfo .title {
+    align-items: center;
+    display: flex;
+    font-size: 1.25em;
+    font-weight: 700;
+    gap: 10px;
+    justify-content: space-between;
+    margin: 10px 5px 10px 4px;
 }
 
 .homed .deviceMap svg {
@@ -379,34 +472,6 @@ body[theme="dark"] {
 .homed .deviceMap .checkbox {
     padding: 0 5px;
     cursor: pointer;
-}
-
-.homed .deviceInfo pre {
-    margin: 10px 0;
-}
-
-.homed .deviceInfo table {
-    margin-bottom: 20px;
-}
-
-.homed .deviceInfo td:first-child {
-    width: 25%;
-    min-width: 150px;
-}
-
-.homed .deviceInfo td:last-child {
-    font-size: 13px;
-    font-family: 'Roboto Mono';
-}
-
-.homed .deviceInfo .title {
-    align-items: center;
-    display: flex;
-    font-size: 1.25em;
-    font-weight: 700;
-    gap: 10px;
-    justify-content: space-between;
-    margin: 10px 4px;
 }
 
 .homed .exposes .value {

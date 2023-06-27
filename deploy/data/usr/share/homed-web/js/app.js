@@ -73,7 +73,10 @@ class Controller
 {
     services = ['automation', 'zigbee'];
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
+
+    automation = new Automation(this);
     zigbee = new ZigBee(this);
+
     status = new Object();
     expose = new Object();
 
@@ -93,7 +96,7 @@ class Controller
             item.addEventListener('click', function() { controller.showPage(service); localStorage.setItem('page', service); });
 
             controller.socket.subscribe('service/' + service);
-            // services.appendChild(item);
+            services.appendChild(item);
         });
     }
 
@@ -131,6 +134,23 @@ class Controller
             {
                 switch (service)
                 {
+                    case 'automation':
+                    {
+                        var check = this.status.automation ? this.status.automation.automations : null;
+
+                        this.status.automation = message;
+
+                        if (this.service == 'automation')
+                        {
+                            if (JSON.stringify(check) != JSON.stringify(this.status.automation.automations))
+                                this.automation.showAutomationList();
+
+                            document.querySelector('#serviceVersion').innerHTML = this.status.automation.version;
+                        }
+
+                        break;
+                    }
+
                     case 'zigbee':
                     {
                         var check = this.status.zigbee ? this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : null;
@@ -140,7 +160,7 @@ class Controller
                         if (this.service == 'zigbee')
                         {
                             if (JSON.stringify(check) != JSON.stringify(this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
-                                this.showPage('zigbee', true);
+                                this.zigbee.showDeviceList();
 
                             document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.status.zigbee.permitJoin ? 'warning' : 'shade');
                             document.querySelector('#serviceVersion').innerHTML = this.status.zigbee.version;
@@ -273,8 +293,8 @@ class Controller
                 menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
                 menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
-                menu.querySelector('#list').addEventListener('click', function() { controller.showPage('automation'); });
-                menu.querySelector('#add').addEventListener('click', function() { controller.showPage('automationAdd'); });
+                menu.querySelector('#list').addEventListener('click', function() { controller.automation.showAutomationList(); });
+                menu.querySelector('#add').addEventListener('click', function() { controller.automation.showAutomationInfo(true); });
 
                 if (this.status.automation)
                     document.querySelector('#serviceVersion').innerHTML = controller.status.automation.version;
@@ -287,8 +307,8 @@ class Controller
                 menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
                 menu.innerHTML += '<span id="permitJoin"><i class="icon-false"></i> Permit Join</span>';
 
-                menu.querySelector('#list').addEventListener('click', function() { controller.showPage('zigbee'); });
-                menu.querySelector('#map').addEventListener('click', function() { controller.showPage('zigbeeMap'); });
+                menu.querySelector('#list').addEventListener('click', function() { controller.zigbee.showDeviceList(); });
+                menu.querySelector('#map').addEventListener('click', function() { controller.zigbee.showDeviceMap(); });
                 menu.querySelector('#permitJoin').addEventListener('click', function() { controller.socket.publish('command/zigbee', {'action': 'setPermitJoin', 'enabled': controller.status.zigbee && controller.status.zigbee.permitJoin ? false : true}); });
 
                 if (this.status.zigbee)
@@ -314,6 +334,14 @@ class Controller
 
         switch (page)
         {
+            case 'automation':
+                this.automation.showAutomationList();
+                break;
+
+            case 'automationInfo':
+                this.automation.showAutomationInfo();
+                break;
+
             case 'zigbee':
                 this.zigbee.showDeviceList();
                 break;
@@ -421,6 +449,33 @@ function sortTable(table, index, first = true)
 
     table.querySelectorAll('th.sort').forEach(cell => cell.classList.remove('warning') );
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
+}
+
+function formData(form)
+{
+    var data = new Object;
+    Array.from(form).forEach(input => { data[input.name] = input.type == 'checkbox' ? input.checked : input.value; });
+    return data;
+}
+
+function addDropdown(dropdown, options, callback)
+{
+    var list = document.createElement('div');
+
+    dropdown.addEventListener('mouseenter', function() { list.style.display = 'block'; });
+    dropdown.addEventListener('mouseleave', function() { list.style.display = 'none'; });
+
+    list.classList.add('list');
+    dropdown.append(list);
+
+    options.forEach(option =>
+    {
+        var item = document.createElement('div');
+        item.addEventListener('click', function() { list.style.display = 'none'; callback(option); });
+        item.classList.add('item');
+        item.innerHTML = option;
+        list.append(item);
+    });
 }
 
 // TODO: refactor this shit
