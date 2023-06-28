@@ -4,7 +4,13 @@ class Automation
     modal = document.querySelector('#modal');
 
     triggerType = ['property', 'telegram', 'mqtt', 'sunrise', 'sunset', 'time'];
-    triggerStatement = ['equals', 'above', 'below', 'between'];
+    triggerStatement = ['equals', 'above', 'below'/*, 'between'*/];
+
+    conditionType = ['property', 'date', 'time', 'week'];
+    triggerStatement = ['equals', 'differs', 'above', 'below'/*, 'between'*/];
+
+    actionType = ['property', 'telegram', 'mqtt', 'shell'];
+    actionStatement = ['value', 'increase', 'decrease'];
 
     constructor(controller)
     {
@@ -73,16 +79,20 @@ class Automation
             var actions;
 
             automation.content.innerHTML = html;
-            //automation.content.querySelector('.edit').addEventListener('click', function() { zigbee.showAutomationEdit(); });
-            //automation.content.querySelector('.remove').addEventListener('click', function() { zigbee.showAutomationRemove(); });
-            automation.content.querySelector('.update').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: automation.name, data: automation.data}); });
 
             if (add)
             {
-                automation.data = {name: 'New automation ' + Math.random().toString(36).substring(2, 7), triggers: new Array(), conditions: new Array(), actions: new Array()};
+                automation.name = null;
+                automation.data = {triggers: new Array(), conditions: new Array(), actions: new Array()};
                 automation.content.querySelector('.remove').style.display = 'none';
-                // TODO: show edit here?
             }
+
+            if (!automation.data.name)
+                automation.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
+
+            automation.content.querySelector('.edit').addEventListener('click', function() { automation.showAutomationEdit(); });
+            automation.content.querySelector('.remove').addEventListener('click', function() { automation.showAutomationRemove(); });
+            automation.content.querySelector('.save').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: automation.name, data: automation.data}); });
 
             automation.content.querySelector('.name').innerHTML = automation.data.name;
             automation.content.querySelector('.delay').innerHTML = automation.data.delay ?? 0;
@@ -93,6 +103,8 @@ class Automation
             actions = automation.content.querySelector('.actions');
 
             addDropdown(automation.content.querySelector('.addTrigger'), automation.triggerType, function(type) { automation.showTrigger({'type': type}, true); });
+            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.showCondition({'type': type}, true); });
+            addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.showAction({'type': type}, true); });
 
             automation.data.triggers.forEach((trigger, index) =>
             {
@@ -105,7 +117,7 @@ class Automation
                     switch (i)
                     {
                         case 0: cell.innerHTML = trigger.type; break;
-                        case 1: cell.innerHTML = automation.triggerInfo(trigger) ?? '<i>undefined</i>'; cell.style.cursor = 'pointer'; cell.addEventListener('click', function() { automation.showTrigger(trigger); }); break;
+                        case 1: cell.innerHTML = automation.triggerInfo(trigger) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showTrigger(trigger); }); break;
                         case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.triggers.splice(index, 1); row.remove(); }); break;
                     }
                 }
@@ -122,7 +134,7 @@ class Automation
                     switch (i)
                     {
                         case 0: cell.innerHTML = condition.type; break;
-                        case 1: cell.innerHTML = automation.conditionInfo(condition) ?? '<i>undefined</i>'; break;
+                        case 1: cell.innerHTML = automation.conditionInfo(condition) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showCondition(condition); }); break;
                         case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.conditions.splice(index, 1); row.remove(); }); break;
                     }
                 }
@@ -139,11 +151,60 @@ class Automation
                     switch (i)
                     {
                         case 0: cell.innerHTML = action.type; break;
-                        case 1: cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>'; break;
+                        case 1: cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showAction(action); }); break;
                         case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.actions.splice(index, 1); row.remove(); }); break;
                     }
                 }
             });
+        });
+    }
+
+    showAutomationEdit()
+    {
+        // TODO: between
+        fetch('html/automation/automationEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('.title').innerHTML = automation.data.name;
+            automation.modal.querySelector('input[name="name"]').value = automation.data.name;
+            automation.modal.querySelector('input[name="delay"]').value = automation.data.delay ?? 0;
+            automation.modal.querySelector('input[name="restart"]').checked = automation.data.restart ?? false;
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+
+                automation.data.name = data.name;
+                automation.data.delay = data.delay;
+                automation.data.restart = data.restart;
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.querySelector('input[name="name"]').focus();
+        });
+    }
+
+    showAutomationRemove()
+    {
+        // TODO: between
+        fetch('html/automation/automationRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('.title').innerHTML = automation.data.name;
+            automation.modal.querySelector('.remove').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: automation.name}); automation.controller.clearPage('automation'); });
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+
+            automation.modal.style.display = 'block';
         });
     }
 
@@ -178,7 +239,7 @@ class Automation
                 option.innerHTML = statement;
                 automation.modal.querySelector('select[name="statement"]').append(option);
 
-                if (!trigger[statement])
+                if (!trigger.hasOwnProperty(statement))
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
@@ -190,9 +251,10 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 automation.triggerStatement.forEach(statement => delete trigger[statement]);
+
                 trigger.endpoint = data.endpoint;
                 trigger.property = data.property;
-                trigger[data.statement] = data.value;
+                trigger[data.statement] = automation.parseValue(data.value);
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -222,9 +284,10 @@ class Automation
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(automation.modal.querySelector('form'));
+                var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 trigger.message = data.message;
-                trigger.chats = data.chats ? data.chats.split(",").map(item => { return item.trim(); }) : null;
+                trigger.chats = chats.length ? chats : null;
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -281,11 +344,14 @@ class Automation
 
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('.title').innerHTML = type + ' trigger';
-            automation.modal.querySelector('input[name="offset"]').value = trigger.offset;
+            automation.modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
-                trigger.offset = automation.modal.querySelector('input[name="offset"]').value;
+                trigger.offset = parseInt(automation.modal.querySelector('input[name="offset"]').value);
+
+                if (isNaN(trigger.offset))
+                    trigger.offset = 0;
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -309,7 +375,7 @@ class Automation
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="time"]').value = trigger.time;
+            automation.modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
@@ -330,6 +396,71 @@ class Automation
         });
     }
 
+    showAction(action, append = false)
+    {
+        switch (action.type)
+        {
+            case 'property': this.showPropertyAction(action, append); break;
+            // case 'telegram': this.showTelegramTrigger(trigger, append); break;
+            // case 'mqtt':     this.showMqttTrigger(trigger, append); break;
+            // case 'sunrise':  this.showSunTrigger('sunrise', trigger, append); break;
+            // case 'sunset':   this.showSunTrigger('sunset', trigger, append); break;
+            // case 'time':     this.showTimeTrigger(trigger, append); break;
+        }
+    }
+
+    showPropertyAction(action, append)
+    {
+        // TODO: increase/decrease
+        fetch('html/automation/propertyAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="endpoint"]').value = action.endpoint ?? '';
+            automation.modal.querySelector('input[name="property"]').value = action.property ?? '';
+
+            automation.actionStatement.forEach(statement =>
+            {
+                var option = document.createElement('option');
+
+                option.innerHTML = statement;
+                automation.modal.querySelector('select[name="statement"]').append(option);
+
+                if (!action[statement])
+                    return;
+
+                automation.modal.querySelector('select[name="statement"]').value = statement;
+                automation.modal.querySelector('input[name="value"]').value = action[statement];
+            });
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+
+                automation.actionStatement.forEach(statement => delete action[statement]);
+
+                action.endpoint = data.endpoint;
+                action.property = data.property;
+                action[data.statement] = automation.parseValue(data.value);
+
+                console.log(action);
+
+                if (append)
+                    automation.data.actions.push(action);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.querySelector('input[name="endpoint"]').focus();
+        });
+    }
+
     triggerInfo(trigger)
     {
         switch (trigger.type)
@@ -338,13 +469,13 @@ class Automation
 
                 // TODO: between
                 for (var i = 0; i < this.triggerStatement.length; i++)
-                    if (trigger[this.triggerStatement[i]])
+                    if (trigger.hasOwnProperty(this.triggerStatement[i]))
                         return '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + this.triggerStatement[i] + ' <span class="value">' + trigger[this.triggerStatement[i]] + '</span>';
 
                 break;
 
             case 'telegram': return '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
-            case 'mqtt':     return '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span>';
+            case 'mqtt':     return '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span> topic';
             case 'sunrise':  return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
             case 'sunset':   return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
             case 'time':     return '<span class="value">' + trigger.time + '</span>';
@@ -355,8 +486,22 @@ class Automation
     {
         switch (action.type)
         {
-            case 'property': return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > <span class="value">' + action.value + '</span>';
+            case 'property':
+
+            for (var i = 0; i < this.actionStatement.length; i++)
+                if (action.hasOwnProperty(this.actionStatement[i]))
+                    return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' +
+                    (this.actionStatement[i] == 'increase' ? '<span class="value">+</span> ' : this.actionStatement[i] == 'decrease' ? '<span class="value">-</span> ' : '') +
+                    '<span class="value">' + action[this.actionStatement[i]] + '</span>';
+
+            break;
+
             case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
         }
+    }
+
+    parseValue(value)
+    {
+        return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
     }
 }

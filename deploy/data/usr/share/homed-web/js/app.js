@@ -462,7 +462,7 @@ function addDropdown(dropdown, options, callback)
 {
     var list = document.createElement('div');
 
-    dropdown.addEventListener('mouseenter', function() { list.style.display = 'block'; });
+    dropdown.addEventListener('pointerenter', function() { list.style.display = 'block'; });
     dropdown.addEventListener('mouseleave', function() { list.style.display = 'none'; });
 
     list.classList.add('list');

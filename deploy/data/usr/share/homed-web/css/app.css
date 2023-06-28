@@ -4,11 +4,11 @@ html, body {
 }
 
 body[theme="light"] {
-    background-color: #ffffff;
+    background-color:   #eeeeee;
 }
 
 body[theme="dark"] {
-    background-color: #111111;
+    background-color:   #222222;
 }
 
 .homed[theme="light"] {
@@ -128,6 +128,10 @@ body[theme="dark"] {
     border-radius: var(--border-radius);
 }
 
+.homed form input[type="time"] {
+    margin-bottom: 10px;
+}
+
 .homed input.level {
     background: linear-gradient(to right, var(--range-dark), var(--range-light));
 }
@@ -148,6 +152,10 @@ body[theme="dark"] {
     color: var(--color-highlight);
 }
 
+.homed form label:last-child {
+    margin-bottom: 10px;
+}
+
 .homed pre {
     overflow-x: auto;
     padding: 5px;
@@ -160,7 +168,8 @@ body[theme="dark"] {
 .homed span.value {
     background-color: var(--background-shade);
     border-radius: var(--border-radius);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    font-family: 'Roboto Mono';
     padding: 1px 10px;
 }
 
@@ -364,12 +373,24 @@ body[theme="dark"] {
     color: var(--color-warning);
 }
 
+.homed .automationInfo {
+    padding-bottom: 80px;
+}
+
 .homed .automationInfo table {
     margin-bottom: 20px;
 }
 
 .homed .automationInfo td:first-child {
     width: 100px;
+}
+
+.homed .automationInfo td.edit {
+    cursor: pointer;
+}
+
+.homed .automationInfo td.edit:hover {
+    color: var(--color-warning);
 }
 
 .homed .automationInfo td.remove {
