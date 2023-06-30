@@ -128,10 +128,6 @@ body[theme="dark"] {
     border-radius: var(--border-radius);
 }
 
-.homed form input[type="time"] {
-    margin-bottom: 10px;
-}
-
 .homed input.level {
     background: linear-gradient(to right, var(--range-dark), var(--range-light));
 }

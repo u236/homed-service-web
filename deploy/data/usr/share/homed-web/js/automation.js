@@ -42,6 +42,25 @@ class Automation
         }
     }
 
+    conditionInfo(condition)
+    {
+        if (condition.type == 'week')
+            return '<span class="value">' + condition.days.join(', ') + '</span>';
+
+        for (var i = 0; i < this.conditionStatement.length; i++)
+        {
+            if (!condition.hasOwnProperty(this.conditionStatement[i]))
+                continue;
+
+            switch (condition.type)
+            {
+                case 'property': return '<span class="value">' + condition.endpoint + '</span> > <span class="value">' + condition.property + '</span> ' + this.conditionStatement[i] + ' <span class="value">' + condition[this.conditionStatement[i]] + '</span>';
+                case 'date':     return this.conditionStatement[i] + ' <span class="value">' + condition[this.conditionStatement[i]] + '</span>';
+                case 'time':     return this.conditionStatement[i] + ' <span class="value">' + condition[this.conditionStatement[i]] + '</span>';
+            }
+        }
+    }
+
     actionInfo(action)
     {
         switch (action.type)
@@ -50,13 +69,13 @@ class Automation
 
             for (var i = 0; i < this.actionStatement.length; i++)
                 if (action.hasOwnProperty(this.actionStatement[i]))
-                    return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' +
-                    (this.actionStatement[i] == 'increase' ? '<span class="value">+</span> ' : this.actionStatement[i] == 'decrease' ? '<span class="value">-</span> ' : '') +
-                    '<span class="value">' + action[this.actionStatement[i]] + '</span>';
+                    return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' + (this.actionStatement[i] == 'increase' ? '<span class="value">+</span> ' : this.actionStatement[i] == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[this.actionStatement[i]] + '</span>';
 
             break;
 
-            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
+            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
+            case 'mqtt':     return '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' [with retain]' : '');
+            case 'shell':    return '<span class="value">' + action.command + '</span>';
         }
     }
 
@@ -138,8 +157,8 @@ class Automation
             automation.content.querySelector('.save').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: automation.name, data: automation.data}); });
 
             automation.content.querySelector('.name').innerHTML = automation.data.name;
-            automation.content.querySelector('.delay').innerHTML = automation.data.delay ?? 0;
-            automation.content.querySelector('.restart').innerHTML = automation.data.restart ?? false;
+            automation.content.querySelector('.delay').innerHTML = '<span class="value">' + (automation.data.delay ?? 0) + '</span> seconds';
+            automation.content.querySelector('.restart').innerHTML = '<span class="value">' + (automation.data.restart ?? false) + '</span>';
 
             triggers = automation.content.querySelector('.triggers');
             conditions = automation.content.querySelector('.conditions');
@@ -166,7 +185,7 @@ class Automation
                 }
             });
 
-            automation.data.conditions.forEach(condition =>
+            automation.data.conditions.forEach((condition, index) =>
             {
                 var row = conditions.insertRow();
 
@@ -253,7 +272,7 @@ class Automation
     {
         switch (trigger.type)
         {
-            case 'property': this.showPropertyTrigger(trigger, append); break;
+            case 'property': this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, 'trigger', append); break;
             case 'telegram': this.showTelegramTrigger(trigger, append); break;
             case 'mqtt':     this.showMqttTrigger(trigger, append); break;
             case 'sunrise':  this.showSunTrigger('sunrise', trigger, append); break;
@@ -266,9 +285,9 @@ class Automation
     {
         switch (condition.type)
         {
-            case 'property': this.showPropertyCondition(condition, append); break;
-            case 'date':     this.showDateCondition(condition, append); break;
-            case 'time':     this.showTomeCondition(condition, append); break;
+            case 'property': this.showPropertyItem(condition, this.data.conditions, this.conditionStatement, 'condition', append); break;
+            case 'date':     this.showDateTimeCondition(condition, 'date', append); break;
+            case 'time':     this.showDateTimeCondition(condition, 'time', append); break;
             case 'week':     this.showWeekCondition(condition, append); break;
         }
     }
@@ -277,49 +296,50 @@ class Automation
     {
         switch (action.type)
         {
-            case 'property': this.showPropertyAction(action, append); break;
-            case 'telegram': this.showTelegramAction(trigger, append); break;
-            case 'mqtt':     this.showMqttAction(trigger, append); break;
-            case 'shell':    this.showShellAction(trigger, append); break;
+            case 'property': this.showPropertyItem(action, this.data.actions, this.actionStatement, 'action', append); break;
+            case 'telegram': this.showTelegramAction(action, append); break;
+            case 'mqtt':     this.showMqttAction(action, append); break;
+            case 'shell':    this.showShellAction(action, append); break;
         }
     }
 
-    showPropertyTrigger(trigger, append)
+    showPropertyItem(item, list, statements, name, append)
     {
-        fetch('html/automation/propertyTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="endpoint"]').value = trigger.endpoint ?? '';
-            automation.modal.querySelector('input[name="property"]').value = trigger.property ?? '';
+            automation.modal.querySelector('.title').innerHTML = 'property ' + name;
+            automation.modal.querySelector('input[name="endpoint"]').value = item.endpoint ?? '';
+            automation.modal.querySelector('input[name="property"]').value = item.property ?? '';
 
-            automation.triggerStatement.forEach(statement =>
+            statements.forEach(statement =>
             {
                 var option = document.createElement('option');
 
                 option.innerHTML = statement;
                 automation.modal.querySelector('select[name="statement"]').append(option);
 
-                if (!trigger.hasOwnProperty(statement))
+                if (!item[statement])
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
-                automation.modal.querySelector('input[name="value"]').value = trigger[statement];
+                automation.modal.querySelector('input[name="value"]').value = item[statement];
             });
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(automation.modal.querySelector('form'));
 
-                automation.triggerStatement.forEach(statement => delete trigger[statement]);
+                statements.forEach(statement => delete item[statement]);
 
-                trigger.endpoint = data.endpoint;
-                trigger.property = data.property;
-                trigger[data.statement] = automation.parseValue(data.value);
+                item.endpoint = data.endpoint;
+                item.property = data.property;
+                item[data.statement] = automation.parseValue(data.value);
 
                 if (append)
-                    automation.data.triggers.push(trigger);
+                    list.push(item);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
@@ -458,39 +478,100 @@ class Automation
         });
     }
 
-    showPropertyAction(action, append)
+    showDateTimeCondition(condition, name, append)
     {
-        fetch('html/automation/propertyAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/automation/' + name + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="endpoint"]').value = action.endpoint ?? '';
-            automation.modal.querySelector('input[name="property"]').value = action.property ?? '';
 
-            automation.actionStatement.forEach(statement =>
+            automation.conditionStatement.forEach(statement =>
             {
                 var option = document.createElement('option');
 
                 option.innerHTML = statement;
                 automation.modal.querySelector('select[name="statement"]').append(option);
 
-                if (!action[statement])
+                if (!condition[statement])
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
-                automation.modal.querySelector('input[name="value"]').value = action[statement];
+                automation.modal.querySelector('input[name="value"]').value = condition[statement];
             });
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(automation.modal.querySelector('form'));
 
-                automation.actionStatement.forEach(statement => delete action[statement]);
+                automation.conditionStatement.forEach(statement => delete condition[statement]);
+                condition[data.statement] = data.value;
 
-                action.endpoint = data.endpoint;
-                action.property = data.property;
-                action[data.statement] = automation.parseValue(data.value);
+                if (append)
+                    automation.data.conditions.push(condition);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.querySelector('select[name="statement"]').focus();
+        });
+    }
+
+    showWeekCondition(condition, append)
+    {
+        fetch('html/automation/weekCondition.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="days"]').value = condition.days ? condition.days.join(', ') : '';
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+                var days = data.days ? data.days.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+
+                condition.days = days.length ? days : null;
+
+                if (append)
+                    automation.data.conditions.push(condition);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.querySelector('input[name="message"]').focus();
+        });
+    }
+
+    showTelegramAction(action, append)
+    {
+        fetch('html/automation/telegramAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="message"]').value = action.message ?? '';
+            automation.modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
+            automation.modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+                var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+
+                action.message = data.message;
+                action.chats = chats.length ? chats : null;
+                action.silent = data.silent;
 
                 if (append)
                     automation.data.actions.push(action);
@@ -503,7 +584,69 @@ class Automation
             automation.modal.style.display = 'block';
 
             // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
-            automation.modal.querySelector('input[name="endpoint"]').focus();
+            automation.modal.querySelector('input[name="message"]').focus();
+        });
+    }
+
+    showMqttAction(action, append)
+    {
+        fetch('html/automation/mqttAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
+            automation.modal.querySelector('input[name="message"]').value = action.message ?? '';
+            automation.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+
+                action.topic = data.topic;
+                action.message = data.message;
+                action.retain = data.retain;
+
+                if (append)
+                    automation.data.actions.push(action);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.querySelector('input[name="topic"]').focus();
+        });
+    }
+
+    showShellAction(action, append)
+    {
+        fetch('html/automation/shellAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="command"]').value = action.command ?? '';
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                action.command = automation.modal.querySelector('input[name="command"]').value;
+
+                if (append)
+                    automation.data.actions.push(action);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
 }
