@@ -117,7 +117,7 @@ class Automation
                     {
                         case 0: cell.innerHTML = item.name; break;
                         case 1: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center'); break;
-                        case 2: cell.innerHTML = item.conditions ? '<span class="label">' + item.conditions.length + '</span>' : '-'; cell.classList.add('center'); break;
+                        case 2: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : '-'; cell.classList.add('center'); break;
                         case 3: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center'); break;
                     }
                 }
@@ -145,7 +145,7 @@ class Automation
             if (add)
             {
                 automation.content.querySelector('.remove').style.display = 'none';
-                automation.data = {triggers: new Array(), conditions: new Array(), actions: new Array()};
+                automation.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
                 automation.name = null;
             }
 
@@ -159,6 +159,7 @@ class Automation
             automation.content.querySelector('.name').innerHTML = automation.data.name;
             automation.content.querySelector('.delay').innerHTML = '<span class="value">' + (automation.data.delay ?? 0) + '</span> seconds';
             automation.content.querySelector('.restart').innerHTML = '<span class="value">' + (automation.data.restart ?? false) + '</span>';
+            automation.content.querySelector('.active').innerHTML = '<span class="value">' + automation.data.active + '</span>';
 
             triggers = automation.content.querySelector('.triggers');
             conditions = automation.content.querySelector('.conditions');
@@ -232,6 +233,7 @@ class Automation
             automation.modal.querySelector('input[name="name"]').value = automation.data.name;
             automation.modal.querySelector('input[name="delay"]').value = automation.data.delay ?? 0;
             automation.modal.querySelector('input[name="restart"]').checked = automation.data.restart ?? false;
+            automation.modal.querySelector('input[name="active"]').checked = automation.data.active;
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
@@ -240,6 +242,7 @@ class Automation
                 automation.data.name = data.name;
                 automation.data.delay = data.delay;
                 automation.data.restart = data.restart;
+                automation.data.active = data.active;
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
