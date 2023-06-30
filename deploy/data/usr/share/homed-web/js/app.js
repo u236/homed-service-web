@@ -187,6 +187,20 @@ class Controller
             {
                 switch (service)
                 {
+                    case 'automation':
+                    {
+                        var html = 'Automation <b>' + message.automation + '</b> ';
+
+                        switch (message.event)
+                        {
+                            case 'nameDuplicate':       this.showToast(html + 'name is already in use', 'error'); break;
+                            case 'incompleteData':      this.showToast(html + 'data is incomplete', 'error'); break;
+                            case 'added':               this.showToast(html + 'successfully added'); break;
+                            case 'updated':             this.showToast(html + 'successfully updated'); break;
+                            case 'removed':             this.showToast(html + 'removed', 'warning'); break;
+                        }
+                    }
+
                     case 'zigbee':
                     {
                         var html = 'Device <b>' + message.device + '</b> ';
