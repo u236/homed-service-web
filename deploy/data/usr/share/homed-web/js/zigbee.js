@@ -9,6 +9,39 @@ class ZigBee
         this.controller = controller;
     }
 
+    parseValue(key, value)
+    {
+        switch (key)
+        {
+            case 'logicalType': return this.logicalType[value];
+            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
+
+            case 'networkAddress':
+            case 'manufacturerCode':
+                return '0x' + ('0000' + value.toString(16)).slice(-4);
+
+            case 'supported':
+            case 'interviewFinished':
+                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
+
+            default: return value;
+        }
+    }
+
+    updateLastSeen(row, lastSeen)
+    {
+        var cell = row.querySelector('.lastSeen');
+        var interval = Date.now() / 1000 - lastSeen;
+
+        switch (true)
+        {
+            case interval >= 86400: cell.innerHTML = Math.round(interval / 86400) + ' day'; break;
+            case interval >= 3600:  cell.innerHTML = Math.round(interval / 3600) + ' hrs'; break;
+            case interval >= 60:    cell.innerHTML = Math.round(interval / 60) + ' min'; break;
+            default:                cell.innerHTML = 'now'; break;
+        }
+    }
+
     showDeviceList()
     {
         var status = this.controller.status.zigbee ?? new Object();
@@ -294,38 +327,5 @@ class ZigBee
 
             zigbee.modal.style.display = 'block';
         });
-    }
-
-    parseValue(key, value)
-    {
-        switch (key)
-        {
-            case 'logicalType': return this.logicalType[value];
-            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
-
-            case 'networkAddress':
-            case 'manufacturerCode':
-                return '0x' + ('0000' + value.toString(16)).slice(-4);
-
-            case 'supported':
-            case 'interviewFinished':
-                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
-
-            default: return value;
-        }
-    }
-
-    updateLastSeen(row, lastSeen)
-    {
-        var cell = row.querySelector('.lastSeen');
-        var interval = Date.now() / 1000 - lastSeen;
-
-        switch (true)
-        {
-            case interval >= 86400: cell.innerHTML = Math.round(interval / 86400) + ' day'; break;
-            case interval >= 3600:  cell.innerHTML = Math.round(interval / 3600) + ' hrs'; break;
-            case interval >= 60:    cell.innerHTML = Math.round(interval / 60) + ' min'; break;
-            default:                cell.innerHTML = 'now'; break;
-        }
     }
 }

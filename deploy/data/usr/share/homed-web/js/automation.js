@@ -4,10 +4,10 @@ class Automation
     modal = document.querySelector('#modal');
 
     triggerType = ['property', 'telegram', 'mqtt', 'sunrise', 'sunset', 'time'];
-    triggerStatement = ['equals', 'above', 'below'/*, 'between'*/];
+    triggerStatement = ['equals', 'above', 'below']; // TODO: add between
 
     conditionType = ['property', 'date', 'time', 'week'];
-    triggerStatement = ['equals', 'differs', 'above', 'below'/*, 'between'*/];
+    conditionStatement = ['equals', 'differs', 'above', 'below']; // TODO: add between
 
     actionType = ['property', 'telegram', 'mqtt', 'shell'];
     actionStatement = ['value', 'increase', 'decrease'];
@@ -15,6 +15,49 @@ class Automation
     constructor(controller)
     {
         this.controller = controller;
+    }
+
+    parseValue(value)
+    {
+        return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
+    }
+
+    triggerInfo(trigger)
+    {
+        switch (trigger.type)
+        {
+            case 'property':
+
+                for (var i = 0; i < this.triggerStatement.length; i++)
+                    if (trigger.hasOwnProperty(this.triggerStatement[i]))
+                        return '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + this.triggerStatement[i] + ' <span class="value">' + trigger[this.triggerStatement[i]] + '</span>';
+
+                break;
+
+            case 'telegram': return '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
+            case 'mqtt':     return '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span> topic';
+            case 'sunrise':  return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
+            case 'sunset':   return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
+            case 'time':     return '<span class="value">' + trigger.time + '</span>';
+        }
+    }
+
+    actionInfo(action)
+    {
+        switch (action.type)
+        {
+            case 'property':
+
+            for (var i = 0; i < this.actionStatement.length; i++)
+                if (action.hasOwnProperty(this.actionStatement[i]))
+                    return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' +
+                    (this.actionStatement[i] == 'increase' ? '<span class="value">+</span> ' : this.actionStatement[i] == 'decrease' ? '<span class="value">-</span> ' : '') +
+                    '<span class="value">' + action[this.actionStatement[i]] + '</span>';
+
+            break;
+
+            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
+        }
     }
 
     showAutomationList()
@@ -82,9 +125,9 @@ class Automation
 
             if (add)
             {
-                automation.name = null;
-                automation.data = {triggers: new Array(), conditions: new Array(), actions: new Array()};
                 automation.content.querySelector('.remove').style.display = 'none';
+                automation.data = {triggers: new Array(), conditions: new Array(), actions: new Array()};
+                automation.name = null;
             }
 
             if (!automation.data.name)
@@ -161,7 +204,6 @@ class Automation
 
     showAutomationEdit()
     {
-        // TODO: between
         fetch('html/automation/automationEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
@@ -194,7 +236,6 @@ class Automation
 
     showAutomationRemove()
     {
-        // TODO: between
         fetch('html/automation/automationRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
@@ -221,9 +262,30 @@ class Automation
         }
     }
 
+    showCondition(condition, append = false)
+    {
+        switch (condition.type)
+        {
+            case 'property': this.showPropertyCondition(condition, append); break;
+            case 'date':     this.showDateCondition(condition, append); break;
+            case 'time':     this.showTomeCondition(condition, append); break;
+            case 'week':     this.showWeekCondition(condition, append); break;
+        }
+    }
+
+    showAction(action, append = false)
+    {
+        switch (action.type)
+        {
+            case 'property': this.showPropertyAction(action, append); break;
+            case 'telegram': this.showTelegramAction(trigger, append); break;
+            case 'mqtt':     this.showMqttAction(trigger, append); break;
+            case 'shell':    this.showShellAction(trigger, append); break;
+        }
+    }
+
     showPropertyTrigger(trigger, append)
     {
-        // TODO: between
         fetch('html/automation/propertyTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
@@ -396,22 +458,8 @@ class Automation
         });
     }
 
-    showAction(action, append = false)
-    {
-        switch (action.type)
-        {
-            case 'property': this.showPropertyAction(action, append); break;
-            // case 'telegram': this.showTelegramTrigger(trigger, append); break;
-            // case 'mqtt':     this.showMqttTrigger(trigger, append); break;
-            // case 'sunrise':  this.showSunTrigger('sunrise', trigger, append); break;
-            // case 'sunset':   this.showSunTrigger('sunset', trigger, append); break;
-            // case 'time':     this.showTimeTrigger(trigger, append); break;
-        }
-    }
-
     showPropertyAction(action, append)
     {
-        // TODO: increase/decrease
         fetch('html/automation/propertyAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
@@ -444,8 +492,6 @@ class Automation
                 action.property = data.property;
                 action[data.statement] = automation.parseValue(data.value);
 
-                console.log(action);
-
                 if (append)
                     automation.data.actions.push(action);
 
@@ -459,49 +505,5 @@ class Automation
             // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
             automation.modal.querySelector('input[name="endpoint"]').focus();
         });
-    }
-
-    triggerInfo(trigger)
-    {
-        switch (trigger.type)
-        {
-            case 'property':
-
-                // TODO: between
-                for (var i = 0; i < this.triggerStatement.length; i++)
-                    if (trigger.hasOwnProperty(this.triggerStatement[i]))
-                        return '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + this.triggerStatement[i] + ' <span class="value">' + trigger[this.triggerStatement[i]] + '</span>';
-
-                break;
-
-            case 'telegram': return '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
-            case 'mqtt':     return '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span> topic';
-            case 'sunrise':  return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
-            case 'sunset':   return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
-            case 'time':     return '<span class="value">' + trigger.time + '</span>';
-        }
-    }
-
-    actionInfo(action)
-    {
-        switch (action.type)
-        {
-            case 'property':
-
-            for (var i = 0; i < this.actionStatement.length; i++)
-                if (action.hasOwnProperty(this.actionStatement[i]))
-                    return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' +
-                    (this.actionStatement[i] == 'increase' ? '<span class="value">+</span> ' : this.actionStatement[i] == 'decrease' ? '<span class="value">-</span> ' : '') +
-                    '<span class="value">' + action[this.actionStatement[i]] + '</span>';
-
-            break;
-
-            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
-        }
-    }
-
-    parseValue(value)
-    {
-        return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
     }
 }
