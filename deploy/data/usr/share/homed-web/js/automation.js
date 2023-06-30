@@ -241,7 +241,7 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 automation.data.name = data.name;
-                automation.data.delay = data.delay;
+                automation.data.delay = parseInt(data.delay);
                 automation.data.restart = data.restart;
                 automation.data.active = data.active;
 

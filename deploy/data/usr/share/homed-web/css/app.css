@@ -148,6 +148,10 @@ body[theme="dark"] {
     color: var(--color-highlight);
 }
 
+.homed label.checkbox {
+    cursor: pointer;
+}
+
 .homed form label:last-child {
     margin-bottom: 10px;
 }
@@ -488,7 +492,6 @@ body[theme="dark"] {
 
 .homed .deviceMap .checkbox {
     padding: 0 5px;
-    cursor: pointer;
 }
 
 .homed .exposes .value {
