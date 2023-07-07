@@ -30,16 +30,7 @@ class ZigBee
 
     updateLastSeen(row, lastSeen)
     {
-        var cell = row.querySelector('.lastSeen');
-        var interval = Date.now() / 1000 - lastSeen;
-
-        switch (true)
-        {
-            case interval >= 86400: cell.innerHTML = Math.round(interval / 86400) + ' day'; break;
-            case interval >= 3600:  cell.innerHTML = Math.round(interval / 3600) + ' hrs'; break;
-            case interval >= 60:    cell.innerHTML = Math.round(interval / 60) + ' min'; break;
-            default:                cell.innerHTML = 'now'; break;
-        }
+        row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - lastSeen);
     }
 
     showDeviceList()

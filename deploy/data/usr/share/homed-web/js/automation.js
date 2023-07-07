@@ -22,6 +22,14 @@ class Automation
         return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
     }
 
+    updateLastTriggered(row, lastTriggered)
+    {
+        if (!lastTriggered)
+            return;
+
+        row.querySelector('.lastTriggered').innerHTML = timeInterval((Date.now() - lastTriggered) / 1000);
+    }
+
     triggerInfo(trigger)
     {
         switch (trigger.type)
@@ -109,7 +117,7 @@ class Automation
 
                 row.addEventListener('click', function() { automation.data = JSON.parse(JSON.stringify(item)); automation.name = item.name; automation.showAutomationInfo(); });
 
-                for (var i = 0; i < 5; i++)
+                for (var i = 0; i < 6; i++)
                 {
                     var cell = row.insertCell();
 
@@ -120,8 +128,11 @@ class Automation
                         case 2: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center'); break;
                         case 3: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : '-'; cell.classList.add('center'); break;
                         case 4: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center'); break;
+                        case 5: cell.innerHTML = '-'; cell.classList.add('lastTriggered', 'right'); break;
                     }
                 }
+
+                automation.updateLastTriggered(row, item.lastTriggered);
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('automationSort', this.dataset.index); }) );
@@ -158,6 +169,7 @@ class Automation
             automation.content.querySelector('.save').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: automation.name, data: automation.data}); });
 
             automation.content.querySelector('.name').innerHTML = automation.data.name;
+            automation.content.querySelector('.debounce').innerHTML = '<span class="value">' + (automation.data.debounce ?? 0) + '</span> seconds';
             automation.content.querySelector('.delay').innerHTML = '<span class="value">' + (automation.data.delay ?? 0) + '</span> seconds';
             automation.content.querySelector('.restart').innerHTML = '<span class="value">' + (automation.data.restart ?? false) + '</span>';
             automation.content.querySelector('.active').innerHTML = automation.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
@@ -232,6 +244,7 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('.title').innerHTML = automation.data.name;
             automation.modal.querySelector('input[name="name"]').value = automation.data.name;
+            automation.modal.querySelector('input[name="debounce"]').value = automation.data.debounce ?? 0;
             automation.modal.querySelector('input[name="delay"]').value = automation.data.delay ?? 0;
             automation.modal.querySelector('input[name="restart"]').checked = automation.data.restart ?? false;
             automation.modal.querySelector('input[name="active"]').checked = automation.data.active;
@@ -241,6 +254,7 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 automation.data.name = data.name;
+                automation.data.debounce = parseInt(data.debounce);
                 automation.data.delay = parseInt(data.delay);
                 automation.data.restart = data.restart;
                 automation.data.active = data.active;

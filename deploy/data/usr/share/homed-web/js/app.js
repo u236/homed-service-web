@@ -136,13 +136,13 @@ class Controller
                 {
                     case 'automation':
                     {
-                        var check = this.status.automation ? this.status.automation.automations : null;
+                        var check = this.status.automation ? this.status.automation.automations.map(automation => automation.name) : null;
 
                         this.status.automation = message;
 
                         if (this.service == 'automation')
                         {
-                            if (JSON.stringify(check) != JSON.stringify(this.status.automation.automations))
+                            if (JSON.stringify(check) != JSON.stringify(this.status.automation.automations.map(automation => automation.name)))
                                 this.automation.showAutomationList();
 
                             document.querySelector('#serviceVersion').innerHTML = this.status.automation.version;
@@ -172,8 +172,6 @@ class Controller
 
                             this.socket.subscribe('expose/zigbee/' + item);
                             this.socket.subscribe('fd/zigbee/' + item);
-
-                            // TODO: update last seen if page matches
                         });
 
                         break;
@@ -465,13 +463,6 @@ function sortTable(table, index, first = true)
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
 }
 
-function formData(form)
-{
-    var data = new Object;
-    Array.from(form).forEach(input => { data[input.name] = input.type == 'checkbox' ? input.checked : input.value; });
-    return data;
-}
-
 function addDropdown(dropdown, options, callback)
 {
     var list = document.createElement('div');
@@ -490,6 +481,25 @@ function addDropdown(dropdown, options, callback)
         item.innerHTML = option;
         list.append(item);
     });
+}
+
+function formData(form)
+{
+    var data = new Object;
+    Array.from(form).forEach(input => { data[input.name] = input.type == 'checkbox' ? input.checked : input.value; });
+    return data;
+}
+
+function timeInterval(interval)
+{
+    switch (true)
+    {
+        case interval >= 86400: return Math.round(interval / 86400) + ' day';
+        case interval >= 3600:  return Math.round(interval / 3600)  + ' hrs';
+        case interval >= 60:    return Math.round(interval / 60)    + ' min';
+        case interval >= 1:     return Math.round(interval)         + ' sec';
+        default:                return                                 'now';
+    }
 }
 
 // TODO: refactor this shit
