@@ -1,6 +1,7 @@
 #include <QFile>
 #include <QMimeDatabase>
 #include "controller.h"
+#include "logger.h"
 
 Controller::Controller(const QString &configFile) : HOMEd(configFile), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
 {
