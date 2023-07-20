@@ -251,7 +251,8 @@ class ZigBee
 
             zigbee.modal.style.display = 'block';
 
-            zigbee.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            zigbee.modal.removeEventListener('keypress', handleSave);
+            zigbee.modal.addEventListener('keypress', handleSave);
             zigbee.modal.querySelector('input[name="name"]').focus();
         });
     }

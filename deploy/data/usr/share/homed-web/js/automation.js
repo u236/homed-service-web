@@ -268,7 +268,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="name"]').focus();
         });
     }
@@ -368,7 +369,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="endpoint"]').focus();
         });
     }
@@ -401,7 +403,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="message"]').focus();
         });
     }
@@ -433,7 +436,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
@@ -465,7 +469,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="offset"]').focus();
         });
     }
@@ -493,7 +498,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="time"]').focus();
         });
     }
@@ -537,7 +543,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('select[name="statement"]').focus();
         });
     }
@@ -568,7 +575,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="message"]').focus();
         });
     }
@@ -603,7 +611,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="message"]').focus();
         });
     }
@@ -637,7 +646,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
@@ -665,7 +675,8 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }

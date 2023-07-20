@@ -435,7 +435,10 @@ window.onload = function()
 document.onkeydown = function(event)
 {
     if (event.key == 'Esc' || event.key == 'Escape')
+    {
         document.querySelector('#modal').style.display = 'none';
+        document.querySelector('#modal').querySelector('.data').innerHTML = null;
+    }
 };
 
 function sortTable(table, index, first = true)
@@ -481,6 +484,15 @@ function addDropdown(dropdown, options, callback)
         item.innerHTML = option;
         list.append(item);
     });
+}
+
+function handleSave(event)
+{
+    if (event.key == 'Enter')
+    {
+        event.preventDefault();
+        document.querySelector('.save').click();
+    }
 }
 
 function formData(form)
