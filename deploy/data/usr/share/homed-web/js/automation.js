@@ -94,9 +94,9 @@ class Automation
         this.controller.setService('automation');
         this.controller.setPage('automation');
 
-        if (!status.automations)
+        if (!status.automations || !status.automations.length)
         {
-            this.controller.clearPage('automation', 'automation service automations list is empty'); // TODO: show empty page
+            this.content.innerHTML = '<div class="emptyList">automations list is empty</div>';
             return;
         }
 
@@ -156,13 +156,15 @@ class Automation
 
             if (add)
             {
-                automation.content.querySelector('.remove').style.display = 'none';
                 automation.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
                 automation.name = null;
             }
 
             if (!automation.data.name)
                 automation.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
+
+            if (!automation.name)
+                automation.content.querySelector('.remove').style.display = 'none';
 
             automation.content.querySelector('.edit').addEventListener('click', function() { automation.showAutomationEdit(); });
             automation.content.querySelector('.remove').addEventListener('click', function() { automation.showAutomationRemove(); });
@@ -266,7 +268,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="name"]').focus();
         });
     }
@@ -366,7 +368,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="endpoint"]').focus();
         });
     }
@@ -399,7 +401,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="message"]').focus();
         });
     }
@@ -431,7 +433,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
@@ -463,7 +465,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="offset"]').focus();
         });
     }
@@ -491,7 +493,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="time"]').focus();
         });
     }
@@ -535,7 +537,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('select[name="statement"]').focus();
         });
     }
@@ -566,7 +568,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="message"]').focus();
         });
     }
@@ -601,7 +603,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="message"]').focus();
         });
     }
@@ -635,7 +637,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
@@ -663,7 +665,7 @@ class Automation
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
-            // automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            automation.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }

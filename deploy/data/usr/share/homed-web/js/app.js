@@ -207,8 +207,8 @@ class Controller
                         {
                             case 'deviceJoined':        this.showToast(html + 'joined network'); break;
                             case 'deviceLeft':          this.showToast(html + 'left network', 'warning');  break;
-                            case 'deviceNameDuplicate': this.showToast(html + 'rename failed, name is already in use', 'error'); break;
-                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); break;
+                            case 'deviceNameDuplicate': this.showToast(html + 'name is already in use', 'error'); break;
+                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); this.clearPage('zigbee'); break;
                             case 'interviewError':      this.showToast(html + 'interview error', 'error'); break;
                             case 'interviewTimeout':    this.showToast(html + 'interview timed out', 'error'); break;
                             case 'interviewFinished':   this.showToast(html + 'interview finished'); break;

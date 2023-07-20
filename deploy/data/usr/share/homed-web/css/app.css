@@ -348,6 +348,12 @@ body[theme="dark"] {
     justify-content: space-between;
 }
 
+.homed .emptyList {
+    color: var(--color-shade);
+    padding: 15px 0;
+    text-align: center;
+}
+
 .homed .itemList tbody tr {
     cursor: pointer;
 }

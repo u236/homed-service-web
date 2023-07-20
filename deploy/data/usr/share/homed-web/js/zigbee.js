@@ -103,7 +103,7 @@ class ZigBee
 
         if (!status.devices)
         {
-            this.controller.clearPage('zigbeeMap', 'zigbee service devices list is empty');
+            this.controller.clearPage('zigbee', 'zigbee service devices list is empty');
             return;
         }
 
@@ -246,12 +246,12 @@ class ZigBee
             zigbee.modal.querySelector('.data').innerHTML = html;
             zigbee.modal.querySelector('.title').innerHTML = 'Renaming "' + zigbee.device.name + '"...';
             zigbee.modal.querySelector('input[name="name"]').value = zigbee.device.name;
-            zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'setDeviceName', device: zigbee.device.name, name: modal.querySelector('input[name="name"]').value}); zigbee.controller.clearPage('zigbee'); });
+            zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'setDeviceName', device: zigbee.device.name, name: modal.querySelector('input[name="name"]').value}); });
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
 
             zigbee.modal.style.display = 'block';
 
-            zigbee.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }});
+            zigbee.modal.addEventListener('keypress', function(event) { if (event.key == 'Enter') { event.preventDefault(); modal.querySelector('.save').click(); }}, {once: true});
             zigbee.modal.querySelector('input[name="name"]').focus();
         });
     }
