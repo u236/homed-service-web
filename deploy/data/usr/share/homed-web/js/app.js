@@ -189,6 +189,9 @@ class Controller
                     {
                         var html = 'Automation <b>' + message.automation + '</b> ';
 
+                        if (message.event == 'updated')
+                            this.clearPage('automation');
+
                         switch (message.event)
                         {
                             case 'nameDuplicate':       this.showToast(html + 'name is already in use', 'error'); break;
@@ -203,12 +206,15 @@ class Controller
                     {
                         var html = 'Device <b>' + message.device + '</b> ';
 
+                        if (message.event == 'deviceUpdated')
+                            this.clearPage('zigbee');
+
                         switch (message.event)
                         {
                             case 'deviceJoined':        this.showToast(html + 'joined network'); break;
                             case 'deviceLeft':          this.showToast(html + 'left network', 'warning');  break;
                             case 'deviceNameDuplicate': this.showToast(html + 'name is already in use', 'error'); break;
-                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); this.clearPage('zigbee'); break;
+                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); break;
                             case 'interviewError':      this.showToast(html + 'interview error', 'error'); break;
                             case 'interviewTimeout':    this.showToast(html + 'interview timed out', 'error'); break;
                             case 'interviewFinished':   this.showToast(html + 'interview finished'); break;
