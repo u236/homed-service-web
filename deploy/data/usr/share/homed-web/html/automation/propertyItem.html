@@ -6,8 +6,16 @@
     <input type="text" name="property">
     <label>Statement:</label>
     <select name="statement"></select>
-    <label>Value:</label>
-    <input type="text" name="value">
+    <span class="between" style="display: none;">
+        <label>Min:</label>
+        <input type="text" name="min">
+        <label>Max:</label>
+        <input type="text" name="max">
+    </span>
+    <span class="other">
+        <label>Value:</label>
+        <input type="text" name="value">
+    </span>
 </form>
 <div class="buttons">
     <button class="save"><i class="icon-true"></i> Save</button>

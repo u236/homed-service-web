@@ -4,10 +4,10 @@ class Automation
     modal = document.querySelector('#modal');
 
     triggerType = ['property', 'telegram', 'mqtt', 'sunrise', 'sunset', 'time'];
-    triggerStatement = ['equals', 'above', 'below']; // TODO: add between
+    triggerStatement = ['equals', 'above', 'below', 'between'];
 
     conditionType = ['property', 'date', 'time', 'week'];
-    conditionStatement = ['equals', 'differs', 'above', 'below']; // TODO: add between
+    conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
     actionType = ['property', 'telegram', 'mqtt', 'shell'];
     actionStatement = ['value', 'increase', 'decrease'];
@@ -20,6 +20,12 @@ class Automation
     parseValue(value)
     {
         return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
+    }
+
+    betweenForm(form, between)
+    {
+        form.querySelector('.other').style.display = between ? 'none' : 'block';
+        form.querySelector('.between').style.display = between ? 'block' : 'none';
     }
 
     updateLastTriggered(row, lastTriggered)
@@ -37,8 +43,14 @@ class Automation
             case 'property':
 
                 for (var i = 0; i < this.triggerStatement.length; i++)
-                    if (trigger.hasOwnProperty(this.triggerStatement[i]))
-                        return '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + this.triggerStatement[i] + ' <span class="value">' + trigger[this.triggerStatement[i]] + '</span>';
+                {
+                    var statement = this.triggerStatement[i];
+
+                    if (!trigger.hasOwnProperty(statement))
+                        continue;
+
+                    return '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                }
 
                 break;
 
@@ -57,14 +69,19 @@ class Automation
 
         for (var i = 0; i < this.conditionStatement.length; i++)
         {
-            if (!condition.hasOwnProperty(this.conditionStatement[i]))
+            var statement = this.conditionStatement[i];
+            var value;
+
+            if (!condition.hasOwnProperty(statement))
                 continue;
+
+            value = statement == 'between' && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : condition[statement];
 
             switch (condition.type)
             {
-                case 'property': return '<span class="value">' + condition.endpoint + '</span> > <span class="value">' + condition.property + '</span> ' + this.conditionStatement[i] + ' <span class="value">' + condition[this.conditionStatement[i]] + '</span>';
-                case 'date':     return this.conditionStatement[i] + ' <span class="value">' + condition[this.conditionStatement[i]] + '</span>';
-                case 'time':     return this.conditionStatement[i] + ' <span class="value">' + condition[this.conditionStatement[i]] + '</span>';
+                case 'property': return '<span class="value">' + condition.endpoint + '</span> > <span class="value">' + condition.property + '</span> ' + statement + ' <span class="value">' + value + '</span>';
+                case 'date':     return statement + ' <span class="value">' + value + '</span>';
+                case 'time':     return statement + ' <span class="value">' + value + '</span>';
             }
         }
     }
@@ -349,7 +366,15 @@ class Automation
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
-                automation.modal.querySelector('input[name="value"]').value = item[statement];
+
+                if (statement == 'between')
+                {
+                    automation.modal.querySelector('input[name="min"]').value = item[statement][0];
+                    automation.modal.querySelector('input[name="max"]').value = item[statement][1];
+                    automation.betweenForm(automation.modal, true);
+                }
+                else
+                    automation.modal.querySelector('input[name="value"]').value = item[statement];
             });
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -360,7 +385,7 @@ class Automation
 
                 item.endpoint = data.endpoint;
                 item.property = data.property;
-                item[data.statement] = automation.parseValue(data.value);
+                item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : automation.parseValue(data.value);
 
                 if (append)
                     list.push(item);
@@ -369,6 +394,7 @@ class Automation
                 automation.showAutomationInfo();
             });
 
+            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.betweenForm(automation.modal, event.target.value == 'between'); });
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
@@ -526,7 +552,17 @@ class Automation
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
-                automation.modal.querySelector('input[name="value"]').value = condition[statement];
+
+                console.log(statement);
+
+                if (statement == 'between')
+                {
+                    automation.modal.querySelector('input[name="start"]').value = condition[statement][0];
+                    automation.modal.querySelector('input[name="end"]').value = condition[statement][1];
+                    automation.betweenForm(automation.modal, true);
+                }
+                else
+                    automation.modal.querySelector('input[name="value"]').value = condition[statement];
             });
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -534,7 +570,7 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 automation.conditionStatement.forEach(statement => delete condition[statement]);
-                condition[data.statement] = data.value;
+                condition[data.statement] = data.statement == 'between' ? [data.start, data.end] : data.value;
 
                 if (append)
                     automation.data.conditions.push(condition);
@@ -543,6 +579,7 @@ class Automation
                 automation.showAutomationInfo();
             });
 
+            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.betweenForm(automation.modal, event.target.value == 'between'); });
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 

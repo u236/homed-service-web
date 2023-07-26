@@ -2,8 +2,16 @@
 <form>
     <label>Statement:</label>
     <select name="statement"></select>
-    <label>Time (hh:mm):</label>
-    <input type="text" name="value" value="12:00">
+    <span class="between" style="display: none;">
+        <label>Start (hh:mm):</label>
+        <input type="text" name="start">
+        <label>End (hh:mm):</label>
+        <input type="text" name="end">
+    </span>
+    <span class="other">
+        <label>Time (hh:mm):</label>
+        <input type="text" name="value">
+    </span>
 </form>
 <div class="buttons">
     <button class="save"><i class="icon-true"></i> Save</button>
