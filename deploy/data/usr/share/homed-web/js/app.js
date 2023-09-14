@@ -194,11 +194,11 @@ class Controller
 
                         switch (message.event)
                         {
-                            case 'nameDuplicate':       this.showToast(html + 'name is already in use', 'error'); break;
-                            case 'incompleteData':      this.showToast(html + 'data is incomplete', 'error'); break;
-                            case 'added':               this.showToast(html + 'successfully added'); break;
-                            case 'updated':             this.showToast(html + 'successfully updated'); break;
-                            case 'removed':             this.showToast(html + 'removed', 'warning'); break;
+                            case 'nameDuplicate':       this.showToast(html + 'name is already in use', 'error'); return;
+                            case 'incompleteData':      this.showToast(html + 'data is incomplete', 'error'); return;
+                            case 'added':               this.showToast(html + 'successfully added'); return;
+                            case 'updated':             this.showToast(html + 'successfully updated'); return;
+                            case 'removed':             this.showToast(html + 'removed', 'warning'); return;
                         }
                     }
 
@@ -211,14 +211,16 @@ class Controller
 
                         switch (message.event)
                         {
-                            case 'deviceJoined':        this.showToast(html + 'joined network'); break;
-                            case 'deviceLeft':          this.showToast(html + 'left network', 'warning');  break;
-                            case 'deviceNameDuplicate': this.showToast(html + 'name is already in use', 'error'); break;
-                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); break;
-                            case 'interviewError':      this.showToast(html + 'interview error', 'error'); break;
-                            case 'interviewTimeout':    this.showToast(html + 'interview timed out', 'error'); break;
-                            case 'interviewFinished':   this.showToast(html + 'interview finished'); break;
+                            case 'deviceJoined':        this.showToast(html + 'joined network'); return;
+                            case 'deviceLeft':          this.showToast(html + 'left network', 'warning');  return;
+                            case 'deviceNameDuplicate': this.showToast(html + 'name is already in use', 'error'); return;
+                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); return;
+                            case 'interviewError':      this.showToast(html + 'interview error', 'error'); return;
+                            case 'interviewTimeout':    this.showToast(html + 'interview timed out', 'error'); return;
+                            case 'interviewFinished':   this.showToast(html + 'interview finished'); return;
                         }
+
+                        this.zigbee.event(message);
                     }
                 }
 
@@ -498,6 +500,15 @@ function handleSave(event)
     {
         event.preventDefault();
         document.querySelector('.save').click();
+    }
+}
+
+function handleSend(event, item)
+{
+    if (event.key == 'Enter')
+    {
+        event.preventDefault();
+        document.querySelector('.send').click();
     }
 }
 

@@ -28,6 +28,34 @@ class ZigBee
         }
     }
 
+    event(message)
+    {
+        switch(message.event)
+        {
+            case 'clusterRequest':
+            case 'globalRequest':
+                {
+                var item = this.modal.querySelector('.debugResult');
+
+                if (!item)
+                    return;
+
+                item.innerHTML = JSON.stringify(message, null, 2);
+            }
+
+            case 'requestFinished':
+            {
+                var item = this.modal.querySelector('.debugStatus');
+                var status = parseInt(message.status);
+
+                if (!item)
+                    return;
+
+                item.innerHTML = 'status: ' + (status ? '<span class="error">failed (' + status + ')</span>' : '<span class="success">success</span>');
+            }
+        }
+    }
+
     updateLastSeen(row, lastSeen)
     {
         row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - lastSeen);
@@ -202,6 +230,7 @@ class ZigBee
             zigbee.content.querySelector('.rename').addEventListener('click', function() { zigbee.showDeviceRename(); });
             zigbee.content.querySelector('.remove').addEventListener('click', function() { zigbee.showDeviceRemove(); });
             zigbee.content.querySelector('.data').addEventListener('click', function() { zigbee.showDeviceData(); });
+            zigbee.content.querySelector('.debug').addEventListener('click', function() { zigbee.showDeviceDebug(); });
             zigbee.content.querySelector('.topics').addEventListener('click', function() { zigbee.showDeviceTopics(); });
 
             for (var key in zigbee.device)
@@ -283,6 +312,52 @@ class ZigBee
             zigbee.modal.querySelector('.title').innerHTML = '"' + zigbee.device.name + '"';
             zigbee.modal.querySelector('.json').innerHTML = JSON.stringify(zigbee.device, null, 2);
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
+
+            zigbee.modal.style.display = 'block';
+        });
+    }
+
+    showDeviceDebug()
+    {
+        console.log('here');
+
+        fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var zigbee = this;
+
+            zigbee.modal.querySelector('.data').innerHTML = html;
+            zigbee.modal.querySelector('.title').innerHTML = '"' + zigbee.device.name + '" debug';
+
+            zigbee.device.endpoints.forEach(item =>
+            {
+                var option = document.createElement('option');
+                option.innerHTML = item.endpointId;
+                zigbee.modal.querySelector('select[name="endpointId"]').append(option);
+            });
+
+            zigbee.modal.querySelector('.send').addEventListener('click', function()
+            {
+                var data = formData(zigbee.modal.querySelector('form'));
+                var request = new Object();
+
+                request.action = data.clusterSpecific ? 'clusterRequest' : 'globalRequest';
+                request.device = zigbee.device.ieeeAddress;
+                request.endpointId = parseInt(data.endpointId);
+                request.clusterId = parseInt(data.clusterId) || 0;
+                request.commandId = parseInt(data.commandId) || 0;
+                request.payload = data.payload;
+
+                if (data.manufacturerCode && !isNaN(data.manufacturerCode))
+                    request.manufacturerCode = parseInt(data.manufacturerCode);
+
+                zigbee.modal.querySelector('.debugStatus').innerHTML = 'status: pending';
+                zigbee.controller.socket.publish('command/zigbee', request);
+            });
+
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
+
+            zigbee.modal.removeEventListener('keypress', handleSend);
+            zigbee.modal.addEventListener('keypress', handleSend);
 
             zigbee.modal.style.display = 'block';
         });
