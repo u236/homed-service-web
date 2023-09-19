@@ -496,7 +496,7 @@ function addDropdown(dropdown, options, callback)
 
 function handleSave(event)
 {
-    if (event.key == 'Enter')
+    if (event.key == 'Enter' && !event.shiftKey)
     {
         event.preventDefault();
         document.querySelector('.save').click();
@@ -505,7 +505,7 @@ function handleSave(event)
 
 function handleSend(event, item)
 {
-    if (event.key == 'Enter')
+    if (event.key == 'Enter' && !event.shiftKey)
     {
         event.preventDefault();
         document.querySelector('.send').click();

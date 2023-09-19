@@ -79,7 +79,7 @@ body[theme="dark"] {
     margin-right: 5px;
 }
 
-.homed input[type="number"], .homed input[type="text"], .homed select {
+.homed input[type="number"], .homed input[type="text"], .homed select, .homed textarea {
     -moz-appearance: none;
     -webkit-appearance: none;
     box-sizing: border-box;
@@ -92,6 +92,11 @@ body[theme="dark"] {
     border-radius: var(--border-radius);
     font-family: var(--font-family);
     color: var(--color-main);
+}
+
+.homed textarea {
+    height: 72px;
+    padding: 5px;
 }
 
 .homed input[type="range"] {

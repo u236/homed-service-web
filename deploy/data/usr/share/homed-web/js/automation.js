@@ -411,7 +411,7 @@ class Automation
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="message"]').value = trigger.message ?? '';
+            automation.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
             automation.modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -419,7 +419,7 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
                 var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
-                trigger.message = data.message;
+                trigger.message = data.message.trim();
                 trigger.chats = chats.length ? chats : null;
 
                 if (append)
@@ -434,7 +434,7 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="message"]').focus();
+            automation.modal.querySelector('textarea[name="message"]').focus();
         });
     }
 
@@ -446,14 +446,14 @@ class Automation
 
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('input[name="topic"]').value = trigger.topic ?? '';
-            automation.modal.querySelector('input[name="message"]').value = trigger.message ?? '';
+            automation.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(automation.modal.querySelector('form'));
 
                 trigger.topic = data.topic;
-                trigger.message = data.message;
+                trigger.message = data.message.trim();
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -617,7 +617,6 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="message"]').focus();
         });
     }
 
@@ -628,7 +627,7 @@ class Automation
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="message"]').value = action.message ?? '';
+            automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             automation.modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
             automation.modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
 
@@ -637,7 +636,7 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
                 var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
-                action.message = data.message;
+                action.message = data.message.trim();
                 action.chats = chats.length ? chats : null;
                 action.silent = data.silent;
 
@@ -653,7 +652,7 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="message"]').focus();
+            automation.modal.querySelector('textarea[name="message"]').focus();
         });
     }
 
@@ -665,7 +664,7 @@ class Automation
 
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
-            automation.modal.querySelector('input[name="message"]').value = action.message ?? '';
+            automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             automation.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -673,7 +672,7 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 action.topic = data.topic;
-                action.message = data.message;
+                action.message = data.message.trim();
                 action.retain = data.retain;
 
                 if (append)
