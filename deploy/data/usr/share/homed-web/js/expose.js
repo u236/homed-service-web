@@ -154,6 +154,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             // bool
             case 'alarm':
             case 'autoBrightness':
+            case 'autoCalibration':
             case 'boost':
             case 'calibration':
             case 'childLock':
@@ -164,6 +165,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'humidityRelay':
             case 'humidityRelayInvert':
             case 'interlock':
+            case 'ledFeedback':
             case 'nightBacklight':
             case 'pressureLongChart':
             case 'temperatureRelay':
@@ -206,21 +208,31 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'co2Low':
             case 'co2ManualCalibration':
             case 'comfortTemperature':
+            case 'count':
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
             case 'duration':
             case 'ecoTemperature':
             case 'fadingTime':
+            case 'humiditHigh':
+            case 'humidityLow':
             case 'humidityOffset':
             case 'melody':
             case 'pattern':
+            case 'pressureOffset':
             case 'reportingDelay':
             case 'sensitivity':
             case 'targetTemperature':
+            case 'temperatureHigh':
+            case 'temperatureLow':
             case 'temperatureOffset':
             case 'threshold':
+            case 'thresholdHigh':
+            case 'thresholdLow':
             case 'timer':
+            case 'vocHigh':
+            case 'vocLow':
             //
             case 'holidayP1Temperature':
             case 'holidayP2Temperature':
@@ -251,12 +263,21 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 if (option.unit)
                     valueCell.dataset.unit = option.unit;
 
-                controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
-                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseFloat(this.value)}); });
+                if ((option.max - option.min) / (option.step ?? 1) <= 1000)
+                {
+                    controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
+                    controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
+                    controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseFloat(this.value)}); });
+                }
+                else
+                {
+                    controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
+                    controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: parseFloat(value)}); } });
+                }
+
                 break;
 
-            // string
+            // enum
             case 'buttonMode':
             case 'detectionMode':
             case 'distanceMode':
@@ -271,6 +292,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'switchMode':
             case 'switchType':
             case 'systemMode':
+            case 'timeoutMode':
             case 'volumeMode':
             case 'weekMode':
 
@@ -355,21 +377,31 @@ function updateExpose(endpoint, name, value)
             case 'co2Low':
             case 'co2ManualCalibration':
             case 'comfortTemperature':
+            case 'count':
             case 'detectionDelay':
             case 'distanceMax':
             case 'distanceMin':
             case 'duration':
             case 'ecoTemperature':
             case 'fadingTime':
+            case 'humiditHigh':
+            case 'humidityLow':
             case 'humidityOffset':
             case 'melody':
             case 'pattern':
+            case 'pressureOffset':
             case 'reportingDelay':
             case 'sensitivity':
             case 'targetTemperature':
+            case 'temperatureHigh':
+            case 'temperatureLow':
             case 'temperatureOffset':
             case 'threshold':
+            case 'thresholdHigh':
+            case 'thresholdLow':
             case 'timer':
+            case 'vocHigh':
+            case 'vocLow':
             //
             case 'holidayP1Temperature':
             case 'holidayP2Temperature':

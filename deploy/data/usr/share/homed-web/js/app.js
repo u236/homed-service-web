@@ -113,7 +113,7 @@ class Controller
         switch(list[0])
         {
             case 'service':
-            {
+
                 if (message.status != 'online')
                 {
                     if (this.service == service)
@@ -128,14 +128,13 @@ class Controller
                 }
 
                 break;
-            }
 
             case 'status':
-            {
+
                 switch (service)
                 {
                     case 'automation':
-                    {
+
                         var check = this.status.automation ? this.status.automation.automations.map(automation => automation.name) : null;
 
                         this.status.automation = message;
@@ -149,10 +148,9 @@ class Controller
                         }
 
                         break;
-                    }
 
                     case 'zigbee':
-                    {
+
                         var check = this.status.zigbee ? this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : null;
 
                         this.status.zigbee = message;
@@ -175,18 +173,16 @@ class Controller
                         });
 
                         break;
-                    }
                 }
 
                 break;
-            }
 
             case 'event':
-            {
+
                 switch (service)
                 {
                     case 'automation':
-                    {
+
                         var html = 'Automation <b>' + message.automation + '</b> ';
 
                         if (message.event == 'updated')
@@ -200,10 +196,11 @@ class Controller
                             case 'updated':             this.showToast(html + 'successfully updated'); return;
                             case 'removed':             this.showToast(html + 'removed', 'warning'); return;
                         }
-                    }
+
+                        break;
 
                     case 'zigbee':
-                    {
+
                         var html = 'Device <b>' + message.device + '</b> ';
 
                         if (message.event == 'deviceUpdated')
@@ -221,14 +218,13 @@ class Controller
                         }
 
                         this.zigbee.event(message);
-                    }
+                        break;
                 }
 
                 break;
-            }
 
             case 'expose':
-            {
+
                 var device = list[2];
 
                 if (!this.expose[service])
@@ -236,10 +232,9 @@ class Controller
 
                 this.expose[service][device] = message;
                 break;
-            }
 
             case 'device':
-            {
+
                 var row = document.querySelector('tr[data-device="' + list[2] + '"]');
 
                 if (row && this.page == 'zigbee')
@@ -257,17 +252,16 @@ class Controller
                 }
 
                 break;
-            }
 
             case 'fd':
-            {
+
                 var device = list[2];
                 var endpoint = list[3];
 
                 switch(service)
                 {
                     case 'zigbee':
-                    {
+
                         var row = document.querySelector('tr[data-device="' + device + '"]');
 
                         if (row && this.page == 'zigbee')
@@ -282,11 +276,9 @@ class Controller
                         //
 
                         break;
-                    }
                 }
 
                 break;
-            }
 
             // TODO: remocve it
             default:

@@ -534,6 +534,15 @@ body[theme="dark"] {
     margin: 0 5px;
 }
 
+.homed .exposes .control input[type="number"] {
+    position: relative;
+    top: -1px;
+    width: 100px;
+    height: 18px;
+    margin-bottom: 0;
+    padding-right: 0;
+}
+
 .homed #modal {
     display: none;
     position: fixed;
