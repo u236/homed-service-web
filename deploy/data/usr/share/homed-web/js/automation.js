@@ -4,7 +4,7 @@ class Automation
     modal = document.querySelector('#modal');
 
     triggerType = ['property', 'telegram', 'mqtt', 'sunrise', 'sunset', 'time'];
-    triggerStatement = ['equals', 'above', 'below', 'between'];
+    triggerStatement = ['equals', 'above', 'below', 'between', 'changes'];
 
     conditionType = ['property', 'date', 'time', 'week'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
@@ -38,6 +38,8 @@ class Automation
 
     triggerInfo(trigger)
     {
+        var data;
+
         switch (trigger.type)
         {
             case 'property':
@@ -49,17 +51,22 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    return '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                    data = '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
                 }
 
                 break;
 
-            case 'telegram': return '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
-            case 'mqtt':     return '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span> topic';
-            case 'sunrise':  return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
-            case 'sunset':   return '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
-            case 'time':     return '<span class="value">' + trigger.time + '</span>';
+            case 'telegram': data = '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': ''); break;
+            case 'mqtt':     data = '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span> topic'; break;
+            case 'sunrise':  data = '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset'; break;
+            case 'sunset':   data = '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset'; break;
+            case 'time':     data = '<span class="value">' + trigger.time + '</span>'; break;
         }
+
+        if (trigger.name)
+            data += ' with name <span class="value">' + trigger.name + '</span>';
+
+        return data;
     }
 
     conditionInfo(condition)
@@ -344,14 +351,14 @@ class Automation
         }
     }
 
-    showPropertyItem(item, list, statements, name, append)
+    showPropertyItem(item, list, statements, type, append)
     {
         fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.title').innerHTML = 'property ' + name;
+            automation.modal.querySelector('.title').innerHTML = 'property ' + type;
             automation.modal.querySelector('input[name="endpoint"]').value = item.endpoint ?? '';
             automation.modal.querySelector('input[name="property"]').value = item.property ?? '';
 
@@ -377,6 +384,9 @@ class Automation
                     automation.modal.querySelector('input[name="value"]').value = item[statement];
             });
 
+            automation.modal.querySelector('.name').style.display = type != 'trigger' ? 'none' : 'block';
+            automation.modal.querySelector('input[name="name"]').value = item.name ?? '';
+
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(automation.modal.querySelector('form'));
@@ -387,8 +397,15 @@ class Automation
                 item.property = data.property;
                 item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : automation.parseValue(data.value);
 
+                if (data.name)
+                    item.name = data.name;
+                else
+                    delete item.name;
+
                 if (append)
                     list.push(item);
+
+                console.log(item);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
@@ -413,6 +430,7 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
             automation.modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
+            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
@@ -421,6 +439,11 @@ class Automation
 
                 trigger.message = data.message.trim();
                 trigger.chats = chats.length ? chats : null;
+
+                if (data.name)
+                    trigger.name = data.name;
+                else
+                    delete trigger.name;
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -447,6 +470,7 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('input[name="topic"]').value = trigger.topic ?? '';
             automation.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
+            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
@@ -454,6 +478,11 @@ class Automation
 
                 trigger.topic = data.topic;
                 trigger.message = data.message.trim();
+
+                if (data.name)
+                    trigger.name = data.name;
+                else
+                    delete trigger.name;
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -480,13 +509,18 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('.title').innerHTML = type + ' trigger';
             automation.modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
+            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
-                trigger.offset = parseInt(automation.modal.querySelector('input[name="offset"]').value);
+                var data = formData(automation.modal.querySelector('form'));
 
-                if (isNaN(trigger.offset))
-                    trigger.offset = 0;
+                trigger.offset = parseInt(data.offset);
+
+                if (data.name)
+                    trigger.name = data.name;
+                else
+                    delete trigger.name;
 
                 if (append)
                     automation.data.triggers.push(trigger);
@@ -512,10 +546,18 @@ class Automation
 
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
+            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
+                var data = formData(automation.modal.querySelector('form'));
+
                 trigger.time = automation.modal.querySelector('input[name="time"]').value;
+
+                if (data.name)
+                    trigger.name = data.name;
+                else
+                    delete trigger.name;
 
                 if (append)
                     automation.data.triggers.push(trigger);
