@@ -3,13 +3,13 @@ class Automation
     content = document.querySelector('.content .container');
     modal = document.querySelector('#modal');
 
-    triggerType = ['property', 'telegram', 'mqtt', 'sunrise', 'sunset', 'time'];
+    triggerType = ['property', 'mqtt', 'telegram', 'sunrise', 'sunset', 'time'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes'];
 
     conditionType = ['property', 'date', 'time', 'week'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
-    actionType = ['property', 'telegram', 'mqtt', 'shell'];
+    actionType = ['property', 'mqtt', 'telegram', 'shell'];
     actionStatement = ['value', 'increase', 'decrease'];
 
     constructor(controller)
@@ -43,6 +43,7 @@ class Automation
         switch (trigger.type)
         {
             case 'property':
+            case 'mqtt':
 
                 for (var i = 0; i < this.triggerStatement.length; i++)
                 {
@@ -51,16 +52,23 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = '<span class="value">' + trigger.endpoint + '</span> > <span class="value">' + trigger.property + '</span> ' + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                    data = '<span class="value">' + (trigger.type == 'mqtt' ? trigger.topic : trigger.endpoint) + '</span> ' + (trigger.property ? '> <span class="value">' + trigger.property + '</span> ' : '') + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
                 }
 
                 break;
 
-            case 'telegram': data = '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': ''); break;
-            case 'mqtt':     data = '<span class="value">' + trigger.message + '</span> in <span class="value">' + trigger.topic + '</span> topic'; break;
-            case 'sunrise':  data = '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset'; break;
-            case 'sunset':   data = '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset'; break;
-            case 'time':     data = '<span class="value">' + trigger.time + '</span>'; break;
+            case 'telegram':
+                data = '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
+                break;
+
+            case 'sunrise':
+            case 'sunset':
+                data = '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
+                break;
+
+            case 'time':
+                data = '<span class="value">' + trigger.time + '</span>';
+                break;
         }
 
         if (trigger.name)
@@ -105,8 +113,8 @@ class Automation
 
             break;
 
-            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
             case 'mqtt':     return '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' [retain]' : '');
+            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
             case 'shell':    return '<span class="value">' + action.command + '</span>';
         }
     }
@@ -320,9 +328,9 @@ class Automation
     {
         switch (trigger.type)
         {
-            case 'property': this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, 'trigger', append); break;
+            case 'property': this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
+            case 'mqtt':     this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger', true); break;
             case 'telegram': this.showTelegramTrigger(trigger, append); break;
-            case 'mqtt':     this.showMqttTrigger(trigger, append); break;
             case 'sunrise':  this.showSunTrigger('sunrise', trigger, append); break;
             case 'sunset':   this.showSunTrigger('sunset', trigger, append); break;
             case 'time':     this.showTimeTrigger(trigger, append); break;
@@ -333,7 +341,7 @@ class Automation
     {
         switch (condition.type)
         {
-            case 'property': this.showPropertyItem(condition, this.data.conditions, this.conditionStatement, 'condition', append); break;
+            case 'property': this.showPropertyItem(condition, this.data.conditions, this.conditionStatement, append, 'condition'); break;
             case 'date':     this.showDateTimeCondition(condition, 'date', append); break;
             case 'time':     this.showDateTimeCondition(condition, 'time', append); break;
             case 'week':     this.showWeekCondition(condition, append); break;
@@ -344,22 +352,23 @@ class Automation
     {
         switch (action.type)
         {
-            case 'property': this.showPropertyItem(action, this.data.actions, this.actionStatement, 'action', append); break;
-            case 'telegram': this.showTelegramAction(action, append); break;
+            case 'property': this.showPropertyItem(action, this.data.actions, this.actionStatement, append, 'action'); break;
             case 'mqtt':     this.showMqttAction(action, append); break;
+            case 'telegram': this.showTelegramAction(action, append); break;
             case 'shell':    this.showShellAction(action, append); break;
         }
     }
 
-    showPropertyItem(item, list, statements, type, append)
+    showPropertyItem(item, list, statements, append, type, mqtt)
     {
         fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.title').innerHTML = 'property ' + type;
-            automation.modal.querySelector('input[name="endpoint"]').value = item.endpoint ?? '';
+            automation.modal.querySelector('.title').innerHTML = (mqtt ? 'mqtt ' : 'property ') + type;
+            automation.modal.querySelector('.item').innerHTML = mqtt ? 'Topic:' : 'Endpoint:';
+            automation.modal.querySelector('input[name="item"]').value = mqtt ? item.topic ?? '' : item.endpoint ?? '';
             automation.modal.querySelector('input[name="property"]').value = item.property ?? '';
 
             statements.forEach(statement =>
@@ -393,7 +402,7 @@ class Automation
 
                 statements.forEach(statement => delete item[statement]);
 
-                item.endpoint = data.endpoint;
+                item[mqtt ? 'topic' : 'endpoint'] = data.item;
                 item.property = data.property;
                 item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : automation.parseValue(data.value);
 
@@ -417,7 +426,7 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="endpoint"]').focus();
+            automation.modal.querySelector('input[name="item"]').focus();
         });
     }
 
@@ -458,45 +467,6 @@ class Automation
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('textarea[name="message"]').focus();
-        });
-    }
-
-    showMqttTrigger(trigger, append)
-    {
-        fetch('html/automation/mqttTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            var automation = this;
-
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="topic"]').value = trigger.topic ?? '';
-            automation.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
-            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
-            {
-                var data = formData(automation.modal.querySelector('form'));
-
-                trigger.topic = data.topic;
-                trigger.message = data.message.trim();
-
-                if (data.name)
-                    trigger.name = data.name;
-                else
-                    delete trigger.name;
-
-                if (append)
-                    automation.data.triggers.push(trigger);
-
-                automation.modal.style.display = 'none';
-                automation.showAutomationInfo();
-            });
-
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
-
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
 
@@ -662,6 +632,41 @@ class Automation
         });
     }
 
+    showMqttAction(action, append)
+    {
+        fetch('html/automation/mqttAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
+            automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            automation.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+
+                action.topic = data.topic;
+                action.message = data.message.trim();
+                action.retain = data.retain;
+
+                if (append)
+                    automation.data.actions.push(action);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
+            automation.modal.querySelector('input[name="topic"]').focus();
+        });
+    }
+
     showTelegramAction(action, append)
     {
         fetch('html/automation/telegramAction.html?' + Date.now()).then(response => response.text()).then(html =>
@@ -695,41 +700,6 @@ class Automation
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('textarea[name="message"]').focus();
-        });
-    }
-
-    showMqttAction(action, append)
-    {
-        fetch('html/automation/mqttAction.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            var automation = this;
-
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
-            automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
-            automation.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
-            {
-                var data = formData(automation.modal.querySelector('form'));
-
-                action.topic = data.topic;
-                action.message = data.message.trim();
-                action.retain = data.retain;
-
-                if (append)
-                    automation.data.actions.push(action);
-
-                automation.modal.style.display = 'none';
-                automation.showAutomationInfo();
-            });
-
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
-
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
 
