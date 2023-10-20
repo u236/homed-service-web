@@ -215,7 +215,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             case 'duration':
             case 'ecoTemperature':
             case 'fadingTime':
-            case 'humiditHigh':
+            case 'humidityHigh':
             case 'humidityLow':
             case 'humidityOffset':
             case 'melody':
@@ -384,7 +384,7 @@ function updateExpose(endpoint, name, value)
             case 'duration':
             case 'ecoTemperature':
             case 'fadingTime':
-            case 'humiditHigh':
+            case 'humidityHigh':
             case 'humidityLow':
             case 'humidityOffset':
             case 'melody':

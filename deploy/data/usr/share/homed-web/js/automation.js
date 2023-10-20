@@ -103,20 +103,41 @@ class Automation
 
     actionInfo(action)
     {
+        var data;
+
         switch (action.type)
         {
             case 'property':
 
-            for (var i = 0; i < this.actionStatement.length; i++)
-                if (action.hasOwnProperty(this.actionStatement[i]))
-                    return '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' + (this.actionStatement[i] == 'increase' ? '<span class="value">+</span> ' : this.actionStatement[i] == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[this.actionStatement[i]] + '</span>';
+                for (var i = 0; i < this.actionStatement.length; i++)
+                {
+                    var statement = this.actionStatement[i];
 
-            break;
+                    if (!action.hasOwnProperty(statement))
+                        continue;
 
-            case 'mqtt':     return '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' [retain]' : '');
-            case 'telegram': return '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
-            case 'shell':    return '<span class="value">' + action.command + '</span>';
+                    data = '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
+                }
+
+                break;
+
+            case 'mqtt':
+                data = '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' [retain]' : '');
+                break;
+
+            case 'telegram':
+                data = '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
+                break;
+
+            case 'shell':
+                data = '<span class="value">' + action.command + '</span>';
+                break;
         }
+
+        if (action.triggerName)
+            data += ' when trigger is <span class="value">' + action.triggerName + '</span>';
+
+        return data;
     }
 
     showAutomationList()
@@ -378,7 +399,7 @@ class Automation
                 option.innerHTML = statement;
                 automation.modal.querySelector('select[name="statement"]').append(option);
 
-                if (!item[statement])
+                if (!item.hasOwnProperty(statement))
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
@@ -396,6 +417,9 @@ class Automation
             automation.modal.querySelector('.name').style.display = type != 'trigger' ? 'none' : 'block';
             automation.modal.querySelector('input[name="name"]').value = item.name ?? '';
 
+            automation.modal.querySelector('.triggerName').style.display = type != 'action' ? 'none' : 'block';
+            automation.modal.querySelector('input[name="triggerName"]').value = item.triggerName ?? '';
+
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(automation.modal.querySelector('form'));
@@ -410,6 +434,11 @@ class Automation
                     item.name = data.name;
                 else
                     delete item.name;
+
+                if (data.triggerName)
+                    item.triggerName = data.triggerName;
+                else
+                    delete item.triggerName;
 
                 if (append)
                     list.push(item);
@@ -560,7 +589,7 @@ class Automation
                 option.innerHTML = statement;
                 automation.modal.querySelector('select[name="statement"]').append(option);
 
-                if (!condition[statement])
+                if (!condition.hasOwnProperty(statement))
                     return;
 
                 automation.modal.querySelector('select[name="statement"]').value = statement;
@@ -641,6 +670,7 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
             automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             automation.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -649,6 +679,7 @@ class Automation
 
                 action.topic = data.topic;
                 action.message = data.message.trim();
+                action.triggerName = data.triggerName;
                 action.retain = data.retain;
 
                 if (append)
@@ -676,6 +707,7 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             automation.modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
+            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             automation.modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -685,6 +717,7 @@ class Automation
 
                 action.message = data.message.trim();
                 action.chats = chats.length ? chats : null;
+                action.triggerName = data.triggerName;
                 action.silent = data.silent;
 
                 if (append)
@@ -711,10 +744,14 @@ class Automation
 
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('input[name="command"]').value = action.command ?? '';
+            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
-                action.command = automation.modal.querySelector('input[name="command"]').value;
+                var data = formData(automation.modal.querySelector('form'));
+
+                action.command = data.command.trim();
+                action.triggerName = data.triggerName;
 
                 if (append)
                     automation.data.actions.push(action);
