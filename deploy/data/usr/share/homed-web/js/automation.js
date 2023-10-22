@@ -6,7 +6,7 @@ class Automation
     triggerType = ['property', 'mqtt', 'telegram', 'sunrise', 'sunset', 'time'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes'];
 
-    conditionType = ['property', 'date', 'time', 'week'];
+    conditionType = ['property', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
     actionType = ['property', 'mqtt', 'telegram', 'shell'];
@@ -94,7 +94,7 @@ class Automation
 
             switch (condition.type)
             {
-                case 'property': return '<span class="value">' + condition.endpoint + '</span> > <span class="value">' + condition.property + '</span> ' + statement + ' <span class="value">' + value + '</span>';
+                case 'property': return '<span class="value">' + condition.endpoint + '</span> &rarr; <span class="value">' + condition.property + '</span> ' + statement + ' <span class="value">' + value + '</span>';
                 case 'date':     return statement + ' <span class="value">' + value + '</span>';
                 case 'time':     return statement + ' <span class="value">' + value + '</span>';
             }
@@ -116,7 +116,7 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = '<span class="value">' + action.endpoint + '</span> > <span class="value">' + action.property + '</span> > ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
+                    data = '<span class="value">' + action.endpoint + '</span> &rarr; <span class="value">' + action.property + '</span> &rarr; ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
                 }
 
                 break;
@@ -138,6 +138,63 @@ class Automation
             data += ' when trigger is <span class="value">' + action.triggerName + '</span>';
 
         return data;
+    }
+
+    conditionDropdown(automation, list, type)
+    {
+        if (type == 'AND' || type == 'OR' || type == 'NOT')
+        {
+            list.push({'type': type, 'conditions': new Array()});
+            automation.showAutomationInfo();
+            return;
+        }
+
+        automation.showCondition({'type': type}, list, true);
+    }
+
+    conditionList(automation, list, table, level)
+    {
+        list.forEach((condition, index) =>
+        {
+            var row = table.insertRow();
+
+            for (var i = 0; i < 3; i++)
+            {
+                var cell = row.insertCell();
+
+                switch (i)
+                {
+                    case 0:
+                        for (var j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
+                        cell.innerHTML += condition.type == 'AND' || condition.type == 'OR' || condition.type == 'NOT' ? '<span class="value">' + condition.type + '</span>' : condition.type;
+                        break;
+
+                    case 1:
+
+                        if (condition.type == 'AND' || condition.type == 'OR' || condition.type == 'NOT')
+                        {
+                            cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
+                            cell.classList.add('right');
+                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); });
+                            automation.conditionList(automation, condition.conditions, table, level + 1);
+                        }
+                        else
+                        {
+                            cell.innerHTML = automation.conditionInfo(condition) ?? '<i>undefined</i>';
+                            cell.classList.add('edit');
+                            cell.addEventListener('click', function() { automation.showCondition(condition, list); });
+                        }
+
+                        break;
+
+                    case 2:
+                        cell.innerHTML = '<i class="icon-trash"></i>';
+                        cell.classList.add('remove', 'right');
+                        cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
+                        break;
+                }
+            }
+        });
     }
 
     showAutomationList()
@@ -235,14 +292,14 @@ class Automation
             actions = automation.content.querySelector('.actions');
 
             addDropdown(automation.content.querySelector('.addTrigger'), automation.triggerType, function(type) { automation.showTrigger({'type': type}, true); });
-            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.showCondition({'type': type}, true); });
+            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); });
             addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.showAction({'type': type}, true); });
 
             automation.data.triggers.forEach((trigger, index) =>
             {
                 var row = triggers.insertRow();
 
-                for(var i = 0; i < 3; i++)
+                for (var i = 0; i < 3; i++)
                 {
                     var cell = row.insertCell();
 
@@ -250,33 +307,18 @@ class Automation
                     {
                         case 0: cell.innerHTML = trigger.type; break;
                         case 1: cell.innerHTML = automation.triggerInfo(trigger) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showTrigger(trigger); }); break;
-                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.triggers.splice(index, 1); row.remove(); }); break;
+                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.triggers.splice(index, 1); automation.showAutomationInfo(); }); break;
                     }
                 }
             });
 
-            automation.data.conditions.forEach((condition, index) =>
-            {
-                var row = conditions.insertRow();
-
-                for(var i = 0; i < 3; i++)
-                {
-                    var cell = row.insertCell();
-
-                    switch (i)
-                    {
-                        case 0: cell.innerHTML = condition.type; break;
-                        case 1: cell.innerHTML = automation.conditionInfo(condition) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showCondition(condition); }); break;
-                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.conditions.splice(index, 1); row.remove(); }); break;
-                    }
-                }
-            });
+            automation.conditionList(automation, automation.data.conditions, conditions, 0);
 
             automation.data.actions.forEach((action, index) =>
             {
                 var row = actions.insertRow();
 
-                for(var i = 0; i < 3; i++)
+                for (var i = 0; i < 3; i++)
                 {
                     var cell = row.insertCell();
 
@@ -284,7 +326,7 @@ class Automation
                     {
                         case 0: cell.innerHTML = action.type; break;
                         case 1: cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showAction(action); }); break;
-                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.actions.splice(index, 1); row.remove(); }); break;
+                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.actions.splice(index, 1); automation.showAutomationInfo(); }); break;
                     }
                 }
             });
@@ -358,14 +400,14 @@ class Automation
         }
     }
 
-    showCondition(condition, append = false)
+    showCondition(condition, list, append = false)
     {
         switch (condition.type)
         {
-            case 'property': this.showPropertyItem(condition, this.data.conditions, this.conditionStatement, append, 'condition'); break;
-            case 'date':     this.showDateTimeCondition(condition, 'date', append); break;
-            case 'time':     this.showDateTimeCondition(condition, 'time', append); break;
-            case 'week':     this.showWeekCondition(condition, append); break;
+            case 'property': this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition'); break;
+            case 'date':     this.showDateTimeCondition(condition, list, 'date', append); break;
+            case 'time':     this.showDateTimeCondition(condition, list, 'time', append); break;
+            case 'week':     this.showWeekCondition(condition, list, append); break;
         }
     }
 
@@ -574,7 +616,7 @@ class Automation
         });
     }
 
-    showDateTimeCondition(condition, name, append)
+    showDateTimeCondition(condition, list, name, append)
     {
         fetch('html/automation/' + name + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -614,7 +656,7 @@ class Automation
                 condition[data.statement] = data.statement == 'between' ? [data.start, data.end] : data.value;
 
                 if (append)
-                    automation.data.conditions.push(condition);
+                    list.push(condition);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
@@ -630,7 +672,7 @@ class Automation
         });
     }
 
-    showWeekCondition(condition, append)
+    showWeekCondition(condition, list, append)
     {
         fetch('html/automation/weekCondition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -647,7 +689,7 @@ class Automation
                 condition.days = days.length ? days : null;
 
                 if (append)
-                    automation.data.conditions.push(condition);
+                    list.push(condition);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
