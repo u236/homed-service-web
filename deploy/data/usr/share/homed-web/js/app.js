@@ -17,7 +17,7 @@ class Socket
     {
         var socket = this;
 
-        socket.ws = new WebSocket('ws://' + location.host);
+        socket.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host);
 
         socket.ws.onopen = function()
         {
