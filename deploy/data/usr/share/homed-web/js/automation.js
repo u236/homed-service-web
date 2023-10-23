@@ -9,7 +9,7 @@ class Automation
     conditionType = ['property', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
-    actionType = ['property', 'mqtt', 'telegram', 'shell'];
+    actionType = ['property', 'mqtt', 'telegram', 'shell', 'delay'];
     actionStatement = ['value', 'increase', 'decrease'];
 
     constructor(controller)
@@ -131,6 +131,10 @@ class Automation
 
             case 'shell':
                 data = '<span class="value">' + action.command + '</span>';
+                break;
+
+            case 'delay':
+                data = '<span class="value">' + action.delay + '</span> seconds';
                 break;
         }
 
@@ -416,6 +420,7 @@ class Automation
             case 'mqtt':     this.showMqttAction(action, append); break;
             case 'telegram': this.showTelegramAction(action, append); break;
             case 'shell':    this.showShellAction(action, append); break;
+            case 'delay':    this.showDelayAction(action, append); break;
         }
     }
 
@@ -804,7 +809,40 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="topic"]').focus();
+            automation.modal.querySelector('input[name="command"]').focus();
+        });
+    }
+
+    showDelayAction(action, append)
+    {
+        fetch('html/automation/delayAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="delay"]').value = action.delay ?? 0;
+            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+
+                action.delay = parseInt(data.delay);
+                action.triggerName = data.triggerName;
+
+                if (append)
+                    automation.data.actions.push(action);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
+            automation.modal.querySelector('input[name="delay"]').focus();
         });
     }
 }
