@@ -309,8 +309,18 @@ class Automation
                     switch (i)
                     {
                         case 0: cell.innerHTML = trigger.type; break;
-                        case 1: cell.innerHTML = automation.triggerInfo(trigger) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showTrigger(trigger); }); break;
-                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.triggers.splice(index, 1); automation.showAutomationInfo(); }); break;
+
+                        case 1:
+                            cell.innerHTML = automation.triggerInfo(trigger) ?? '<i>undefined</i>';
+                            cell.classList.add('edit');
+                            cell.addEventListener('click', function() { automation.showTrigger(trigger); });
+                            break;
+
+                        case 2:
+                            cell.innerHTML = '<i class="icon-trash"></i>';
+                            cell.classList.add('remove');
+                            cell.addEventListener('click', function() { automation.data.triggers.splice(index, 1); automation.showAutomationInfo(); });
+                            break;
                     }
                 }
             });
@@ -321,15 +331,46 @@ class Automation
             {
                 var row = actions.insertRow();
 
-                for (var i = 0; i < 3; i++)
+                for (var i = 0; i < 5; i++)
                 {
                     var cell = row.insertCell();
 
                     switch (i)
                     {
                         case 0: cell.innerHTML = action.type; break;
-                        case 1: cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>'; cell.classList.add('edit'); cell.addEventListener('click', function() { automation.showAction(action); }); break;
-                        case 2: cell.innerHTML = '<i class="icon-trash"></i>'; cell.classList.add('remove', 'right'); cell.addEventListener('click', function() { automation.data.actions.splice(index, 1); automation.showAutomationInfo(); }); break;
+
+                        case 1:
+                            cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>';
+                            cell.classList.add('edit');
+                            cell.addEventListener('click', function() { automation.showAction(action); });
+                            break;
+
+                        case 3:
+
+                            if (automation.data.actions.length < 2 || !index)
+                                break;
+
+                            cell.innerHTML = '&uarr;';
+                            cell.classList.add('move');
+                            cell.addEventListener('click', function() { automation.data.actions[index - 1] =  automation.data.actions.splice(index, 1, automation.data.actions[index - 1])[0]; automation.showAutomationInfo(); });
+                            break;
+
+                        case 2:
+
+                            if (automation.data.actions.length < 2 || index == automation.data.actions.length - 1)
+                                break;
+
+                            cell.innerHTML = '&darr;';
+                            cell.classList.add('move');
+                            cell.addEventListener('click', function() { automation.data.actions[index + 1] =  automation.data.actions.splice(index, 1, automation.data.actions[index + 1])[0]; automation.showAutomationInfo(); });
+                            break;
+
+
+                        case 4:
+                            cell.innerHTML = '<i class="icon-trash"></i>';
+                            cell.classList.add('remove');
+                            cell.addEventListener('click', function() { automation.data.actions.splice(index, 1); automation.showAutomationInfo(); });
+                            break;
                     }
                 }
             });

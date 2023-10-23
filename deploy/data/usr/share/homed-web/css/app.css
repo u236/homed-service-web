@@ -404,6 +404,16 @@ body[theme="dark"] {
     color: var(--color-warning);
 }
 
+.homed .automationInfo td.move {
+    cursor: pointer;
+    color: var(--color-shade);
+    width: 14px;
+}
+
+.homed .automationInfo td.move:hover {
+    color: var(--color-warning);
+}
+
 .homed .automationInfo td.remove {
     cursor: pointer;
     text-align: right;
