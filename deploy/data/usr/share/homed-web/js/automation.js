@@ -284,7 +284,6 @@ class Automation
             automation.content.querySelector('.debounce').innerHTML = '<span class="value">' + (automation.data.debounce ?? 0) + '</span> seconds';
             automation.content.querySelector('.delay').innerHTML = '<span class="value">' + (automation.data.delay ?? 0) + '</span> seconds';
             automation.content.querySelector('.restart').innerHTML = '<span class="value">' + (automation.data.restart ?? false) + '</span>';
-            automation.content.querySelector('.anyCondition').innerHTML = '<span class="value">' + (automation.data.anyCondition ?? false) + '</span>';
             automation.content.querySelector('.active').innerHTML = automation.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
 
             triggers = automation.content.querySelector('.triggers');
@@ -345,7 +344,6 @@ class Automation
             automation.modal.querySelector('input[name="debounce"]').value = automation.data.debounce ?? 0;
             automation.modal.querySelector('input[name="delay"]').value = automation.data.delay ?? 0;
             automation.modal.querySelector('input[name="restart"]').checked = automation.data.restart ?? false;
-            automation.modal.querySelector('input[name="anyCondition"]').checked = automation.data.anyCondition ?? false;
             automation.modal.querySelector('input[name="active"]').checked = automation.data.active;
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -356,7 +354,6 @@ class Automation
                 automation.data.debounce = parseInt(data.debounce);
                 automation.data.delay = parseInt(data.delay);
                 automation.data.restart = data.restart;
-                automation.data.anyCondition = data.anyCondition;
                 automation.data.active = data.active;
 
                 automation.modal.style.display = 'none';
