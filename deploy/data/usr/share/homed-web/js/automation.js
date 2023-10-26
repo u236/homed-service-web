@@ -385,13 +385,17 @@ class Automation
                 automation.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
 
             if (!automation.name)
+            {
+                automation.content.querySelector('.copy').style.display = 'none';
                 automation.content.querySelector('.remove').style.display = 'none';
+            }
 
             automation.content.querySelector('.edit').addEventListener('click', function() { automation.showAutomationEdit(); });
+            automation.content.querySelector('.copy').addEventListener('click', function() { automation.data.name += ' (copy)'; automation.data.active = false; automation.name = null; automation.showAutomationInfo(); });
             automation.content.querySelector('.remove').addEventListener('click', function() { automation.showAutomationRemove(); });
             automation.content.querySelector('.save').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: automation.name, data: automation.data}); });
 
-            automation.content.querySelector('.name').innerHTML = automation.data.name;
+            automation.content.querySelector('.name').innerHTML = automation.data.name + (automation.name ? '' : ' <span class="warning value">NEW</span>');
             automation.content.querySelector('.debounce').innerHTML = '<span class="value">' + (automation.data.debounce ?? 0) + '</span> seconds';
             automation.content.querySelector('.restart').innerHTML = '<span class="value">' + (automation.data.restart ?? false) + '</span>';
             automation.content.querySelector('.active').innerHTML = automation.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
