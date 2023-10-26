@@ -9,7 +9,7 @@ class Automation
     conditionType = ['property', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
-    actionType = ['property', 'mqtt', 'telegram', 'shell', 'delay'];
+    actionType = ['property', 'mqtt', 'telegram', 'shell', 'condition', 'delay'];
     actionStatement = ['value', 'increase', 'decrease'];
 
     constructor(controller)
@@ -156,7 +156,7 @@ class Automation
         automation.showCondition({'type': type}, list, true);
     }
 
-    conditionList(automation, list, table, level)
+    conditionList(automation, list, table, level = 0, colSpan = 0)
     {
         list.forEach((condition, index) =>
         {
@@ -175,25 +175,132 @@ class Automation
 
                     case 1:
 
+                        if (colSpan)
+                            cell.colSpan = colSpan;
+
                         if (condition.type == 'AND' || condition.type == 'OR' || condition.type == 'NOT')
                         {
                             cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
                             cell.classList.add('right');
                             addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); });
-                            automation.conditionList(automation, condition.conditions, table, level + 1);
-                        }
-                        else
-                        {
-                            cell.innerHTML = automation.conditionInfo(condition) ?? '<i>undefined</i>';
-                            cell.classList.add('edit');
-                            cell.addEventListener('click', function() { automation.showCondition(condition, list); });
+                            automation.conditionList(automation, condition.conditions, table, level + 1, colSpan);
+                            break;
                         }
 
+                        cell.innerHTML = automation.conditionInfo(condition) ?? '<i>undefined</i>';
+                        cell.classList.add('edit');
+                        cell.addEventListener('click', function() { automation.showCondition(condition, list); });
                         break;
 
                     case 2:
                         cell.innerHTML = '<i class="icon-trash"></i>';
                         cell.classList.add('remove', 'right');
+                        cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
+                        break;
+                }
+            }
+        });
+    }
+
+    actionDropdown(automation, list, type)
+    {
+        if (type == 'condition')
+        {
+            list.push({'type': type, 'conditions': new Array(), 'then': new Array(), 'else': new Array()});
+            automation.showAutomationInfo();
+            return;
+        }
+
+        automation.showAction({'type': type}, list, true);
+    }
+
+    actionList(automation, list, table, level = 0)
+    {
+        list.forEach((action, index) =>
+        {
+            var row = table.insertRow();
+
+            for (var i = 0; i < 5; i++)
+            {
+                var cell = row.insertCell();
+
+                switch (i)
+                {
+                    case 0:
+                        for (var j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
+                        cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type;
+                        break;
+
+                    case 1:
+
+                        if (action.type != 'condition')
+                        {
+                            cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>';
+                            cell.classList.add('edit');
+                            cell.addEventListener('click', function() { automation.showAction(action); });
+                            break;
+                        }
+
+                        for (var j = 0; j < 3; j++)
+                        {
+                            var actionRow = table.insertRow();
+                            var nameCell = actionRow.insertCell();
+                            var actionCell = actionRow.insertCell();
+
+                            for (var k = 0; k <= level; k++)
+                                nameCell.innerHTML += '<span class="' + (k < level ? 'shade' : 'warning') + '">&#8618;</span> ';
+
+                            nameCell.colSpan = 4;
+                            actionCell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
+
+                            switch (j)
+                            {
+                                case 0:
+                                    nameCell.innerHTML += '<span class="value">IF</span>';
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); });
+                                    automation.conditionList(automation, action.conditions, table, level + 2, 3);
+                                    break;
+
+                                case 1:
+                                    nameCell.innerHTML += '<span class="value">THEN</span>';
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.then, type); });
+                                    automation.actionList(automation, action.then, table, level + 2);
+                                    break;
+
+                                case 2:
+                                    nameCell.innerHTML += '<span class="value">ELSE</span>';
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.else, type); });
+                                    automation.actionList(automation, action.else, table, level + 2);
+                                    break;
+                            }
+                        }
+
+                        break;
+
+                    case 3:
+
+                        if (list.length < 2 || !index)
+                            break;
+
+                        cell.innerHTML = '&uarr;';
+                        cell.classList.add('move');
+                        cell.addEventListener('click', function() { list[index - 1] =  list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
+                        break;
+
+                    case 2:
+
+                        if (list.length < 2 || index == list.length - 1)
+                            break;
+
+                        cell.innerHTML = '&darr;';
+                        cell.classList.add('move');
+                        cell.addEventListener('click', function() { list[index + 1] =  list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
+                        break;
+
+
+                    case 4:
+                        cell.innerHTML = '<i class="icon-trash"></i>';
+                        cell.classList.add('remove');
                         cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
                         break;
                 }
@@ -295,7 +402,7 @@ class Automation
 
             addDropdown(automation.content.querySelector('.addTrigger'), automation.triggerType, function(type) { automation.showTrigger({'type': type}, true); });
             addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); });
-            addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.showAction({'type': type}, true); });
+            addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.actionDropdown(automation, automation.data.actions, type); });
 
             automation.data.triggers.forEach((trigger, index) =>
             {
@@ -324,55 +431,8 @@ class Automation
                 }
             });
 
-            automation.conditionList(automation, automation.data.conditions, conditions, 0);
-
-            automation.data.actions.forEach((action, index) =>
-            {
-                var row = actions.insertRow();
-
-                for (var i = 0; i < 5; i++)
-                {
-                    var cell = row.insertCell();
-
-                    switch (i)
-                    {
-                        case 0: cell.innerHTML = action.type; break;
-
-                        case 1:
-                            cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>';
-                            cell.classList.add('edit');
-                            cell.addEventListener('click', function() { automation.showAction(action); });
-                            break;
-
-                        case 3:
-
-                            if (automation.data.actions.length < 2 || !index)
-                                break;
-
-                            cell.innerHTML = '&uarr;';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { automation.data.actions[index - 1] =  automation.data.actions.splice(index, 1, automation.data.actions[index - 1])[0]; automation.showAutomationInfo(); });
-                            break;
-
-                        case 2:
-
-                            if (automation.data.actions.length < 2 || index == automation.data.actions.length - 1)
-                                break;
-
-                            cell.innerHTML = '&darr;';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { automation.data.actions[index + 1] =  automation.data.actions.splice(index, 1, automation.data.actions[index + 1])[0]; automation.showAutomationInfo(); });
-                            break;
-
-
-                        case 4:
-                            cell.innerHTML = '<i class="icon-trash"></i>';
-                            cell.classList.add('remove');
-                            cell.addEventListener('click', function() { automation.data.actions.splice(index, 1); automation.showAutomationInfo(); });
-                            break;
-                    }
-                }
-            });
+            automation.conditionList(automation, automation.data.conditions, conditions);
+            automation.actionList(automation, automation.data.actions, actions)
         });
     }
 
@@ -450,15 +510,15 @@ class Automation
         }
     }
 
-    showAction(action, append = false)
+    showAction(action, list, append = false)
     {
         switch (action.type)
         {
-            case 'property': this.showPropertyItem(action, this.data.actions, this.actionStatement, append, 'action'); break;
-            case 'mqtt':     this.showMqttAction(action, append); break;
-            case 'telegram': this.showTelegramAction(action, append); break;
-            case 'shell':    this.showShellAction(action, append); break;
-            case 'delay':    this.showDelayAction(action, append); break;
+            case 'property': this.showPropertyItem(action, list, this.actionStatement, append, 'action'); break;
+            case 'mqtt':     this.showMqttAction(action, list, append); break;
+            case 'telegram': this.showTelegramAction(action, list, append); break;
+            case 'shell':    this.showShellAction(action, list, append); break;
+            case 'delay':    this.showDelayAction(action, list, append); break;
         }
     }
 
@@ -743,7 +803,7 @@ class Automation
         });
     }
 
-    showMqttAction(action, append)
+    showMqttAction(action, list, append)
     {
         fetch('html/automation/mqttAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -765,7 +825,7 @@ class Automation
                 action.retain = data.retain;
 
                 if (append)
-                    automation.data.actions.push(action);
+                    list.push(action);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
@@ -780,7 +840,7 @@ class Automation
         });
     }
 
-    showTelegramAction(action, append)
+    showTelegramAction(action, list, append)
     {
         fetch('html/automation/telegramAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -803,7 +863,7 @@ class Automation
                 action.silent = data.silent;
 
                 if (append)
-                    automation.data.actions.push(action);
+                    list.push(action);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
@@ -818,7 +878,7 @@ class Automation
         });
     }
 
-    showShellAction(action, append)
+    showShellAction(action, list, append)
     {
         fetch('html/automation/shellAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -836,7 +896,7 @@ class Automation
                 action.triggerName = data.triggerName;
 
                 if (append)
-                    automation.data.actions.push(action);
+                    list.push(action);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
@@ -851,7 +911,7 @@ class Automation
         });
     }
 
-    showDelayAction(action, append)
+    showDelayAction(action, list, append)
     {
         fetch('html/automation/delayAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -869,7 +929,7 @@ class Automation
                 action.triggerName = data.triggerName;
 
                 if (append)
-                    automation.data.actions.push(action);
+                    list.push(action);
 
                 automation.modal.style.display = 'none';
                 automation.showAutomationInfo();
