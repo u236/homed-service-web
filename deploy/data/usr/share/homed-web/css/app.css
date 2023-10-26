@@ -274,6 +274,13 @@ body[theme="dark"] {
     color: var(--color-warning);
 }
 
+.homed .dropdown hr {
+    background-color: var(--border-main);
+    border: none;
+    margin: 5px -10px;
+    height: 1px;
+}
+
 .homed .dropdown .list {
     cursor: pointer;
     display: none;

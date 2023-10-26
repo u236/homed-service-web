@@ -19,6 +19,7 @@ DISTFILES += \
     deploy/data/usr/share/homed-web/html/automation/automationList.html \
     deploy/data/usr/share/homed-web/html/automation/automationRemove.html \
     deploy/data/usr/share/homed-web/html/automation/dateCondition.html \
+    deploy/data/usr/share/homed-web/html/automation/delayAction.html \
     deploy/data/usr/share/homed-web/html/automation/mqttAction.html \
     deploy/data/usr/share/homed-web/html/automation/propertyItem.html \
     deploy/data/usr/share/homed-web/html/automation/shellAction.html \

@@ -182,7 +182,7 @@ class Automation
                         {
                             cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
                             cell.classList.add('right');
-                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); });
+                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 4);
                             automation.conditionList(automation, condition.conditions, table, level + 1, colSpan);
                             break;
                         }
@@ -257,19 +257,19 @@ class Automation
                             {
                                 case 0:
                                     nameCell.innerHTML += '<span class="value">IF</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); });
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 4);
                                     automation.conditionList(automation, action.conditions, table, level + 2, 3);
                                     break;
 
                                 case 1:
                                     nameCell.innerHTML += '<span class="value">THEN</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.then, type); });
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.then, type); }, 4);
                                     automation.actionList(automation, action.then, table, level + 2);
                                     break;
 
                                 case 2:
                                     nameCell.innerHTML += '<span class="value">ELSE</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.else, type); });
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.else, type); }, 4);
                                     automation.actionList(automation, action.else, table, level + 2);
                                     break;
                             }
@@ -401,8 +401,8 @@ class Automation
             actions = automation.content.querySelector('.actions');
 
             addDropdown(automation.content.querySelector('.addTrigger'), automation.triggerType, function(type) { automation.showTrigger({'type': type}, true); });
-            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); });
-            addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.actionDropdown(automation, automation.data.actions, type); });
+            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); }, 4);
+            addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.actionDropdown(automation, automation.data.actions, type); }, 4);
 
             automation.data.triggers.forEach((trigger, index) =>
             {

@@ -466,19 +466,23 @@ function sortTable(table, index, first = true)
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
 }
 
-function addDropdown(dropdown, options, callback)
+function addDropdown(dropdown, options, callback, separator = 0)
 {
     var list = document.createElement('div');
 
     list.classList.add('list');
     dropdown.append(list);
 
-    options.forEach(option =>
+    options.forEach((option, index) =>
     {
         var item = document.createElement('div');
         item.addEventListener('click', function() { callback(option); });
         item.classList.add('item');
         item.innerHTML = option;
+
+        if (separator && index == separator)
+            list.append(document.createElement('hr'));
+
         list.append(item);
     });
 
