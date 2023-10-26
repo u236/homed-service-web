@@ -470,20 +470,20 @@ function addDropdown(dropdown, options, callback)
 {
     var list = document.createElement('div');
 
-    dropdown.addEventListener('pointerenter', function() { list.style.display = 'block'; });
-    dropdown.addEventListener('mouseleave', function() { list.style.display = 'none'; });
-
     list.classList.add('list');
     dropdown.append(list);
 
     options.forEach(option =>
     {
         var item = document.createElement('div');
-        item.addEventListener('click', function() { list.style.display = 'none'; callback(option); });
+        item.addEventListener('click', function() { callback(option); });
         item.classList.add('item');
         item.innerHTML = option;
         list.append(item);
     });
+
+    dropdown.addEventListener('click', function() { list.style.display = list.style.display == 'block' ? 'none' : 'block'; });
+    document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) { list.style.display = 'none'; }});
 }
 
 function handleSave(event)

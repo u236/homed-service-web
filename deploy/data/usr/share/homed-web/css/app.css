@@ -267,6 +267,11 @@ body[theme="dark"] {
 .homed .dropdown {
     display: inline-block;
     position: relative;
+    cursor: pointer;
+}
+
+.homed .dropdown:hover {
+    color: var(--color-warning);
 }
 
 .homed .dropdown .list {
@@ -287,6 +292,7 @@ body[theme="dark"] {
     padding: 2px 0;
     text-align: left;
     text-transform: none;
+    color: var(--color-main);
 }
 
 .homed .dropdown .item:hover {
