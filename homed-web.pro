@@ -23,7 +23,6 @@ DISTFILES += \
     deploy/data/usr/share/homed-web/html/automation/mqttAction.html \
     deploy/data/usr/share/homed-web/html/automation/propertyItem.html \
     deploy/data/usr/share/homed-web/html/automation/shellAction.html \
-    deploy/data/usr/share/homed-web/html/automation/sunTrigger.html \
     deploy/data/usr/share/homed-web/html/automation/telegramAction.html \
     deploy/data/usr/share/homed-web/html/automation/telegramTrigger.html \
     deploy/data/usr/share/homed-web/html/automation/timeCondition.html \

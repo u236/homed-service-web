@@ -3,7 +3,7 @@ class Automation
     content = document.querySelector('.content .container');
     modal = document.querySelector('#modal');
 
-    triggerType = ['property', 'mqtt', 'telegram', 'sunrise', 'sunset', 'time'];
+    triggerType = ['property', 'mqtt', 'telegram', 'time'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes'];
 
     conditionType = ['property', 'mqtt', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
@@ -59,11 +59,6 @@ class Automation
 
             case 'telegram':
                 data = '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
-                break;
-
-            case 'sunrise':
-            case 'sunset':
-                data = '<span class="value">' + (trigger.offset > 0 ? '+' : '') + trigger.offset + '</span> minutes offset';
                 break;
 
             case 'time':
@@ -503,8 +498,6 @@ class Automation
             case 'property': this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
             case 'mqtt':     this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger', true); break;
             case 'telegram': this.showTelegramTrigger(trigger, append); break;
-            case 'sunrise':  this.showSunTrigger('sunrise', trigger, append); break;
-            case 'sunset':   this.showSunTrigger('sunset', trigger, append); break;
             case 'time':     this.showTimeTrigger(trigger, append); break;
         }
     }
@@ -649,44 +642,6 @@ class Automation
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('textarea[name="message"]').focus();
-        });
-    }
-
-    showSunTrigger(type, trigger, append)
-    {
-        fetch('html/automation/sunTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            var automation = this;
-
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.title').innerHTML = type + ' trigger';
-            automation.modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
-            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
-            {
-                var data = formData(automation.modal.querySelector('form'));
-
-                trigger.offset = parseInt(data.offset);
-
-                if (data.name)
-                    trigger.name = data.name;
-                else
-                    delete trigger.name;
-
-                if (append)
-                    automation.data.triggers.push(trigger);
-
-                automation.modal.style.display = 'none';
-                automation.showAutomationInfo();
-            });
-
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
-
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="offset"]').focus();
         });
     }
 
