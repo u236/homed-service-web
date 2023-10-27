@@ -6,7 +6,7 @@ class Automation
     triggerType = ['property', 'mqtt', 'telegram', 'sunrise', 'sunset', 'time'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes'];
 
-    conditionType = ['property', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
+    conditionType = ['property', 'mqtt', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
     actionType = ['property', 'mqtt', 'telegram', 'shell', 'condition', 'delay'];
@@ -52,7 +52,7 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = '<span class="value">' + (trigger.type == 'mqtt' ? trigger.topic : trigger.endpoint) + '</span> ' + (trigger.property ? '> <span class="value">' + trigger.property + '</span> ' : '') + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                    data = '<span class="value">' + (trigger.type == 'mqtt' ? trigger.topic : trigger.endpoint) + '</span> ' + (trigger.property ? '&rarr; <span class="value">' + trigger.property + '</span> ' : '') + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
                 }
 
                 break;
@@ -94,9 +94,15 @@ class Automation
 
             switch (condition.type)
             {
-                case 'property': return '<span class="value">' + condition.endpoint + '</span> &rarr; <span class="value">' + condition.property + '</span> ' + statement + ' <span class="value">' + value + '</span>';
-                case 'date':     return statement + ' <span class="value">' + value + '</span>';
-                case 'time':     return statement + ' <span class="value">' + value + '</span>';
+                case 'property':
+                case 'mqtt':
+                    return '<span class="value">' + (condition.type == 'mqtt' ? condition.topic : condition.endpoint) + '</span> ' + (condition.property ? '&rarr; <span class="value">' + condition.property + '</span> ' : '') + statement + ' <span class="value">' + value + '</span>';
+
+                case 'date':
+                    return statement + ' <span class="value">' + value + '</span>';
+
+                case 'time':
+                    return statement + ' <span class="value">' + value + '</span>';
             }
         }
     }
@@ -182,7 +188,7 @@ class Automation
                         {
                             cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
                             cell.classList.add('right');
-                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 4);
+                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 5);
                             automation.conditionList(automation, condition.conditions, table, level + 1, colSpan);
                             break;
                         }
@@ -257,7 +263,7 @@ class Automation
                             {
                                 case 0:
                                     nameCell.innerHTML += '<span class="value">IF</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 4);
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 5);
                                     automation.conditionList(automation, action.conditions, table, level + 2, 3);
                                     break;
 
@@ -405,7 +411,7 @@ class Automation
             actions = automation.content.querySelector('.actions');
 
             addDropdown(automation.content.querySelector('.addTrigger'), automation.triggerType, function(type) { automation.showTrigger({'type': type}, true); });
-            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); }, 4);
+            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); }, 5);
             addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.actionDropdown(automation, automation.data.actions, type); }, 4);
 
             automation.data.triggers.forEach((trigger, index) =>
@@ -508,6 +514,7 @@ class Automation
         switch (condition.type)
         {
             case 'property': this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition'); break;
+            case 'mqtt':     this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition', true); break;
             case 'date':     this.showDateTimeCondition(condition, list, 'date', append); break;
             case 'time':     this.showDateTimeCondition(condition, list, 'time', append); break;
             case 'week':     this.showWeekCondition(condition, list, append); break;
