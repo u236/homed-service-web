@@ -4,7 +4,7 @@ class Automation
     modal = document.querySelector('#modal');
 
     triggerType = ['property', 'mqtt', 'telegram', 'time'];
-    triggerStatement = ['equals', 'above', 'below', 'between', 'changes'];
+    triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
@@ -22,10 +22,25 @@ class Automation
         return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
     }
 
-    betweenForm(form, between)
+    valueForm(form, statement)
     {
-        form.querySelector('.other').style.display = between ? 'none' : 'block';
-        form.querySelector('.between').style.display = between ? 'block' : 'none';
+        switch (statement)
+        {
+            case 'between':
+                form.querySelector('.between').style.display = 'block';
+                form.querySelector('.other').style.display = 'none';
+                break;
+
+            case 'updates':
+                form.querySelector('.between').style.display = 'none';
+                form.querySelector('.other').style.display = 'none';
+                break;
+
+            default:
+                form.querySelector('.between').style.display = 'none';
+                form.querySelector('.other').style.display = 'block';
+                break;
+        }
     }
 
     updateLastTriggered(row, lastTriggered)
@@ -52,7 +67,12 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = '<span class="value">' + (trigger.type == 'mqtt' ? trigger.topic : trigger.endpoint) + '</span> ' + (trigger.property ? '&rarr; <span class="value">' + trigger.property + '</span> ' : '') + statement + ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                    data = '<span class="value">' + (trigger.type == 'mqtt' ? trigger.topic : trigger.endpoint) + '</span> ' + (trigger.property ? '&rarr; <span class="value">' + trigger.property + '</span> ' : '') + statement;
+
+                    if (statement == 'updates')
+                        break;
+
+                    data += ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
                 }
 
                 break;
@@ -554,10 +574,11 @@ class Automation
                 {
                     automation.modal.querySelector('input[name="min"]').value = item[statement][0];
                     automation.modal.querySelector('input[name="max"]').value = item[statement][1];
-                    automation.betweenForm(automation.modal, true);
                 }
                 else
-                    automation.modal.querySelector('input[name="value"]').value = item[statement];
+                    automation.modal.querySelector('input[name="value"]').value = statement != 'updates' ? item[statement] : '';
+
+                automation.valueForm(automation.modal, statement);
             });
 
             automation.modal.querySelector('.name').style.display = type != 'trigger' ? 'none' : 'block';
@@ -574,7 +595,7 @@ class Automation
 
                 item[mqtt ? 'topic' : 'endpoint'] = data.item;
                 item.property = data.property;
-                item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : automation.parseValue(data.value);
+                item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : data.statement != 'updates' ? automation.parseValue(data.value) : true;
 
                 if (data.name)
                     item.name = data.name;
@@ -595,7 +616,7 @@ class Automation
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.betweenForm(automation.modal, event.target.value == 'between'); });
+            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
@@ -708,10 +729,11 @@ class Automation
                 {
                     automation.modal.querySelector('input[name="start"]').value = condition[statement][0];
                     automation.modal.querySelector('input[name="end"]').value = condition[statement][1];
-                    automation.betweenForm(automation.modal, true);
                 }
                 else
                     automation.modal.querySelector('input[name="value"]').value = condition[statement];
+
+                automation.valueForm(automation.modal, statement);
             });
 
             automation.modal.querySelector('.save').addEventListener('click', function()
@@ -728,7 +750,7 @@ class Automation
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.betweenForm(automation.modal, event.target.value == 'between'); });
+            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
             automation.modal.style.display = 'block';
 
