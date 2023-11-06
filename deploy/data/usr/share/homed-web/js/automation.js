@@ -766,7 +766,7 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('select[name="statement"]').focus();
+            automation.modal.querySelector('input[name="name"]').focus();
         });
     }
 
@@ -853,6 +853,7 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            automation.modal.querySelector('input[name="days"]').focus();
         });
     }
 
@@ -922,7 +923,7 @@ class Automation
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
-            automation.modal.querySelector('input[name="topic"]').focus();
+            automation.modal.querySelector('input[name="name"]').focus();
         });
     }
 
