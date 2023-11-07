@@ -27,6 +27,8 @@ function exposeUnit(name)
         case 'co2':            unit = 'ppm'; break;
         case 'current':        unit = 'A'; break;
         case 'energy':         unit = 'kW·h'; break;
+        case 'formaldehyde':   unit = 'µg/m³'; break;
+        case 'frequency':      unit = 'Hz'; break;
         case 'illuminance':    unit = 'lx';  break;
         case 'power':          unit = 'W'; break;
         case 'pressure':       unit = 'kPa'; break;
@@ -134,6 +136,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
             case 'colorTemperature':
                 var option = options.colorTemperature ?? {};
+                valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseInt(this.value)}); });
@@ -151,44 +154,16 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
-            // bool
-            case 'alarm':
-            case 'autoBrightness':
-            case 'autoCalibration':
-            case 'boost':
-            case 'calibration':
-            case 'childLock':
-            case 'co2LongChart':
-            case 'co2Relay':
-            case 'co2RelayInvert':
-            case 'ecoMode':
-            case 'humidityRelay':
-            case 'humidityRelayInvert':
-            case 'interlock':
-            case 'ledFeedback':
-            case 'nightBacklight':
-            case 'pressureLongChart':
-            case 'temperatureRelay':
-            case 'temperatureRelayInvert':
-            case 'reverse':
-            case 'statusMemory':
-            case 'vocRelay':
-            case 'vocRelayInvert':
-                controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) {  valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); } }) );
-                break;
-
-            // bool trigger
             case 'co2FactoryReset':
             case 'co2ForceCalibration':
                 controlCell.innerHTML = '<span>trigger</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != 'true') { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) } }) );
                 break;
 
-            // percentage
             case 'level':
             case 'position':
 
+                valueCell.dataset.type = 'number';
                 valueCell.dataset.unit = '%';
 
                 if (name.startsWith('position') && !list.includes('cover'))
@@ -199,139 +174,54 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
                 break;
 
-            // number
-            case 'altitude':
-            case 'awayDays':
-            case 'awayTemperature':
-            case 'boostTimeout':
-            case 'co2High':
-            case 'co2Low':
-            case 'co2ManualCalibration':
-            case 'comfortTemperature':
-            case 'count':
-            case 'detectionDelay':
-            case 'distanceMax':
-            case 'distanceMin':
-            case 'duration':
-            case 'ecoTemperature':
-            case 'fadingTime':
-            case 'humidityHigh':
-            case 'humidityLow':
-            case 'humidityOffset':
-            case 'melody':
-            case 'pattern':
-            case 'pressureOffset':
-            case 'reportingDelay':
-            case 'sensitivity':
-            case 'targetTemperature':
-            case 'temperatureHigh':
-            case 'temperatureLow':
-            case 'temperatureOffset':
-            case 'threshold':
-            case 'thresholdHigh':
-            case 'thresholdLow':
-            case 'timer':
-            case 'vocHigh':
-            case 'vocLow':
-            //
-            case 'holidayP1Temperature':
-            case 'holidayP2Temperature':
-            case 'holidayP3Temperature':
-            case 'holidayP4Temperature':
-            case 'holidayP5Temperature':
-            case 'holidayP6Temperature':
-            case 'saturdayP1Temperature':
-            case 'saturdayP2Temperature':
-            case 'saturdayP3Temperature':
-            case 'saturdayP4Temperature':
-            case 'sundayP1Temperature':
-            case 'sundayP2Temperature':
-            case 'sundayP3Temperature':
-            case 'sundayP4Temperature':
-            case 'weekdayP1Temperature':
-            case 'weekdayP2Temperature':
-            case 'weekdayP3Temperature':
-            case 'weekdayP4Temperature':
-            case 'weekdayP5Temperature':
-            case 'weekdayP6Temperature':
+            default:
 
                 var option = options[name.split('_')[0]] ?? {};
 
-                if (isNaN(option.min) || isNaN(option.max))
-                    break;
-
-                if (option.unit)
-                    valueCell.dataset.unit = option.unit;
-
-                if ((option.max - option.min) / (option.step ?? 1) <= 1000)
+                if (option.boolean)
                 {
-                    controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
-                    controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
-                    controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseFloat(this.value)}); });
+                    controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
+                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) {  valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); } }) );
+                    break;
+                }
+                else if (!isNaN(option.min) && !isNaN(option.max))
+                {
+                    valueCell.dataset.type = 'number';
+
+                    if (option.unit)
+                        valueCell.dataset.unit = option.unit;
+
+                    if ((option.max - option.min) / (option.step ?? 1) <= 1000)
+                    {
+                        controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
+                        controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
+                        controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseFloat(this.value)}); });
+                    }
+                    else
+                    {
+                        controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
+                        controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: parseFloat(value)}); } });
+                    }
+                }
+                else if (Array.isArray(option.enum))
+                {
+                    var option = options[name.split('_')[0]] ?? {};
+
+                    if (!option.enum)
+                        break;
+
+                    option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
+                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
+                }
+                else if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
+                {
+                    controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
+                    controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
                 }
                 else
-                {
-                    controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
-                    controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: parseFloat(value)}); } });
-                }
+                    control = false;
 
                 break;
-
-            // enum
-            case 'buttonMode':
-            case 'detectionMode':
-            case 'distanceMode':
-            case 'indicatorMode':
-            case 'leftMode':
-            case 'lightType':
-            case 'operationMode':
-            case 'powerOnStatus':
-            case 'rightMode':
-            case 'sensitivityMode':
-            case 'sensorType':
-            case 'switchMode':
-            case 'switchType':
-            case 'systemMode':
-            case 'timeoutMode':
-            case 'volumeMode':
-            case 'weekMode':
-
-                var option = options[name.split('_')[0]] ?? {};
-
-                if (!option.enum)
-                    break;
-
-                option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
-                break;
-
-            // time
-            case 'holidayP1Time':
-            case 'holidayP2Time':
-            case 'holidayP3Time':
-            case 'holidayP4Time':
-            case 'holidayP5Time':
-            case 'holidayP6Time':
-            case 'saturdayP1Time':
-            case 'saturdayP2Time':
-            case 'saturdayP3Time':
-            case 'saturdayP4Time':
-            case 'sundayP1Time':
-            case 'sundayP2Time':
-            case 'sundayP3Time':
-            case 'sundayP4Time':
-            case 'weekdayP1Time':
-            case 'weekdayP2Time':
-            case 'weekdayP3Time':
-            case 'weekdayP4Time':
-            case 'weekdayP5Time':
-            case 'weekdayP6Time':
-                controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
-                controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
-                break;
-
-            default:
-                control = false;
         }
     });
 
@@ -364,82 +254,26 @@ function updateExpose(endpoint, name, value)
                 cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
                 break;
 
-            // number
-            case 'colorTemperature':
-            case 'level':
-            case 'position':
-            //
-            case 'altitude':
-            case 'awayDays':
-            case 'awayTemperature':
-            case 'boostTimeout':
-            case 'co2High':
-            case 'co2Low':
-            case 'co2ManualCalibration':
-            case 'comfortTemperature':
-            case 'count':
-            case 'detectionDelay':
-            case 'distanceMax':
-            case 'distanceMin':
-            case 'duration':
-            case 'ecoTemperature':
-            case 'fadingTime':
-            case 'humidityHigh':
-            case 'humidityLow':
-            case 'humidityOffset':
-            case 'melody':
-            case 'pattern':
-            case 'pressureOffset':
-            case 'reportingDelay':
-            case 'sensitivity':
-            case 'targetTemperature':
-            case 'temperatureHigh':
-            case 'temperatureLow':
-            case 'temperatureOffset':
-            case 'threshold':
-            case 'thresholdHigh':
-            case 'thresholdLow':
-            case 'timer':
-            case 'vocHigh':
-            case 'vocLow':
-            //
-            case 'holidayP1Temperature':
-            case 'holidayP2Temperature':
-            case 'holidayP3Temperature':
-            case 'holidayP4Temperature':
-            case 'holidayP5Temperature':
-            case 'holidayP6Temperature':
-            case 'saturdayP1Temperature':
-            case 'saturdayP2Temperature':
-            case 'saturdayP3Temperature':
-            case 'saturdayP4Temperature':
-            case 'sundayP1Temperature':
-            case 'sundayP2Temperature':
-            case 'sundayP3Temperature':
-            case 'sundayP4Temperature':
-            case 'weekdayP1Temperature':
-            case 'weekdayP2Temperature':
-            case 'weekdayP3Temperature':
-            case 'weekdayP4Temperature':
-            case 'weekdayP5Temperature':
-            case 'weekdayP6Temperature':
-
-                var input = document.querySelector('.deviceInfo .exposes tr[data-name="' + name + suffix + '"] td.control input');
-
-                if (name == 'level')
-                    value = Math.round(value * 100 / 255);
-
-                if (cell.dataset.value == value)
-                    break;
-
-                if (input)
-                    input.value = value;
-
-                cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
-                break;
-
             default:
-                cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
+
+                if (cell.dataset.type == 'number')
+                {
+                    var input = document.querySelector('.deviceInfo .exposes tr[data-name="' + name + suffix + '"] td.control input');
+
+                    if (name == 'level')
+                        value = Math.round(value * 100 / 255);
+
+                    if (cell.dataset.value == value)
+                        break;
+
+                    if (input)
+                        input.value = value;
+
+                    cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
+                }
+                else
+                    cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
+
                 break;
         }
 
