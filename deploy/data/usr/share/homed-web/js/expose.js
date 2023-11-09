@@ -51,7 +51,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 {
     var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
     var control = true;
-    var list = [];
+    var list = new Array();
 
     switch(expose)
     {
