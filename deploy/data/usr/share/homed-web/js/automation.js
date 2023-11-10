@@ -875,8 +875,12 @@ class Automation
 
                 action.topic = data.topic;
                 action.message = data.message.trim();
-                action.triggerName = data.triggerName;
                 action.retain = data.retain;
+
+                if (data.triggerName)
+                    item.triggerName = data.triggerName;
+                else
+                    delete item.triggerName;
 
                 if (append)
                     list.push(action);
@@ -946,8 +950,12 @@ class Automation
 
                 action.message = data.message.trim();
                 action.chats = chats.length ? chats : null;
-                action.triggerName = data.triggerName;
                 action.silent = data.silent;
+
+                if (data.triggerName)
+                    item.triggerName = data.triggerName;
+                else
+                    delete item.triggerName;
 
                 if (append)
                     list.push(action);
@@ -980,7 +988,11 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 action.command = data.command.trim();
-                action.triggerName = data.triggerName;
+
+                if (data.triggerName)
+                    item.triggerName = data.triggerName;
+                else
+                    delete item.triggerName;
 
                 if (append)
                     list.push(action);
@@ -1013,7 +1025,11 @@ class Automation
                 var data = formData(automation.modal.querySelector('form'));
 
                 action.delay = parseInt(data.delay);
-                action.triggerName = data.triggerName;
+
+                if (data.triggerName)
+                    item.triggerName = data.triggerName;
+                else
+                    delete item.triggerName;
 
                 if (append)
                     list.push(action);
