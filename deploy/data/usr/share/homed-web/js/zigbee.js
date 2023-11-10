@@ -139,7 +139,7 @@ class ZigBee
         {
             var zigbee = this;
             var map, width, height, link, text, node, routerLinks = false;
-            var data = {nodes: [], links: []};
+            var data = {nodes: new Array(), links: new Array()};
             var drag = d3.drag();
             var simulation = d3.forceSimulation();
             var symbol = [d3.symbolStar, d3.symbolTriangle, d3.symbolCircle];
@@ -251,7 +251,7 @@ class ZigBee
                 return;
             }
 
-            zigbee.endpoints = {fd: [], td: []}; // TODO: refactor this
+            zigbee.endpoints = {fd: new Array(), td: new Array()}; // TODO: refactor this
 
             Object.keys(expose).forEach(endpoint =>
             {
