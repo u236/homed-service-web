@@ -446,8 +446,16 @@ body[theme="dark"] {
 }
 
 .homed .automationInfo .title .name {
-    font-size: 1.25em;
+    font-size: 1.25rem;
     font-weight: 700;
+}
+
+.homed .automationInfo .title a {
+    color: var(--color-shade);
+}
+
+.homed .automationInfo .title a:hover {
+    color: var(--color-main);
 }
 
 .homed .deviceInfo table {
