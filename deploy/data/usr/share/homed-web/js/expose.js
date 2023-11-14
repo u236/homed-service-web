@@ -144,20 +144,20 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
             case 'cover':
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
             case 'switch':
                 name = name.replace('switch', 'status');
                 row.dataset.name = name + suffix;
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) sendData(endpoint, {[name]: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
             case 'co2FactoryReset':
             case 'co2ForceCalibration':
                 controlCell.innerHTML = '<span>trigger</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != 'true') { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) } }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) }) );
                 break;
 
             case 'level':
@@ -169,7 +169,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 if (name.startsWith('position') && !list.includes('cover'))
                     break;
 
-                controlCell.innerHTML = '<input type="range" min="1" max="100" class="' + name + '">';
+                controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + name + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
                 break;
