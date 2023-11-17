@@ -92,6 +92,9 @@ class Controller
         {
             var item = document.createElement('span');
 
+            if (services.innerHTML)
+                services.append('|');
+
             item.innerHTML = service;
             item.addEventListener('click', function() { controller.showPage(service); localStorage.setItem('page', service); });
 
