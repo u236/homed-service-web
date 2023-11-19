@@ -251,6 +251,12 @@ class ZigBee
                 return;
             }
 
+            if (!expose)
+            {
+                zigbee.content.querySelector('.exposes').style.display = 'none';
+                return;
+            }
+
             zigbee.endpoints = {fd: new Array(), td: new Array()}; // TODO: refactor this
 
             Object.keys(expose).forEach(endpoint =>

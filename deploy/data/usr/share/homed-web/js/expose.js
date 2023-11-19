@@ -181,7 +181,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 if (option.boolean)
                 {
                     controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) {  valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); } }) );
+                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); }) );
                     break;
                 }
                 else if (!isNaN(option.min) && !isNaN(option.max))
@@ -211,7 +211,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                         break;
 
                     option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
+                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() {  valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); }) );
                 }
                 else if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
                 {
