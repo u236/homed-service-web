@@ -878,9 +878,9 @@ class Automation
                 action.retain = data.retain;
 
                 if (data.triggerName)
-                    item.triggerName = data.triggerName;
+                    action.triggerName = data.triggerName;
                 else
-                    delete item.triggerName;
+                    delete action.triggerName;
 
                 if (append)
                     list.push(action);
@@ -953,9 +953,9 @@ class Automation
                 action.silent = data.silent;
 
                 if (data.triggerName)
-                    item.triggerName = data.triggerName;
+                    action.triggerName = data.triggerName;
                 else
-                    delete item.triggerName;
+                    delete action.triggerName;
 
                 if (append)
                     list.push(action);
@@ -990,9 +990,9 @@ class Automation
                 action.command = data.command.trim();
 
                 if (data.triggerName)
-                    item.triggerName = data.triggerName;
+                    action.triggerName = data.triggerName;
                 else
-                    delete item.triggerName;
+                    delete action.triggerName;
 
                 if (append)
                     list.push(action);
@@ -1027,9 +1027,9 @@ class Automation
                 action.delay = parseInt(data.delay);
 
                 if (data.triggerName)
-                    item.triggerName = data.triggerName;
+                    action.triggerName = data.triggerName;
                 else
-                    delete item.triggerName;
+                    delete action.triggerName;
 
                 if (append)
                     list.push(action);
