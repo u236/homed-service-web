@@ -8,6 +8,7 @@ function exposeTitle(name, suffix)
     {
         case 'co2':  title[0] = 'CO2'; break;
         case 'eco2': title[0] = 'eCO2'; break;
+        case 'pm25': title[0] = 'PM2.5'; break;
         case 'voc':  title[0] = 'VOC'; break;
         default:     title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
@@ -24,23 +25,31 @@ function exposeUnit(name)
 
     switch (name)
     {
-        case 'co2':            unit = 'ppm'; break;
-        case 'current':        unit = 'A'; break;
-        case 'energy':         unit = 'kW·h'; break;
-        case 'formaldehyde':   unit = 'µg/m³'; break;
-        case 'frequency':      unit = 'Hz'; break;
-        case 'illuminance':    unit = 'lx';  break;
-        case 'power':          unit = 'W'; break;
-        case 'pressure':       unit = 'kPa'; break;
-        case 'targetDistance': unit = 'm'; break;
-        case 'temperature':    unit = '°C'; break;
-        case 'voc':            unit = 'ppb'; break;
-        case 'voltage':        unit = 'V'; break;
+        case 'current':        unit = 'A';     break;
+        case 'energy':         unit = 'kW·h';  break;
+        case 'frequency':      unit = 'Hz';    break;
+        case 'illuminance':    unit = 'lx';    break;
+        case 'power':          unit = 'W';     break;
+        case 'pressure':       unit = 'kPa';   break;
+        case 'targetDistance': unit = 'm';     break;
+        case 'temperature':    unit = '°C';    break;
+        case 'voc':            unit = 'ppb';   break;
+        case 'voltage':        unit = 'V';     break;
 
         case 'battery':
         case 'humidity':
         case 'moisture':
             unit = '%';
+            break;
+
+        case 'co2':
+        case 'eco2':
+            unit = 'ppm';
+            break;
+
+        case 'formaldehyde':
+        case 'pm25':
+            unit = 'µg/m³';
             break;
     }
 
@@ -66,7 +75,8 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
         case 'thermostat':
             var controls = ['systemMode', 'operationMode', 'targetTemperature'];
             controls.forEach(function(item) { if (options[item]) list.push(item); });
-            list.push('temperature', 'heating');
+            list.push('temperature');
+            if (options.heatingStatus) list.push('heating');
             break;
 
         case 'thermostatProgram':
@@ -206,12 +216,8 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 else if (Array.isArray(option.enum))
                 {
                     var option = options[name.split('_')[0]] ?? {};
-
-                    if (!option.enum)
-                        break;
-
                     option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() {  valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); }) );
+                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
                 }
                 else if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
                 {

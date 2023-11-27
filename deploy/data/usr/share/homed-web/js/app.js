@@ -323,7 +323,7 @@ class Controller
 
                 menu.querySelector('#list').addEventListener('click', function() { controller.zigbee.showDeviceList(); });
                 menu.querySelector('#map').addEventListener('click', function() { controller.zigbee.showDeviceMap(); });
-                menu.querySelector('#permitJoin').addEventListener('click', function() { controller.socket.publish('command/zigbee', {'action': 'setPermitJoin', 'enabled': controller.status.zigbee && controller.status.zigbee.permitJoin ? false : true}); });
+                menu.querySelector('#permitJoin').addEventListener('click', function() { controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'}); });
 
                 if (this.status.zigbee)
                 {
