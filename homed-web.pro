@@ -32,11 +32,11 @@ DISTFILES += \
     deploy/data/usr/share/homed-web/html/automation/weekCondition.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceData.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceDebug.html \
+    deploy/data/usr/share/homed-web/html/zigbee/deviceEdit.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceInfo.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceList.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceMap.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceRemove.html \
-    deploy/data/usr/share/homed-web/html/zigbee/deviceRename.html \
     deploy/data/usr/share/homed-web/html/zigbee/deviceTopics.html \
     deploy/data/usr/share/homed-web/img/homed.svg \
     deploy/data/usr/share/homed-web/index.html \

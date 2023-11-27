@@ -244,8 +244,12 @@ body[theme="dark"] {
     text-align: right;
 }
 
-.homed .unavailable {
+.homed .offline {
     background-color: var(--background-error);
+}
+
+.homed .inactive {
+    color: var(--color-shade);
 }
 
 .homed .buttons {

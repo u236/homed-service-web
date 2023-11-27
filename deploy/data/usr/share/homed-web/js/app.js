@@ -242,15 +242,14 @@ class Controller
 
                 if (row && this.page == 'zigbee')
                 {
-                    if (message.status == 'online')
+                    row.classList.remove('online', 'offline', 'inactive');
+                    row.classList.add(message.status);
+
+                    switch(message.status)
                     {
-                        row.classList.remove('unavailable');
-                        row.querySelector('.availability').innerHTML = '<i class="icon-true success"></i>';
-                    }
-                    else
-                    {
-                        row.classList.add('unavailable');
-                        row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>';
+                        case 'online':   row.querySelector('.availability').innerHTML = '<i class="icon-true success"></i>'; break;
+                        case 'offline':  row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>'; break;
+                        case 'inactive': row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>'; break;
                     }
                 }
 
