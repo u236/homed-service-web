@@ -124,21 +124,14 @@ void Controller::readyRead(void)
 void Controller::clientConnected(void)
 {
     QWebSocket *client = m_webSocket->nextPendingConnection();
-
-    logInfo << "Client" << (client->request().hasRawHeader("X-Real-IP") ? client->request().rawHeader("X-Real-IP") : client->peerAddress().toString()) << "websocket connected";
-
     connect(client, &QWebSocket::disconnected, this, &Controller::clientDisconnected);
     connect(client, &QWebSocket::textMessageReceived, this, &Controller::textMessageReceived);
-
     m_clients.insert(client, QStringList());
 }
 
 void Controller::clientDisconnected(void)
 {
     QWebSocket *client = reinterpret_cast <QWebSocket*> (sender());
-
-    logInfo << "Client" << (client->request().hasRawHeader("X-Real-IP") ? client->request().rawHeader("X-Real-IP") : client->peerAddress().toString()) << "websocket disconnected";
-
     m_clients.remove(client);
     client->deleteLater();
 }
