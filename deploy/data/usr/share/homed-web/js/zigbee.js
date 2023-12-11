@@ -236,11 +236,13 @@ class ZigBee
             for (var key in zigbee.device)
             {
                 var cell = document.querySelector('.' + key);
+                var row = cell ? cell.closest('tr') : undefined;
 
-                if (!cell)
-                    continue;
+                if (cell)
+                    cell.innerHTML = zigbee.parseValue(key, zigbee.device[key]);
 
-                cell.innerHTML = zigbee.parseValue(key, zigbee.device[key]);
+                if (row)
+                    row.style.display = 'table-row';
             }
 
             if (!zigbee.device.logicalType)

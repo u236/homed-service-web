@@ -466,6 +466,10 @@ body[theme="dark"] {
     margin-bottom: 20px;
 }
 
+.homed .deviceInfo .summary tr {
+    display: none;
+}
+
 .homed .deviceInfo td:first-child {
     width: 25%;
     min-width: 150px;
