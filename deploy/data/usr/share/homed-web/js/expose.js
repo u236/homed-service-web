@@ -8,6 +8,8 @@ function exposeTitle(name, suffix)
     {
         case 'co2':  title[0] = 'CO2'; break;
         case 'eco2': title[0] = 'eCO2'; break;
+        case 'pm1':  title[0] = 'PM1'; break;
+        case 'pm10': title[0] = 'PM10'; break;
         case 'pm25': title[0] = 'PM2.5'; break;
         case 'voc':  title[0] = 'VOC'; break;
         default:     title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
@@ -17,43 +19,6 @@ function exposeTitle(name, suffix)
         title[1] = title[1].toUpperCase();
 
     return title.join(' ') + (suffix != 'common' ? ' ' + suffix : '');
-}
-
-function exposeUnit(name)
-{
-    var unit;
-
-    switch (name)
-    {
-        case 'current':        unit = 'A';     break;
-        case 'energy':         unit = 'kW·h';  break;
-        case 'frequency':      unit = 'Hz';    break;
-        case 'illuminance':    unit = 'lx';    break;
-        case 'power':          unit = 'W';     break;
-        case 'pressure':       unit = 'kPa';   break;
-        case 'targetDistance': unit = 'm';     break;
-        case 'temperature':    unit = '°C';    break;
-        case 'voc':            unit = 'ppb';   break;
-        case 'voltage':        unit = 'V';     break;
-
-        case 'battery':
-        case 'humidity':
-        case 'moisture':
-            unit = '%';
-            break;
-
-        case 'co2':
-        case 'eco2':
-            unit = 'ppm';
-            break;
-
-        case 'formaldehyde':
-        case 'pm25':
-            unit = 'µg/m³';
-            break;
-    }
-
-    return unit ? ' ' + unit : '';
 }
 
 function addExpose(endpoint, expose, options = {}, endpoints = undefined)
@@ -74,14 +39,14 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
         case 'thermostat':
             var controls = ['systemMode', 'operationMode', 'targetTemperature'];
-            controls.forEach(function(item) { if (options[item]) list.push(item); });
-            list.push('temperature');
-            if (options.heatingStatus) list.push('heating');
+            controls.forEach(function(item) { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
+            list = list.concat(options.heatingStatus ? ['temperature', 'heating'] : ['temperature']);
+            options['temperature'] = {type:'sensor', unit: '°C'};
             break;
 
         case 'thermostatProgram':
 
-            if (options.thermostatProgram == 'moes')
+            if (options.thermostatProgram.moes)
             {
                 var types = ['weekday', 'saturday', 'sunday'];
                 var option = options.targetTemperature ?? {};
@@ -139,6 +104,12 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
         switch (name.split('_')[0])
         {
+            case 'co2FactoryReset':
+            case 'co2ForceCalibration':
+                controlCell.innerHTML = '<span>trigger</span>';
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) }) );
+                break;
+
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
                 colorPicker.on('input:end', function() { sendData(endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
@@ -157,19 +128,6 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
-            case 'switch':
-                name = name.replace('switch', 'status');
-                row.dataset.name = name + suffix;
-                controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML}); }) );
-                break;
-
-            case 'co2FactoryReset':
-            case 'co2ForceCalibration':
-                controlCell.innerHTML = '<span>trigger</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) }) );
-                break;
-
             case 'level':
             case 'position':
 
@@ -184,48 +142,76 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
                 break;
 
+            case 'switch':
+                name = name.replace('switch', 'status');
+                row.dataset.name = name + suffix;
+                controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(endpoint, {[name]: item.innerHTML}); }) );
+                break;
+
             default:
 
                 var option = options[name.split('_')[0]] ?? {};
 
-                if (option.boolean)
+                switch (option.type)
                 {
-                    controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); }) );
-                    break;
-                }
-                else if (!isNaN(option.min) && !isNaN(option.max))
-                {
-                    valueCell.dataset.type = 'number';
+                    case 'number':
 
-                    if (option.unit)
-                        valueCell.dataset.unit = option.unit;
+                        if (isNaN(option.min) || isNaN(option.max))
+                            break;
 
-                    if ((option.max - option.min) / (option.step ?? 1) <= 1000)
-                    {
-                        controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
-                        controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
-                        controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseFloat(this.value)}); });
-                    }
-                    else
-                    {
-                        controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
-                        controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: parseFloat(value)}); } });
-                    }
+                        valueCell.dataset.type = 'number';
+
+                        if (option.unit)
+                            valueCell.dataset.unit = option.unit;
+
+                        if ((option.max - option.min) / (option.step ?? 1) <= 1000)
+                        {
+                            controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
+                            controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
+                            controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(endpoint, {[name]: parseFloat(this.value)}); });
+                        }
+                        else
+                        {
+                            controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
+                            controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: parseFloat(value)}); } });
+                        }
+
+                        break;
+
+                    case 'select':
+
+                        if (!Array.isArray(option.enum))
+                            break;
+
+                        option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
+                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
+                        break;
+
+                    case 'sensor':
+
+                        if (option.unit)
+                            valueCell.dataset.unit = option.unit;
+
+                        break;
+
+                    case 'toggle':
+                        controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
+                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name]: value}); } }) );
+                        break;
+
+                    default:
+
+                        if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
+                        {
+                            controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
+                            controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
+                            break;
+                        }
+
+                        control = false;
+                        break;
                 }
-                else if (Array.isArray(option.enum))
-                {
-                    var option = options[name.split('_')[0]] ?? {};
-                    option.enum.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); } }) );
-                }
-                else if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
-                {
-                    controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
-                    controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
-                }
-                else
-                    control = false;
 
                 break;
         }
@@ -274,12 +260,9 @@ function updateExpose(endpoint, name, value)
 
                     if (input)
                         input.value = value;
-
-                    cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
                 }
-                else
-                    cell.innerHTML = typeof value == 'number' ? (Math.round(value * 1000) / 1000) + (row.dataset.option != 'raw' ? exposeUnit(name) : '') : value;
 
+                cell.innerHTML = typeof value == 'number' ? value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
                 break;
         }
 
