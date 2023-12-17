@@ -915,6 +915,11 @@ class Automation
                 action.name = data.name;
                 action.value = automation.parseValue(data.value);
 
+                if (data.triggerName)
+                    action.triggerName = data.triggerName;
+                else
+                    delete action.triggerName;
+
                 if (append)
                     list.push(action);
 

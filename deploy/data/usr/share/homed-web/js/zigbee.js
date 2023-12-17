@@ -35,7 +35,7 @@ class ZigBee
         {
             case 'clusterRequest':
             case 'globalRequest':
-                {
+            {
                 var item = this.modal.querySelector('.debugResult');
 
                 if (!item)
