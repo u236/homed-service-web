@@ -128,11 +128,6 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
-            case 'setUpperLimit':
-            case 'resetLimit':
-                controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(endpoint, {[name]: item.innerHTML}); }) );
-                break;
             case 'level':
             case 'position':
 
