@@ -151,7 +151,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
                 {
                     case 'button':
                         controlCell.innerHTML = '<span>trigger</span>';
-                        controlCell.querySelectorAll('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) });
+                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) });
                         break;
 
                     case 'number':
