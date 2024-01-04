@@ -104,12 +104,6 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
         switch (name.split('_')[0])
         {
-            case 'co2FactoryReset':
-            case 'co2ForceCalibration':
-                controlCell.innerHTML = '<span>trigger</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) }) );
-                break;
-
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
                 colorPicker.on('input:end', function() { sendData(endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
@@ -155,6 +149,11 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
                 switch (option.type)
                 {
+                    case 'button':
+                        controlCell.innerHTML = '<span>trigger</span>';
+                        controlCell.querySelectorAll('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(endpoint, {[name]: true}) });
+                        break;
+
                     case 'number':
 
                         if (isNaN(option.min) || isNaN(option.max))
