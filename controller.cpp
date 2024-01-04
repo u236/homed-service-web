@@ -21,7 +21,7 @@ void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
 
     if (list.value(0) != "GET")
     {
-        socket->write("HTTP/1.1 405 Method Not Allowed");
+        socket->write("HTTP/1.1 405 Method Not Allowed\r\n\r\n");
         return;
     }
 
@@ -29,13 +29,13 @@ void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
 
     if (!file.exists())
     {
-        socket->write("HTTP/1.1 404 Not Found");
+        socket->write("HTTP/1.1 404 Not Found\r\n\r\n");
         return;
     }
 
     if (!file.open(QFile::ReadOnly))
     {
-        socket->write("HTTP/1.1 404 Internal Server Error");
+        socket->write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
         return;
     }
 
