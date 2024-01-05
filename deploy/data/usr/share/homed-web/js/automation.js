@@ -3,7 +3,7 @@ class Automation
     content = document.querySelector('.content .container');
     modal = document.querySelector('#modal');
 
-    triggerType = ['property', 'mqtt', 'telegram', 'time'];
+    triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
@@ -83,6 +83,10 @@ class Automation
 
             case 'time':
                 data = '<span class="value">' + trigger.time + '</span>';
+                break;
+
+            case 'interval':
+                data = 'every <span class="value">' + trigger.interval + '</span> ' + (trigger.interval != 1 ? 'minutes' : 'minute');
                 break;
         }
 
@@ -526,6 +530,7 @@ class Automation
             case 'mqtt':     this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger', true); break;
             case 'telegram': this.showTelegramTrigger(trigger, append); break;
             case 'time':     this.showTimeTrigger(trigger, append); break;
+            case 'interval': this.showIntervalTrigger(trigger, append); break;
         }
     }
 
@@ -689,7 +694,7 @@ class Automation
             {
                 var data = formData(automation.modal.querySelector('form'));
 
-                trigger.time = automation.modal.querySelector('input[name="time"]').value;
+                trigger.time = data.time;
 
                 if (data.name)
                     trigger.name = data.name;
@@ -709,6 +714,42 @@ class Automation
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
             automation.modal.querySelector('input[name="time"]').focus();
+        });
+    }
+
+    showIntervalTrigger(trigger, append)
+    {
+        fetch('html/automation/intervalTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var automation = this;
+
+            automation.modal.querySelector('.data').innerHTML = html;
+            automation.modal.querySelector('input[name="interval"]').value = trigger.interval ?? '10';
+
+            automation.modal.querySelector('.save').addEventListener('click', function()
+            {
+                var data = formData(automation.modal.querySelector('form'));
+
+                trigger.interval = parseInt(data.interval);
+
+                if (data.name)
+                    trigger.name = data.name;
+                else
+                    delete trigger.name;
+
+                if (append)
+                    automation.data.triggers.push(trigger);
+
+                automation.modal.style.display = 'none';
+                automation.showAutomationInfo();
+            });
+
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.style.display = 'block';
+
+            automation.modal.removeEventListener('keypress', handleSave);
+            automation.modal.addEventListener('keypress', handleSave);
+            automation.modal.querySelector('input[name="interval"]').focus();
         });
     }
 
