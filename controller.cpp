@@ -68,7 +68,6 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
 {
     QString subTopic = topic.name().replace(mqttTopic(), QString());
     QJsonObject json = QJsonDocument::fromJson(message).object();
-    bool check = false;
 
     if (m_retained.contains(subTopic.split('/').value(0)))
         m_messages.insert(subTopic, json);
@@ -79,13 +78,6 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
             continue;
 
         it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
-        check = true;
-    }
-
-    if (!check)
-    {
-        mqttUnsubscribe(topic.name());
-        m_messages.remove(subTopic);
     }
 }
 
@@ -154,7 +146,6 @@ void Controller::textMessageReceived(const QString &message)
         {
             QJsonObject json = m_messages.value(subTopic);
             it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
-            return;
         }
 
         mqttSubscribe(mqttTopic(subTopic));
