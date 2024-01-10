@@ -5,6 +5,9 @@
 
 Controller::Controller(const QString &configFile) : HOMEd(configFile), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
 {
+    logInfo << "Starting version" << SERVICE_VERSION;
+    logInfo << "Configuration file is" << getConfig()->fileName();
+
     m_retained = {"device", "expose", "service", "status"};
 
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
