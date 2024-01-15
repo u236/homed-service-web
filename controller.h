@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "1.3.1"
+#define SERVICE_VERSION     "1.3.2"
 
 #include <QTcpServer>
 #include <QWebSocket>

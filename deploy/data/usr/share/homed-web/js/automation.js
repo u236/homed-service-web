@@ -616,7 +616,14 @@ class Automation
                         expose[key].items.forEach(item =>
                         {
                             var endpoint = 'zigbee/' + (names ? device.name : device.ieeeAddress) + (!isNaN(key) ? '/' + key : '');
-                            exposeList(item, expose[key].options).forEach(value => { exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = [endpoint, value]; });
+
+                            exposeList(item, expose[key].options).forEach(value =>
+                            {
+                                if (value == 'switch')
+                                    value = 'status';
+
+                                exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = [endpoint, value];
+                            });
                         });
                     });
                 });

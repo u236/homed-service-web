@@ -356,10 +356,6 @@ class Controller
                 this.automation.showAutomationInfo();
                 break;
 
-            case 'zigbee':
-                this.zigbee.showDeviceList();
-                break;
-
             case 'zigbeeMap':
                 this.zigbee.showDeviceMap();
                 break;
@@ -368,11 +364,8 @@ class Controller
                 this.zigbee.showDeviceInfo();
                 break;
 
-            // TODO: remove it
             default:
-                this.setService(page)
-                this.setPage(page)
-                this.clearPage(page, page + ' page not found');
+                this.zigbee.showDeviceList();
                 break;
         }
     }
@@ -471,9 +464,19 @@ function sortTable(table, index, first = true)
 function addDropdown(dropdown, options, callback, separator = 0)
 {
     var list = document.createElement('div');
+    var search = undefined;
 
     list.classList.add('list');
     dropdown.append(list);
+
+    if (options.length > 10)
+    {
+        search =  document.createElement('input');
+        search.type = 'text';
+        search.placeholder = 'Type to search'
+        list.append(search);
+        search.addEventListener('input', function() { list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
+    }
 
     options.forEach((option, index) =>
     {
@@ -488,8 +491,23 @@ function addDropdown(dropdown, options, callback, separator = 0)
         list.append(item);
     });
 
-    dropdown.addEventListener('click', function() { list.style.display = list.style.display == 'block' ? 'none' : 'block'; });
-    document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) { list.style.display = 'none'; }});
+    dropdown.addEventListener('click', function(event)
+    {
+        if (list.style.display == 'block' && event.target != search)
+        {
+            list.style.display = 'none';
+            return;
+        }
+
+        list.style.display = 'block';
+
+        if (!search)
+            return;
+
+        search.focus();
+    });
+
+    document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) list.style.display = 'none'; });
 }
 
 function handleSave(event)
