@@ -21,10 +21,8 @@ function exposeTitle(name, suffix)
     return title.join(' ') + (suffix != 'common' ? ' ' + suffix : '');
 }
 
-function addExpose(endpoint, expose, options = {}, endpoints = undefined)
+function exposeList(expose, options)
 {
-    var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
-    var control = true;
     var list = new Array();
 
     switch(expose)
@@ -85,6 +83,15 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
             list.push(expose);
             break;
     }
+
+    return list;
+}
+
+function addExpose(endpoint, expose, options = {}, endpoints = undefined)
+{
+    var list = exposeList(expose, options);
+    var suffix = isNaN(endpoint) ? '' : '-' + endpoint;
+    var control = true;
 
     list.forEach(name =>
     {

@@ -269,7 +269,6 @@ body[theme="dark"] {
 }
 
 .homed .dropdown {
-    display: inline-block;
     position: relative;
     cursor: pointer;
 }
@@ -304,6 +303,7 @@ body[theme="dark"] {
     text-align: left;
     text-transform: none;
     color: var(--color-main);
+    white-space: nowrap;
 }
 
 .homed .dropdown .item:hover {
@@ -449,11 +449,6 @@ body[theme="dark"] {
     margin: 10px 5px 10px 4px;
 }
 
-.homed .automationInfo .title .name {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
 .homed .automationInfo .title a {
     color: var(--color-shade);
 }
@@ -582,6 +577,11 @@ body[theme="dark"] {
     padding-right: 0;
 }
 
+.homed .title .name {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
 .homed #modal {
     display: none;
     position: fixed;
@@ -610,9 +610,17 @@ body[theme="dark"] {
 }
 
 .homed #modal .title {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
     margin: 0;
     margin-bottom: 10px;
-    font-size: 1.25rem;
+}
+
+.homed #modal .dropdown .list {
+    max-height: calc(100vh - 90px);
+    overflow: auto;
 }
 
 .homed #toast {

@@ -479,7 +479,7 @@ class Automation
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.title').innerHTML = automation.data.name;
+            automation.modal.querySelector('.name').innerHTML = automation.data.name;
             automation.modal.querySelector('input[name="name"]').value = automation.data.name;
             automation.modal.querySelector('input[name="debounce"]').value = automation.data.debounce ?? 0;
             automation.modal.querySelector('input[name="restart"]').checked = automation.data.restart ?? false;
@@ -514,7 +514,7 @@ class Automation
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.title').innerHTML = automation.data.name;
+            automation.modal.querySelector('.name').innerHTML = automation.data.name;
             automation.modal.querySelector('.remove').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: automation.name}); automation.controller.clearPage('automation'); });
             automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
 
@@ -567,7 +567,7 @@ class Automation
             var automation = this;
 
             automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.title').innerHTML = (mqtt ? 'mqtt ' : 'property ') + type;
+            automation.modal.querySelector('.name').innerHTML = (mqtt ? 'mqtt ' : 'property ') + type;
             automation.modal.querySelector('.item').innerHTML = mqtt ? 'Topic:' : 'Endpoint:';
             automation.modal.querySelector('input[name="item"]').value = mqtt ? item.topic ?? '' : item.endpoint ?? '';
             automation.modal.querySelector('input[name="property"]').value = item.property ?? '';
@@ -595,11 +595,41 @@ class Automation
                 automation.valueForm(automation.modal, statement);
             });
 
-            automation.modal.querySelector('.name').style.display = type != 'trigger' ? 'none' : 'block';
-            automation.modal.querySelector('input[name="name"]').value = item.name ?? '';
+            automation.modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
+            automation.modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
-            automation.modal.querySelector('.triggerName').style.display = type != 'action' ? 'none' : 'block';
-            automation.modal.querySelector('input[name="triggerName"]').value = item.triggerName ?? '';
+            if (!mqtt)
+            {
+                var dropdown = automation.modal.querySelector('.dropdown')
+                var exposes = new Object();
+
+                this.controller.status.zigbee.devices.forEach(device =>
+                {
+                    var names = this.controller.status.zigbee.names;
+                    var expose = this.controller.expose.zigbee[names ? device.name : device.ieeeAddress];
+
+                    if (!expose)
+                        return;
+
+                    Object.keys(expose).forEach(key =>
+                    {
+                        expose[key].items.forEach(item =>
+                        {
+                            var endpoint = 'zigbee/' + (names ? device.name : device.ieeeAddress) + (!isNaN(key) ? '/' + key : '');
+                            exposeList(item, expose[key].options).forEach(value => { exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = [endpoint, value]; });
+                        });
+                    });
+                });
+
+                addDropdown(dropdown, Object.keys(exposes), function(item)
+                {
+                    automation.modal.querySelector('input[name="item"]').value = exposes[item][0];
+                    automation.modal.querySelector('input[name="property"]').value = exposes[item][1];
+                    automation.modal.querySelector('input[name="value"]').focus();
+                });
+
+                dropdown.style.display = 'block';
+            }
 
             automation.modal.querySelector('.save').addEventListener('click', function()
             {
@@ -611,15 +641,10 @@ class Automation
                 item.property = data.property;
                 item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : data.statement != 'updates' ? automation.parseValue(data.value) : true;
 
-                if (data.name)
-                    item.name = data.name;
-                else
-                    delete item.name;
-
                 if (data.triggerName)
-                    item.triggerName = data.triggerName;
+                    item[type == 'trigger' ? 'name' : 'triggerName'] = data.triggerName;
                 else
-                    delete item.triggerName;
+                    delete item[type == 'trigger' ? 'name' : 'triggerName'];
 
                 if (append)
                     list.push(item);

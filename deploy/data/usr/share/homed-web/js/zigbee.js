@@ -281,7 +281,7 @@ class ZigBee
             var zigbee = this;
 
             zigbee.modal.querySelector('.data').innerHTML = html;
-            zigbee.modal.querySelector('.title').innerHTML = zigbee.device.name;
+            zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('input[name="name"]').value = zigbee.device.name;
             zigbee.modal.querySelector('input[name="active"]').checked = zigbee.device.active;
             zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'editDevice', device: zigbee.device.name, name: modal.querySelector('input[name="name"]').value, active: modal.querySelector('input[name="active"]').checked}); });
@@ -302,7 +302,7 @@ class ZigBee
             var zigbee = this;
 
             zigbee.modal.querySelector('.data').innerHTML = html;
-            zigbee.modal.querySelector('.title').innerHTML = zigbee.device.name;
+            zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('.graceful').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: zigbee.device.name}); zigbee.controller.clearPage('zigbee'); });
             zigbee.modal.querySelector('.force').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: zigbee.device.name, force: true}); zigbee.controller.clearPage('zigbee'); });
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
@@ -318,7 +318,7 @@ class ZigBee
             var zigbee = this;
 
             zigbee.modal.querySelector('.data').innerHTML = html;
-            zigbee.modal.querySelector('.title').innerHTML = zigbee.device.name;
+            zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('.json').innerHTML = JSON.stringify(zigbee.device, null, 2);
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
 
@@ -335,7 +335,7 @@ class ZigBee
             var zigbee = this;
 
             zigbee.modal.querySelector('.data').innerHTML = html;
-            zigbee.modal.querySelector('.title').innerHTML = zigbee.device.name;
+            zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
 
             zigbee.device.endpoints.forEach(item =>
             {
@@ -398,7 +398,7 @@ class ZigBee
                 zigbee.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
             }
 
-            zigbee.modal.querySelector('.title').innerHTML = zigbee.device.name;
+            zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
 
             zigbee.modal.style.display = 'block';
