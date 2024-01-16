@@ -231,25 +231,29 @@ class Controller
                 var device = list[2];
 
                 if (!this.expose[service])
-                    this.expose[service] = new Object;
+                    this.expose[service] = new Object();
 
                 this.expose[service][device] = message;
                 break;
 
             case 'device':
 
-                var row = document.querySelector('tr[data-device="' + list[2] + '"]');
+                var device = list[2];
+                var row = document.querySelector('tr[data-device="' + device + '"]');
 
                 if (row && this.page == 'zigbee')
                 {
                     row.classList.remove('online', 'offline', 'inactive');
-                    row.classList.add(message.status);
 
-                    switch(message.status)
+                    if (this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == device : item.ieeeAddress == device).active)
                     {
-                        case 'online':   row.querySelector('.availability').innerHTML = '<i class="icon-true success"></i>'; break;
-                        case 'offline':  row.querySelector('.availability').innerHTML = '<i class="icon-false error"></i>'; break;
-                        case 'inactive': row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>'; break;
+                        row.classList.add(message.status);
+                        row.querySelector('.availability').innerHTML = '<i class="' + (availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
+                    }
+                    else
+                    {
+                        row.classList.add('inactive');
+                        row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
                     }
                 }
 
@@ -280,11 +284,6 @@ class Controller
                         break;
                 }
 
-                break;
-
-            // TODO: remocve it
-            default:
-                console.log(topic, message);
                 break;
         }
     }
@@ -530,7 +529,7 @@ function handleSend(event, item)
 
 function formData(form)
 {
-    var data = new Object;
+    var data = new Object();
     Array.from(form).forEach(input => { data[input.name] = input.type == 'checkbox' ? input.checked : input.value; });
     return data;
 }

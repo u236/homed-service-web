@@ -57,11 +57,6 @@ class ZigBee
         }
     }
 
-    updateLastSeen(row, lastSeen)
-    {
-        row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - lastSeen);
-    }
-
     showDeviceList()
     {
         var status = this.controller.status.zigbee ?? new Object();
@@ -114,7 +109,7 @@ class ZigBee
                     }
 
                     zigbee.controller.socket.subscribe('device/zigbee/' + (status.names ? device.name : device.ieeeAddress));
-                    zigbee.updateLastSeen(row, device.lastSeen);
+                    row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - device.lastSeen);
                 }
             });
 
@@ -283,10 +278,12 @@ class ZigBee
             zigbee.modal.querySelector('.data').innerHTML = html;
             zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('input[name="name"]').value = zigbee.device.name;
+            zigbee.modal.querySelector('input[name="room"]').value = zigbee.device.room ?? '';
             zigbee.modal.querySelector('input[name="active"]').checked = zigbee.device.active;
-            zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'editDevice', device: zigbee.device.name, name: modal.querySelector('input[name="name"]').value, active: modal.querySelector('input[name="active"]').checked}); });
+            zigbee.modal.querySelector('input[name="discovery"]').checked = zigbee.device.discovery;
+            zigbee.modal.querySelector('input[name="cloud"]').checked = zigbee.device.cloud;
+            zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {...{action: 'editDevice', device: zigbee.device.name}, ...formData(zigbee.modal.querySelector('form'))}); });
             zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
-
             zigbee.modal.style.display = 'block';
 
             zigbee.modal.removeEventListener('keypress', handleSave);
