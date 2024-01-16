@@ -1,4 +1,4 @@
-var controller, theme = localStorage.getItem('theme') ?? 'dark';
+var controller, theme = localStorage.getItem('theme') ?? 'dark', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -248,7 +248,7 @@ class Controller
                     if (this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == device : item.ieeeAddress == device).active)
                     {
                         row.classList.add(message.status);
-                        row.querySelector('.availability').innerHTML = '<i class="' + (availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
+                        row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
                     }
                     else
                     {

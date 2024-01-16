@@ -14,12 +14,14 @@ class ZigBee
         switch (key)
         {
             case 'active':
+            case 'cloud':
+            case 'discovery':
             case 'interviewFinished':
             case 'supported':
-                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'warning') + '"></i>' : '-';
+                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
 
             case 'logicalType': return this.logicalType[value];
-            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : '-';
+            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : empty;
 
             case 'manufacturerCode':
             case 'networkAddress':
@@ -90,21 +92,22 @@ class ZigBee
                     row.addEventListener('click', function() { zigbee.device = device; zigbee.showDeviceInfo(); });
                     row.dataset.device = status.names ? device.name : device.ieeeAddress;
 
-                    for (var i = 0; i < 9; i++)
+                    for (var i = 0; i < 10; i++)
                     {
                         var cell = row.insertCell();
 
                         switch (i)
                         {
                             case 0: cell.innerHTML = device.name; break;
-                            case 1: cell.innerHTML = device.manufacturerName ?? '-'; break;
-                            case 2: cell.innerHTML = device.modelName ?? '-'; break;
-                            case 3: cell.innerHTML = zigbee.parseValue('logicalType', device.logicalType); break;
-                            case 4: cell.innerHTML = zigbee.parseValue('powerSource', device.powerSource); cell.classList.add('center'); break;
-                            case 5: cell.innerHTML = zigbee.parseValue('supported', device.supported); cell.classList.add('center'); break;
-                            case 6: cell.innerHTML = '-'; cell.classList.add('availability', 'center'); break;
-                            case 7: cell.innerHTML = device.linkQuality ?? '-'; cell.classList.add('linkQuality', 'right'); break;
-                            case 8: cell.innerHTML = '-'; cell.classList.add('lastSeen', 'right'); break;
+                            case 1: cell.innerHTML = device.room ?? empty; break;
+                            case 2: cell.innerHTML = device.modelName ?? empty; break;
+                            case 3: cell.innerHTML = zigbee.parseValue('powerSource', device.powerSource); cell.classList.add('center'); break;
+                            case 4: cell.innerHTML = zigbee.parseValue('supported', device.supported); cell.classList.add('center'); break;
+                            case 5: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
+                            case 6: cell.innerHTML = zigbee.parseValue('discovery', device.discovery); cell.classList.add('center'); break;
+                            case 7: cell.innerHTML = zigbee.parseValue('cloud', device.cloud); cell.classList.add('center'); break;
+                            case 8: cell.innerHTML = device.linkQuality ?? empty; cell.classList.add('linkQuality', 'right'); break;
+                            case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                         }
                     }
 

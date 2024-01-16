@@ -379,9 +379,9 @@ class Automation
                         case 0: cell.innerHTML = item.name; break;
                         case 1: cell.innerHTML = item.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>'; cell.classList.add('center'); break;
                         case 2: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : '-'; cell.classList.add('center'); break;
+                        case 3: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : empty; cell.classList.add('center'); break;
                         case 4: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center'); break;
-                        case 5: cell.innerHTML = '-'; cell.classList.add('lastTriggered', 'right'); break;
+                        case 5: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
                     }
                 }
 

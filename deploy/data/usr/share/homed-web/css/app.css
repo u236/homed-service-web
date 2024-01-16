@@ -3,6 +3,10 @@ html, body {
     font-size: 14px;
 }
 
+body {
+    -webkit-text-size-adjust: 100%;
+}
+
 body[theme="light"] {
     background-color:   #eeeeee;
 }
@@ -385,12 +389,12 @@ body[theme="dark"] {
 }
 
 .homed .itemList td {
-    min-width: 32px;
+    min-width: 25px;
     padding: 10px;
 }
 
 .homed .itemList .tiny {
-    width: 32px;
+    width: 25px;
 }
 
 .homed .itemList .sort {
@@ -580,6 +584,7 @@ body[theme="dark"] {
 .homed .title .name {
     font-size: 1.25rem;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .homed #modal {
@@ -619,8 +624,8 @@ body[theme="dark"] {
 }
 
 .homed #modal .dropdown .list {
-    min-width: 400px;
-    max-height: calc(100vh - 90px);
+    min-width: min(400px, calc(100vw - 60px));
+    max-height: calc(100vh - 140px);
     overflow: auto;
 }
 
