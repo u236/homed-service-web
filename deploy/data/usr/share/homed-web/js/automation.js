@@ -494,15 +494,16 @@ class Automation
                 automation.data.restart = data.restart;
                 automation.data.active = data.active;
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="name"]').focus();
         });
     }
@@ -516,9 +517,9 @@ class Automation
             automation.modal.querySelector('.data').innerHTML = html;
             automation.modal.querySelector('.name').innerHTML = automation.data.name;
             automation.modal.querySelector('.remove').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: automation.name}); automation.controller.clearPage('automation'); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
-            automation.modal.style.display = 'block';
+            showModal(automation.modal, true);
         });
     }
 
@@ -658,16 +659,17 @@ class Automation
 
                 console.log(item);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
             automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="item"]').focus();
         });
     }
@@ -699,15 +701,16 @@ class Automation
                 if (append)
                     automation.data.triggers.push(trigger);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('textarea[name="message"]').focus();
         });
     }
@@ -736,15 +739,16 @@ class Automation
                 if (append)
                     automation.data.triggers.push(trigger);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="time"]').focus();
         });
     }
@@ -772,15 +776,16 @@ class Automation
                 if (append)
                     automation.data.triggers.push(trigger);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="interval"]').focus();
         });
     }
@@ -829,16 +834,17 @@ class Automation
                 if (append)
                     list.push(condition);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
             automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="name"]').focus();
         });
     }
@@ -884,16 +890,17 @@ class Automation
                 if (append)
                     list.push(condition);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
             automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('select[name="statement"]').focus();
         });
     }
@@ -917,15 +924,16 @@ class Automation
                 if (append)
                     list.push(condition);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="days"]').focus();
         });
     }
@@ -958,15 +966,16 @@ class Automation
                 if (append)
                     list.push(action);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="topic"]').focus();
         });
     }
@@ -996,15 +1005,16 @@ class Automation
                 if (append)
                     list.push(action);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="name"]').focus();
         });
     }
@@ -1038,15 +1048,16 @@ class Automation
                 if (append)
                     list.push(action);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('textarea[name="message"]').focus();
         });
     }
@@ -1075,15 +1086,16 @@ class Automation
                 if (append)
                     list.push(action);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="command"]').focus();
         });
     }
@@ -1112,15 +1124,16 @@ class Automation
                 if (append)
                     list.push(action);
 
-                automation.modal.style.display = 'none';
+                showModal(automation.modal, false);
                 automation.showAutomationInfo();
             });
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { automation.modal.style.display = 'none'; });
-            automation.modal.style.display = 'block';
+            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
 
             automation.modal.removeEventListener('keypress', handleSave);
             automation.modal.addEventListener('keypress', handleSave);
+            showModal(automation.modal, true);
+
             automation.modal.querySelector('input[name="delay"]').focus();
         });
     }

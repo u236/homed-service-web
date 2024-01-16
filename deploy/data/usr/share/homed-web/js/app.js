@@ -105,7 +105,7 @@ class Controller
 
     onclose()
     {
-        this.clearPage(this.page, 'socket closed, reconnecting');
+        this.clearPage(this.service, 'socket closed, reconnecting');
     }
 
     onmessage(topic, message)
@@ -507,6 +507,18 @@ function addDropdown(dropdown, options, callback, separator = 0)
     });
 
     document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) list.style.display = 'none'; });
+}
+
+function showModal(modal, show)
+{
+    if (show)
+    {
+        modal.style.display = 'block';
+        return;
+    }
+
+    modal.style.display = 'none';
+    modal.querySelector('.data').innerHTML = '';
 }
 
 function handleSave(event)

@@ -99,14 +99,14 @@ class ZigBee
                         switch (i)
                         {
                             case 0: cell.innerHTML = device.name; break;
-                            case 1: cell.innerHTML = device.room ?? empty; break;
+                            case 1: cell.innerHTML = device.manufacturerName ?? empty; break;
                             case 2: cell.innerHTML = device.modelName ?? empty; break;
                             case 3: cell.innerHTML = zigbee.parseValue('powerSource', device.powerSource); cell.classList.add('center'); break;
                             case 4: cell.innerHTML = zigbee.parseValue('supported', device.supported); cell.classList.add('center'); break;
                             case 5: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
                             case 6: cell.innerHTML = zigbee.parseValue('discovery', device.discovery); cell.classList.add('center'); break;
                             case 7: cell.innerHTML = zigbee.parseValue('cloud', device.cloud); cell.classList.add('center'); break;
-                            case 8: cell.innerHTML = device.linkQuality ?? empty; cell.classList.add('linkQuality', 'right'); break;
+                            case 8: cell.innerHTML = device.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
                             case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                         }
                     }
@@ -281,16 +281,16 @@ class ZigBee
             zigbee.modal.querySelector('.data').innerHTML = html;
             zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('input[name="name"]').value = zigbee.device.name;
-            zigbee.modal.querySelector('input[name="room"]').value = zigbee.device.room ?? '';
             zigbee.modal.querySelector('input[name="active"]').checked = zigbee.device.active;
             zigbee.modal.querySelector('input[name="discovery"]').checked = zigbee.device.discovery;
             zigbee.modal.querySelector('input[name="cloud"]').checked = zigbee.device.cloud;
-            zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {...{action: 'editDevice', device: zigbee.device.name}, ...formData(zigbee.modal.querySelector('form'))}); });
-            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
-            zigbee.modal.style.display = 'block';
+            zigbee.modal.querySelector('.save').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: zigbee.device.name}, ...formData(zigbee.modal.querySelector('form'))}); });
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { showModal(zigbee.modal, false); });
 
             zigbee.modal.removeEventListener('keypress', handleSave);
             zigbee.modal.addEventListener('keypress', handleSave);
+            showModal(zigbee.modal, true);
+
             zigbee.modal.querySelector('input[name="name"]').focus();
         });
     }
@@ -305,9 +305,9 @@ class ZigBee
             zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('.graceful').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: zigbee.device.name}); zigbee.controller.clearPage('zigbee'); });
             zigbee.modal.querySelector('.force').addEventListener('click', function() { zigbee.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: zigbee.device.name, force: true}); zigbee.controller.clearPage('zigbee'); });
-            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { showModal(zigbee.modal, false); });
 
-            zigbee.modal.style.display = 'block';
+            showModal(zigbee.modal, true);
         });
     }
 
@@ -320,9 +320,9 @@ class ZigBee
             zigbee.modal.querySelector('.data').innerHTML = html;
             zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
             zigbee.modal.querySelector('.json').innerHTML = JSON.stringify(zigbee.device, null, 2);
-            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { showModal(zigbee.modal, false); });
 
-            zigbee.modal.style.display = 'block';
+            showModal(zigbee.modal, true);
         });
     }
 
@@ -363,12 +363,11 @@ class ZigBee
                 zigbee.controller.socket.publish('command/zigbee', request);
             });
 
-            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { showModal(zigbee.modal, false); });
 
             zigbee.modal.removeEventListener('keypress', handleSend);
             zigbee.modal.addEventListener('keypress', handleSend);
-
-            zigbee.modal.style.display = 'block';
+            showModal(zigbee.modal, true);
         });
     }
 
@@ -399,9 +398,9 @@ class ZigBee
             }
 
             zigbee.modal.querySelector('.name').innerHTML = zigbee.device.name;
-            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { zigbee.modal.style.display = 'none'; });
+            zigbee.modal.querySelector('.cancel').addEventListener('click', function() { showModal(zigbee.modal, false); });
 
-            zigbee.modal.style.display = 'block';
+            showModal(zigbee.modal, true);
         });
     }
 }
