@@ -228,24 +228,27 @@ class Controller
 
             case 'expose':
 
-                var device = list[2];
+                var name = list[2];
 
                 if (!this.expose[service])
                     this.expose[service] = new Object();
 
-                this.expose[service][device] = message;
+                this.expose[service][name] = message;
                 break;
 
             case 'device':
 
-                var device = list[2];
-                var row = document.querySelector('tr[data-device="' + device + '"]');
+                var name = list[2];
+                var row = document.querySelector('tr[data-device="' + name + '"]');
 
                 if (row && this.page == 'zigbee')
                 {
-                    row.classList.remove('online', 'offline', 'inactive');
+                    var device = this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == name : item.ieeeAddress == name);
 
-                    if (this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == device : item.ieeeAddress == device).active)
+                    row.classList.remove('online', 'offline', 'inactive');
+                    device.lastSeen = message.lastSeen;
+
+                    if (device.active)
                     {
                         row.classList.add(message.status);
                         row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
@@ -261,14 +264,13 @@ class Controller
 
             case 'fd':
 
-                var device = list[2];
-                var endpoint = list[3];
+                var name = list[2];
 
-                switch(service)
+                switch (service)
                 {
                     case 'zigbee':
 
-                        var row = document.querySelector('tr[data-device="' + device + '"]');
+                        var row = document.querySelector('tr[data-device="' + name + '"]');
 
                         if (row && this.page == 'zigbee')
                         {
@@ -276,10 +278,8 @@ class Controller
                             break;
                         }
 
-                        // TODO: refactor this shit
-                        if (this.zigbee.device && (this.zigbee.device.ieeeAddress == device || this.zigbee.device.name == device))
-                            Object.keys(message).forEach(item => { updateExpose(endpoint, item, message[item]); });
-                        //
+                        if (this.zigbee.device && this.status.zigbee.names ? this.zigbee.device.name == name : this.zigbee.device.ieeeAddress == name)
+                            Object.keys(message).forEach(item => { updateExpose(list[3], item, message[item]); });
 
                         break;
                 }
@@ -550,17 +550,15 @@ function timeInterval(interval)
 {
     switch (true)
     {
-        case interval >= 86400: return Math.round(interval / 86400) + ' day';
-        case interval >= 3600:  return Math.round(interval / 3600)  + ' hrs';
-        case interval >= 60:    return Math.round(interval / 60)    + ' min';
-        case interval >= 1:     return Math.round(interval)         + ' sec';
-        default:                return                                 'now';
+        case interval >= 86400: return parseInt(interval / 86400) + ' day';
+        case interval >= 3600:  return parseInt(interval / 3600)  + ' hrs';
+        case interval >= 60:    return parseInt(interval / 60)    + ' min';
+        case interval >= 5:     return parseInt(interval / 5) * 5 + ' sec';
+        default:                return                               'now';
     }
 }
 
-// TODO: refactor this shit
 function sendData(endpoint, data)
 {
     controller.socket.publish('td/zigbee/' + controller.zigbee.device.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint), data);
 }
-//

@@ -6,7 +6,27 @@ class ZigBee
 
     constructor(controller)
     {
-        this.controller = controller;
+        var zigbee = this;
+        zigbee.controller = controller;
+        setInterval(function() { zigbee.updateLastSeen(); }, 100);
+    }
+
+    updateLastSeen()
+    {
+        var status = this.controller.status.zigbee ?? new Object();
+
+        if (!status.devices)
+            return;
+
+        status.devices.forEach(device =>
+        {
+            var row = document.querySelector('tr[data-device="' + (status.names ? device.name : device.ieeeAddress) + '"]');
+
+            if (!row)
+                return;
+
+            row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - device.lastSeen);
+        });
     }
 
     parseValue(key, value)
@@ -112,7 +132,6 @@ class ZigBee
                     }
 
                     zigbee.controller.socket.subscribe('device/zigbee/' + (status.names ? device.name : device.ieeeAddress));
-                    row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - device.lastSeen);
                 }
             });
 
