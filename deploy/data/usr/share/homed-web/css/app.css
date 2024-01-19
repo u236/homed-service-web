@@ -374,6 +374,15 @@ body[theme="dark"] {
     justify-content: space-between;
 }
 
+.homed .footer a {
+    color: var(--color-shade);
+    text-decoration: none;
+}
+
+.homed .footer a:hover {
+    color: var(--color-main);
+}
+
 .homed .emptyList {
     color: var(--color-shade);
     padding: 15px 0;
