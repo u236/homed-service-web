@@ -95,6 +95,9 @@ class Controller
             if (services.innerHTML)
                 services.append('|');
 
+            if (controller.service == service)
+                item.classList.add('highlight');
+
             item.innerHTML = service;
             item.addEventListener('click', function() { controller.showPage(service); localStorage.setItem('page', service); });
 
@@ -296,7 +299,7 @@ class Controller
         if (this.service == service)
             return;
 
-        this.service = service;
+        document.querySelectorAll('.header .services span').forEach(item => { item.classList.toggle('highlight', item.innerHTML == service); });
         menu.innerHTML = '';
 
         switch(service)
@@ -332,6 +335,8 @@ class Controller
 
                 break;
         }
+
+        this.service = service;
     }
 
     setPage(page)

@@ -228,6 +228,10 @@ body[theme="dark"] {
     color: var(--color-shade);
 }
 
+.homed .highlight {
+    color: var(--color-highlight);
+}
+
 .homed .success {
     color: var(--color-success);
 }
