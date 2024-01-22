@@ -604,39 +604,43 @@ class Automation
                 var dropdown = automation.modal.querySelector('.dropdown')
                 var exposes = new Object();
 
-                this.controller.status.zigbee.devices.forEach(device =>
+                if (this.controller.zigbee.devices)
                 {
-                    var names = this.controller.status.zigbee.names;
-                    var expose = this.controller.expose.zigbee[names ? device.name : device.ieeeAddress];
-
-                    if (!expose)
-                        return;
-
-                    Object.keys(expose).forEach(key =>
+                    this.controller.status.zigbee.devices.forEach(device =>
                     {
-                        expose[key].items.forEach(item =>
+                        var names = this.controller.status.zigbee.names;
+                        var expose = this.controller.expose.zigbee[names ? device.name : device.ieeeAddress];
+
+                        if (!expose)
+                            return;
+
+                        Object.keys(expose).forEach(key =>
                         {
-                            var endpoint = 'zigbee/' + (names ? device.name : device.ieeeAddress) + (!isNaN(key) ? '/' + key : '');
-
-                            exposeList(item, expose[key].options).forEach(value =>
+                            expose[key].items.forEach(item =>
                             {
-                                if (value == 'switch')
-                                    value = 'status';
+                                var endpoint = 'zigbee/' + (names ? device.name : device.ieeeAddress) + (!isNaN(key) ? '/' + key : '');
 
-                                exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = [endpoint, value];
+                                exposeList(item, expose[key].options).forEach(value =>
+                                {
+                                    if (value == 'switch')
+                                        value = 'status';
+
+                                    exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = [endpoint, value];
+                                });
                             });
                         });
                     });
-                });
 
-                addDropdown(dropdown, Object.keys(exposes), function(item)
-                {
-                    automation.modal.querySelector('input[name="item"]').value = exposes[item][0];
-                    automation.modal.querySelector('input[name="property"]').value = exposes[item][1];
-                    automation.modal.querySelector('input[name="value"]').focus();
-                });
 
-                dropdown.style.display = 'block';
+                    addDropdown(dropdown, Object.keys(exposes), function(item)
+                    {
+                        automation.modal.querySelector('input[name="item"]').value = exposes[item][0];
+                        automation.modal.querySelector('input[name="property"]').value = exposes[item][1];
+                        automation.modal.querySelector('input[name="value"]').focus();
+                    });
+
+                    dropdown.style.display = 'block';
+                }
             }
 
             automation.modal.querySelector('.save').addEventListener('click', function()
