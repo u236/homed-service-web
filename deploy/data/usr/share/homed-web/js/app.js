@@ -242,14 +242,14 @@ class Controller
             case 'device':
 
                 var name = list[2];
+                var device = this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == name : item.ieeeAddress == name);
                 var row = document.querySelector('tr[data-device="' + name + '"]');
+
+                device.lastSeen = message.lastSeen;
 
                 if (row && this.page == 'zigbee')
                 {
-                    var device = this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == name : item.ieeeAddress == name);
-
                     row.classList.remove('online', 'offline', 'inactive');
-                    device.lastSeen = message.lastSeen;
 
                     if (device.active)
                     {

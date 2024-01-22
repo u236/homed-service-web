@@ -20,12 +20,24 @@ class ZigBee
 
         status.devices.forEach(device =>
         {
-            var row = document.querySelector('tr[data-device="' + (status.names ? device.name : device.ieeeAddress) + '"]');
+            switch (this.controller.page)
+            {
+                case 'zigbee':
 
-            if (!row)
-                return;
+                    var row = document.querySelector('tr[data-device="' + (status.names ? device.name : device.ieeeAddress) + '"]');
 
-            row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - device.lastSeen);
+                    if (row)
+                        row.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - device.lastSeen);
+
+                    break;
+
+                case 'zigbeeDevice':
+
+                    if (this.device.ieeeAddress == device.ieeeAddress)
+                        document.querySelector('.lastSeen').innerHTML = timeInterval(Date.now() / 1000 - device.lastSeen);
+
+                    break;
+            }
         });
     }
 
