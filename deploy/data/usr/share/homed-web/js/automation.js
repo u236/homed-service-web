@@ -601,14 +601,15 @@ class Automation
 
             if (!mqtt)
             {
+                var status = this.controller.status.zigbee ?? new Object();
                 var dropdown = automation.modal.querySelector('.dropdown')
                 var exposes = new Object();
 
-                if (this.controller.zigbee.devices)
+                if (status.devices)
                 {
-                    this.controller.status.zigbee.devices.forEach(device =>
+                    status.devices.forEach(device =>
                     {
-                        var names = this.controller.status.zigbee.names;
+                        var names = status.names;
                         var expose = this.controller.expose.zigbee[names ? device.name : device.ieeeAddress];
 
                         if (!expose)
@@ -625,12 +626,11 @@ class Automation
                                     if (value == 'switch')
                                         value = 'status';
 
-                                    exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = [endpoint, value];
+                                    exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = new Array(endpoint, value);
                                 });
                             });
                         });
                     });
-
 
                     addDropdown(dropdown, Object.keys(exposes), function(item)
                     {

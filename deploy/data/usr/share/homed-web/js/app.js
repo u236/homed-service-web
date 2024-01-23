@@ -281,7 +281,7 @@ class Controller
                             break;
                         }
 
-                        if (this.zigbee.device && this.status.zigbee.names ? this.zigbee.device.name == name : this.zigbee.device.ieeeAddress == name)
+                        if (this.zigbee.device && (this.status.zigbee.names ? this.zigbee.device.name == name : this.zigbee.device.ieeeAddress == name))
                             Object.keys(message).forEach(item => { updateExpose(list[3], item, message[item]); });
 
                         break;
