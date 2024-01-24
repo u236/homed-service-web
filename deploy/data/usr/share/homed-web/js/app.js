@@ -17,36 +17,24 @@ class Socket
     {
         var socket = this;
 
-        socket.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host);
+        this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host);
 
-        socket.ws.onopen = function()
-        {
-            socket.onopen();
-            socket.connected = true;
-        };
+        this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
+        this.ws.onmessage = function(event) { var data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
+        this.ws.onerror = function() { this.ws.close(); }.bind(this);
 
-        socket.ws.onclose = function()
+        this.ws.onclose = function()
         {
-            if (socket.connected)
+            if (this.connected)
             {
                 this.subscriptions = new Array();
-                socket.onclose();
+                this.onclose();
             }
 
-            setTimeout(function() { socket.connect(); }, 1000);
-            socket.connected = false;
-        };
+            setTimeout(function() { this.connect(); }.bind(this), 1000);
+            this.connected = false;
 
-        socket.ws.onmessage = function(event)
-        {
-            var data = JSON.parse(event.data);
-            socket.onmessage(data.topic, data.message);
-        }
-
-        socket.ws.onerror = function()
-        {
-            socket.ws.close();
-        };
+        }.bind(this);
     }
 
     subscribe(topic)
@@ -77,31 +65,27 @@ class Controller
     automation = new Automation(this);
     zigbee = new ZigBee(this);
 
-    status = new Object();
-    expose = new Object();
-
     onopen()
     {
-        var controller = this;
         var services = document.querySelector('.header .services');
 
         console.log('socket successfully connected');
         services.innerHTML = '';
 
-        controller.services.forEach(service =>
+        this.services.forEach(service =>
         {
             var item = document.createElement('span');
 
             if (services.innerHTML)
                 services.append('|');
 
-            if (controller.service == service)
+            if (this.service == service)
                 item.classList.add('highlight');
 
             item.innerHTML = service;
-            item.addEventListener('click', function() { controller.showPage(service); localStorage.setItem('page', service); });
+            item.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
 
-            controller.socket.subscribe('service/' + service);
+            this.socket.subscribe('service/' + service);
             services.appendChild(item);
         });
     }
@@ -116,224 +100,42 @@ class Controller
         var list = topic.split('/');
         var service = list[1];
 
-        switch(list[0])
+        if (list[0] == 'service')
         {
-            case 'service':
+            if (message.status != 'online')
+            {
+                if (this.service == service)
+                    this.clearPage(this.page, service + ' service is offline');
 
-                if (message.status != 'online')
-                {
-                    if (this.service == service)
-                        this.clearPage(this.page, service + ' service is offline');
+                this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == service; }).forEach(topic => { this.socket.unsubscribe(topic); });
+            }
+            else
+            {
+                this.socket.subscribe('status/' + service);
+                this.socket.subscribe('event/' + service);
+            }
 
-                    this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == service; }).forEach(topic => { this.socket.unsubscribe(topic); });
-                }
-                else
-                {
-                    this.socket.subscribe('status/' + service);
-                    this.socket.subscribe('event/' + service);
-                }
+            return;
+        }
 
-                break;
-
-            case 'status':
-
-                switch (service)
-                {
-                    case 'automation':
-
-                        var check = this.status.automation ? this.status.automation.automations.map(automation => automation.name) : null;
-
-                        this.status.automation = message;
-
-                        if (this.service == 'automation')
-                        {
-                            if (JSON.stringify(check) != JSON.stringify(this.status.automation.automations.map(automation => automation.name)))
-                                this.automation.showAutomationList();
-
-                            document.querySelector('#serviceVersion').innerHTML = this.status.automation.version;
-                        }
-
-                        break;
-
-                    case 'zigbee':
-
-                        var check = this.status.zigbee ? this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : null;
-
-                        this.status.zigbee = message;
-
-                        if (this.service == 'zigbee')
-                        {
-                            if (JSON.stringify(check) != JSON.stringify(this.status.zigbee.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
-                                this.zigbee.showDeviceList();
-
-                            document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.status.zigbee.permitJoin ? 'warning' : 'shade');
-                            document.querySelector('#serviceVersion').innerHTML = this.status.zigbee.version;
-                        }
-
-                        this.status.zigbee.devices.forEach(device =>
-                        {
-                            var item = this.status.zigbee.names && device.name ? device.name : device.ieeeAddress;
-
-                            this.socket.subscribe('expose/zigbee/' + item);
-                            this.socket.subscribe('fd/zigbee/' + item);
-                        });
-
-                        break;
-                }
-
-                break;
-
-            case 'event':
-
-                switch (service)
-                {
-                    case 'automation':
-
-                        var html = 'Automation <b>' + message.automation + '</b> ';
-
-                        if (message.event == 'updated')
-                            this.clearPage('automation');
-
-                        switch (message.event)
-                        {
-                            case 'nameDuplicate':       this.showToast(html + 'name is already in use', 'error'); return;
-                            case 'incompleteData':      this.showToast(html + 'data is incomplete', 'error'); return;
-                            case 'added':               this.showToast(html + 'successfully added'); return;
-                            case 'updated':             this.showToast(html + 'successfully updated'); return;
-                            case 'removed':             this.showToast(html + 'removed', 'warning'); return;
-                        }
-
-                        break;
-
-                    case 'zigbee':
-
-                        var html = 'Device <b>' + message.device + '</b> ';
-
-                        if (message.event == 'deviceUpdated')
-                            this.clearPage('zigbee');
-
-                        switch (message.event)
-                        {
-                            case 'deviceJoined':        this.showToast(html + 'joined network'); return;
-                            case 'deviceLeft':          this.showToast(html + 'left network', 'warning');  return;
-                            case 'deviceNameDuplicate': this.showToast(html + 'name is already in use', 'error'); return;
-                            case 'deviceUpdated':       this.showToast(html + 'successfully updated'); return;
-                            case 'interviewError':      this.showToast(html + 'interview error', 'error'); return;
-                            case 'interviewTimeout':    this.showToast(html + 'interview timed out', 'error'); return;
-                            case 'interviewFinished':   this.showToast(html + 'interview finished'); return;
-                        }
-
-                        this.zigbee.event(message);
-                        break;
-                }
-
-                break;
-
-            case 'expose':
-
-                var name = list[2];
-
-                if (!this.expose[service])
-                    this.expose[service] = new Object();
-
-                this.expose[service][name] = message;
-                break;
-
-            case 'device':
-
-                var name = list[2];
-                var device = this.status.zigbee.devices.find(item => this.status.zigbee.names ? item.name == name : item.ieeeAddress == name);
-                var row = document.querySelector('tr[data-device="' + name + '"]');
-
-                device.lastSeen = message.lastSeen;
-
-                if (row && this.page == 'zigbee')
-                {
-                    row.classList.remove('online', 'offline', 'inactive');
-
-                    if (device.active)
-                    {
-                        row.classList.add(message.status);
-                        row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
-                    }
-                    else
-                    {
-                        row.classList.add('inactive');
-                        row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
-                    }
-                }
-
-                break;
-
-            case 'fd':
-
-                var name = list[2];
-
-                switch (service)
-                {
-                    case 'zigbee':
-
-                        var row = document.querySelector('tr[data-device="' + name + '"]');
-
-                        if (row && this.page == 'zigbee')
-                        {
-                            row.querySelector('.linkQuality').innerHTML = message.linkQuality;
-                            break;
-                        }
-
-                        if (this.zigbee.device && (this.status.zigbee.names ? this.zigbee.device.name == name : this.zigbee.device.ieeeAddress == name))
-                            Object.keys(message).forEach(item => { updateExpose(list[3], item, message[item]); });
-
-                        break;
-                }
-
-                break;
+        switch (service)
+        {
+            case 'automation': this.automation.parseMessage(list, message); break;
+            case 'zigbee': this.zigbee.parseMessage(list, message); break;
         }
     }
 
     setService(service)
     {
-        var controller = this;
-        var menu = document.querySelector('.menu');
-
         if (this.service == service)
             return;
 
         document.querySelectorAll('.header .services span').forEach(item => { item.classList.toggle('highlight', item.innerHTML == service); });
-        menu.innerHTML = '';
 
         switch(service)
         {
-            case 'automation':
-
-                menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
-                menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-
-                menu.querySelector('#list').addEventListener('click', function() { controller.automation.showAutomationList(); });
-                menu.querySelector('#add').addEventListener('click', function() { controller.automation.showAutomationInfo(true); });
-
-                if (this.status.automation)
-                    document.querySelector('#serviceVersion').innerHTML = controller.status.automation.version;
-
-                break;
-
-            case 'zigbee':
-
-                menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
-                menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
-                menu.innerHTML += '<span id="permitJoin"><i class="icon-false"></i> Permit Join</span>';
-
-                menu.querySelector('#list').addEventListener('click', function() { controller.zigbee.showDeviceList(); });
-                menu.querySelector('#map').addEventListener('click', function() { controller.zigbee.showDeviceMap(); });
-                menu.querySelector('#permitJoin').addEventListener('click', function() { controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'}); });
-
-                if (this.status.zigbee)
-                {
-                    document.querySelector('#permitJoin i').className = 'icon-enable ' + (controller.status.zigbee.permitJoin ? 'warning' : 'shade');
-                    document.querySelector('#serviceVersion').innerHTML = controller.status.zigbee.version;
-                }
-
-                break;
+            case 'automation': this.automation.showMenu(); break;
+            case 'zigbee': this.zigbee.showMenu(); break;
         }
 
         this.service = service;
@@ -387,20 +189,24 @@ class Controller
             console.log(warning);
         }
 
-        this.status[name] = null;
+        switch (this.service)
+        {
+            case 'automation': this.automation.status = new Object(); break;
+            case 'zigbee': this.zigbee.status = new Object(); break;
+        }
+
         this.setPage(name);
     }
 
     showToast(message, style = 'success')
     {
-        var controller = this;
         var item = document.createElement('div');
 
-        item.addEventListener('click', function() { controller.clearToast(this); });
+        item.addEventListener('click', function() { this.clearToast(this); }.bind(this));
         item.innerHTML = '<div class="message">' + message + '</div>';
         item.classList.add('item', 'fade-in', style);
 
-        setTimeout(function() { controller.clearToast(item); }, 5000);
+        setTimeout(function() { this.clearToast(item); }.bind(this), 5000);
         document.querySelector('#toast').appendChild(item);
     }
 

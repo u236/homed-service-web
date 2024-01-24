@@ -12,9 +12,51 @@ class Automation
     actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay'];
     actionStatement = ['value', 'increase', 'decrease'];
 
+    status = new Object();
+
     constructor(controller)
     {
         this.controller = controller;
+    }
+
+    parseMessage(list, message)
+    {
+        switch (list[0])
+        {
+            case 'status':
+
+                var check = this.status.automations ? this.status.automations.map(automation => automation.name) : null;
+
+                this.status = message;
+
+                if (this.controller.service == 'automation')
+                {
+                    if (JSON.stringify(check) != JSON.stringify(this.status.automations.map(automation => automation.name)))
+                        this.showAutomationList();
+
+                    document.querySelector('#serviceVersion').innerHTML = this.status.version;
+                }
+
+                break;
+
+            case 'event':
+
+                var html = 'Automation <b>' + message.automation + '</b> ';
+
+                if (message.event == 'updated')
+                    this.controller.clearPage('automation');
+
+                switch (message.event)
+                {
+                    case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
+                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
+                    case 'added':          this.controller.showToast(html + 'successfully added'); return;
+                    case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
+                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
+                }
+
+                break;
+        }
     }
 
     parseValue(value)
@@ -150,7 +192,7 @@ class Automation
                 break;
 
             case 'mqtt':
-                data = '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' [retain]' : '');
+                data = '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' <span class="value">retained</span>' : '');
                 break;
 
             case 'state':
@@ -340,14 +382,30 @@ class Automation
         });
     }
 
+    showMenu()
+    {
+        var menu = document.querySelector('.menu');
+
+        menu.innerHTML = null;
+
+        menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
+        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+
+        menu.querySelector('#list').addEventListener('click', function() { this.showAutomationList(); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(true); }.bind(this));
+
+        if (!this.status)
+            return;
+
+        document.querySelector('#serviceVersion').innerHTML = this.status.version;
+    }
+
     showAutomationList()
     {
-        var status = this.controller.status.automation ?? new Object();
-
         this.controller.setService('automation');
         this.controller.setPage('automation');
 
-        if (!status.automations || !status.automations.length)
+        if (!this.status.automations || !this.status.automations.length)
         {
             this.content.innerHTML = '<div class="emptyList">automations list is empty</div>';
             return;
@@ -355,20 +413,19 @@ class Automation
 
         fetch('html/automation/automationList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
             var table;
 
-            automation.content.innerHTML = html;
-            table = automation.content.querySelector('.itemList table');
+            this.content.innerHTML = html;
+            table = this.content.querySelector('.itemList table');
 
-            status.automations.forEach(item =>
+            this.status.automations.forEach(item =>
             {
                 var row = table.querySelector('tbody').insertRow();
 
                 if (!item.conditions)
                     item.conditions = new Array();
 
-                row.addEventListener('click', function() { automation.data = JSON.parse(JSON.stringify(item)); automation.name = item.name; automation.showAutomationInfo(); });
+                row.addEventListener('click', function() { this.data = JSON.parse(JSON.stringify(item)); this.name = item.name; this.showAutomationInfo(); }.bind(this));
 
                 for (var i = 0; i < 6; i++)
                 {
@@ -385,7 +442,7 @@ class Automation
                     }
                 }
 
-                automation.updateLastTriggered(row, item.lastTriggered);
+                this.updateLastTriggered(row, item.lastTriggered);
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('automationSort', this.dataset.index); }) );
@@ -400,47 +457,46 @@ class Automation
 
         fetch('html/automation/automationInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
             var triggers;
             var conditions;
             var actions;
 
-            automation.content.innerHTML = html;
+            this.content.innerHTML = html;
 
             if (add)
             {
-                automation.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
-                automation.name = null;
+                this.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
+                this.name = null;
             }
 
-            if (!automation.data.name)
-                automation.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
+            if (!this.data.name)
+            this.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
 
-            if (!automation.name)
+            if (!this.name)
             {
-                automation.content.querySelector('.copy').style.display = 'none';
-                automation.content.querySelector('.remove').style.display = 'none';
+                this.content.querySelector('.copy').style.display = 'none';
+                this.content.querySelector('.remove').style.display = 'none';
             }
 
-            automation.content.querySelector('.edit').addEventListener('click', function() { automation.showAutomationEdit(); });
-            automation.content.querySelector('.copy').addEventListener('click', function() { automation.data.name += ' (copy)'; automation.data.active = false; automation.name = null; automation.showAutomationInfo(); });
-            automation.content.querySelector('.remove').addEventListener('click', function() { automation.showAutomationRemove(); });
-            automation.content.querySelector('.save').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: automation.name, data: automation.data}); });
+            this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
+            this.content.querySelector('.copy').addEventListener('click', function() { this.data.name += ' (copy)'; this.data.active = false; this.name = null; this.showAutomationInfo(); }.bind(this));
+            this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
+            this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
 
-            automation.content.querySelector('.name').innerHTML = automation.data.name + (automation.name ? '' : ' <span class="warning value">NEW</span>');
-            automation.content.querySelector('.debounce').innerHTML = '<span class="value">' + (automation.data.debounce ?? 0) + '</span> seconds';
-            automation.content.querySelector('.restart').innerHTML = '<span class="value">' + (automation.data.restart ?? false) + '</span>';
-            automation.content.querySelector('.active').innerHTML = automation.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
+            this.content.querySelector('.name').innerHTML = this.data.name + (this.name ? '' : ' <span class="warning value">NEW</span>');
+            this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';
+            this.content.querySelector('.restart').innerHTML = '<span class="value">' + (this.data.restart ?? false) + '</span>';
+            this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
 
-            triggers = automation.content.querySelector('.triggers');
-            conditions = automation.content.querySelector('.conditions');
-            actions = automation.content.querySelector('.actions');
+            triggers = this.content.querySelector('.triggers');
+            conditions = this.content.querySelector('.conditions');
+            actions = this.content.querySelector('.actions');
 
-            addDropdown(automation.content.querySelector('.addTrigger'), automation.triggerType, function(type) { automation.showTrigger({'type': type}, true); });
-            addDropdown(automation.content.querySelector('.addCondition'), automation.conditionType, function(type) { automation.conditionDropdown(automation, automation.data.conditions, type); }, 6);
-            addDropdown(automation.content.querySelector('.addAction'), automation.actionType, function(type) { automation.actionDropdown(automation, automation.data.actions, type); }, 5);
+            addDropdown(this.content.querySelector('.addTrigger'), this.triggerType, function(type) { this.showTrigger({'type': type}, true); }.bind(this));
+            addDropdown(this.content.querySelector('.addCondition'), this.conditionType, function(type) { this.conditionDropdown(this, this.data.conditions, type); }.bind(this), 6);
+            addDropdown(this.content.querySelector('.addAction'), this.actionType, function(type) { this.actionDropdown(this, this.data.actions, type); }.bind(this), 5);
 
-            automation.data.triggers.forEach((trigger, index) =>
+            this.data.triggers.forEach((trigger, index) =>
             {
                 var row = triggers.insertRow();
 
@@ -453,22 +509,22 @@ class Automation
                         case 0: cell.innerHTML = trigger.type; break;
 
                         case 1:
-                            cell.innerHTML = automation.triggerInfo(trigger) ?? '<i>undefined</i>';
+                            cell.innerHTML = this.triggerInfo(trigger) ?? '<i>undefined</i>';
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { automation.showTrigger(trigger); });
+                            cell.addEventListener('click', function() { this.showTrigger(trigger); }.bind(this));
                             break;
 
                         case 2:
                             cell.innerHTML = '<i class="icon-trash"></i>';
                             cell.classList.add('remove');
-                            cell.addEventListener('click', function() { automation.data.triggers.splice(index, 1); automation.showAutomationInfo(); });
+                            cell.addEventListener('click', function() { this.data.triggers.splice(index, 1); this.showAutomationInfo(); }.bind(this));
                             break;
                     }
                 }
             });
 
-            automation.conditionList(automation, automation.data.conditions, conditions);
-            automation.actionList(automation, automation.data.actions, actions)
+            this.conditionList(this, this.data.conditions, conditions);
+            this.actionList(this, this.data.actions, actions)
         });
     }
 
@@ -476,35 +532,34 @@ class Automation
     {
         fetch('html/automation/automationEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('.name').innerHTML = this.data.name;
+            this.modal.querySelector('input[name="name"]').value = this.data.name;
+            this.modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
+            this.modal.querySelector('input[name="restart"]').checked = this.data.restart ?? false;
+            this.modal.querySelector('input[name="active"]').checked = this.data.active;
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.name').innerHTML = automation.data.name;
-            automation.modal.querySelector('input[name="name"]').value = automation.data.name;
-            automation.modal.querySelector('input[name="debounce"]').value = automation.data.debounce ?? 0;
-            automation.modal.querySelector('input[name="restart"]').checked = automation.data.restart ?? false;
-            automation.modal.querySelector('input[name="active"]').checked = automation.data.active;
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
-                automation.data.name = data.name;
-                automation.data.debounce = parseInt(data.debounce);
-                automation.data.restart = data.restart;
-                automation.data.active = data.active;
+                this.data.name = data.name;
+                this.data.debounce = parseInt(data.debounce);
+                this.data.restart = data.restart;
+                this.data.active = data.active;
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="name"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="name"]').focus();
         });
     }
 
@@ -512,14 +567,12 @@ class Automation
     {
         fetch('html/automation/automationRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('.name').innerHTML = this.data.name;
+            this.modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: this.name}); this.controller.clearPage('automation'); }.bind(this));
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.name').innerHTML = automation.data.name;
-            automation.modal.querySelector('.remove').addEventListener('click', function() { automation.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: automation.name}); automation.controller.clearPage('automation'); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
-
-            showModal(automation.modal, true);
+            showModal(this.modal, true);
         });
     }
 
@@ -565,44 +618,42 @@ class Automation
     {
         fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
-
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('.name').innerHTML = (mqtt ? 'mqtt ' : 'property ') + type;
-            automation.modal.querySelector('.item').innerHTML = mqtt ? 'Topic:' : 'Endpoint:';
-            automation.modal.querySelector('input[name="item"]').value = mqtt ? item.topic ?? '' : item.endpoint ?? '';
-            automation.modal.querySelector('input[name="property"]').value = item.property ?? '';
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('.name').innerHTML = (mqtt ? 'mqtt ' : 'property ') + type;
+            this.modal.querySelector('.item').innerHTML = mqtt ? 'Topic:' : 'Endpoint:';
+            this.modal.querySelector('input[name="item"]').value = mqtt ? item.topic ?? '' : item.endpoint ?? '';
+            this.modal.querySelector('input[name="property"]').value = item.property ?? '';
 
             statements.forEach(statement =>
             {
                 var option = document.createElement('option');
 
                 option.innerHTML = statement;
-                automation.modal.querySelector('select[name="statement"]').append(option);
+                this.modal.querySelector('select[name="statement"]').append(option);
 
                 if (!item.hasOwnProperty(statement))
                     return;
 
-                automation.modal.querySelector('select[name="statement"]').value = statement;
+                    this.modal.querySelector('select[name="statement"]').value = statement;
 
                 if (statement == 'between')
                 {
-                    automation.modal.querySelector('input[name="min"]').value = item[statement][0];
-                    automation.modal.querySelector('input[name="max"]').value = item[statement][1];
+                    this.modal.querySelector('input[name="min"]').value = item[statement][0];
+                    this.modal.querySelector('input[name="max"]').value = item[statement][1];
                 }
                 else
-                    automation.modal.querySelector('input[name="value"]').value = statement != 'updates' ? item[statement] : '';
+                    this.modal.querySelector('input[name="value"]').value = statement != 'updates' ? item[statement] : '';
 
-                automation.valueForm(automation.modal, statement);
+                this.valueForm(this.modal, statement);
             });
 
-            automation.modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
-            automation.modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
+            this.modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
+            this.modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
             if (!mqtt)
             {
-                var status = this.controller.status.zigbee ?? new Object();
-                var dropdown = automation.modal.querySelector('.dropdown')
+                var dropdown = this.modal.querySelector('.dropdown')
+                var status = this.controller.zigbee.status ?? new Object();
                 var exposes = new Object();
 
                 if (status.devices)
@@ -610,7 +661,7 @@ class Automation
                     status.devices.forEach(device =>
                     {
                         var names = status.names;
-                        var expose = this.controller.expose.zigbee[names ? device.name : device.ieeeAddress];
+                        var expose = this.controller.zigbee.expose[names ? device.name : device.ieeeAddress];
 
                         if (!expose)
                             return;
@@ -634,24 +685,25 @@ class Automation
 
                     addDropdown(dropdown, Object.keys(exposes), function(item)
                     {
-                        automation.modal.querySelector('input[name="item"]').value = exposes[item][0];
-                        automation.modal.querySelector('input[name="property"]').value = exposes[item][1];
-                        automation.modal.querySelector('input[name="value"]').focus();
-                    });
+                        this.modal.querySelector('input[name="item"]').value = exposes[item][0];
+                        this.modal.querySelector('input[name="property"]').value = exposes[item][1];
+                        this.modal.querySelector('input[name="value"]').focus();
+
+                    }.bind(this));
 
                     dropdown.style.display = 'block';
                 }
             }
 
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 statements.forEach(statement => delete item[statement]);
 
                 item[mqtt ? 'topic' : 'endpoint'] = data.item;
                 item.property = data.property;
-                item[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : data.statement != 'updates' ? automation.parseValue(data.value) : true;
+                item[data.statement] = data.statement == 'between' ? [this.parseValue(data.min), this.parseValue(data.max)] : data.statement != 'updates' ? this.parseValue(data.value) : true;
 
                 if (data.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = data.triggerName;
@@ -663,18 +715,19 @@ class Automation
 
                 console.log(item);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(this.modal, event.target.value); }.bind(this));
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="item"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="item"]').focus();
         });
     }
 
@@ -682,16 +735,14 @@ class Automation
     {
         fetch('html/automation/telegramTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
+            this.modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
+            this.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
-            automation.modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
-            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
                 var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 trigger.message = data.message.trim();
@@ -703,19 +754,20 @@ class Automation
                     delete trigger.name;
 
                 if (append)
-                    automation.data.triggers.push(trigger);
+                    this.data.triggers.push(trigger);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('textarea[name="message"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('textarea[name="message"]').focus();
         });
     }
 
@@ -723,15 +775,13 @@ class Automation
     {
         fetch('html/automation/timeTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
+            this.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
-            automation.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 trigger.time = data.time;
 
@@ -741,19 +791,20 @@ class Automation
                     delete trigger.name;
 
                 if (append)
-                    automation.data.triggers.push(trigger);
+                this.data.triggers.push(trigger);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="time"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="time"]').focus();
         });
     }
 
@@ -761,14 +812,13 @@ class Automation
     {
         fetch('html/automation/intervalTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="interval"]').value = trigger.interval ?? '10';
+            this.modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="interval"]').value = trigger.interval ?? '10';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 trigger.interval = parseInt(data.interval);
 
@@ -778,19 +828,20 @@ class Automation
                     delete trigger.name;
 
                 if (append)
-                    automation.data.triggers.push(trigger);
+                this.data.triggers.push(trigger);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="interval"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="interval"]').focus();
         });
     }
 
@@ -798,58 +849,57 @@ class Automation
     {
         fetch('html/automation/stateCondition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="name"]').value = condition.name ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="name"]').value = condition.name ?? '';
-
-            automation.conditionStatement.forEach(statement =>
+            this.conditionStatement.forEach(statement =>
             {
                 var option = document.createElement('option');
 
                 option.innerHTML = statement;
-                automation.modal.querySelector('select[name="statement"]').append(option);
+                this.modal.querySelector('select[name="statement"]').append(option);
 
                 if (!condition.hasOwnProperty(statement))
                     return;
 
-                automation.modal.querySelector('select[name="statement"]').value = statement;
+                    this.modal.querySelector('select[name="statement"]').value = statement;
 
                 if (statement == 'between')
                 {
-                    automation.modal.querySelector('input[name="min"]').value = condition[statement][0];
-                    automation.modal.querySelector('input[name="max"]').value = condition[statement][1];
+                    this.modal.querySelector('input[name="min"]').value = condition[statement][0];
+                    this.modal.querySelector('input[name="max"]').value = condition[statement][1];
                 }
                 else
-                    automation.modal.querySelector('input[name="value"]').value = condition[statement];
+                this.modal.querySelector('input[name="value"]').value = condition[statement];
 
-                automation.valueForm(automation.modal, statement);
+                this.valueForm(this.modal, statement);
             });
 
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
-                automation.conditionStatement.forEach(statement => delete condition[statement]);
+                this.conditionStatement.forEach(statement => delete condition[statement]);
 
                 condition.name = data.name;
-                condition[data.statement] = data.statement == 'between' ? [automation.parseValue(data.min), automation.parseValue(data.max)] : automation.parseValue(data.value);
+                condition[data.statement] = data.statement == 'between' ? [this.parseValue(data.min), this.parseValue(data.max)] : this.parseValue(data.value);
 
                 if (append)
                     list.push(condition);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(this.modal, event.target.value); }.bind(this));
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="name"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="name"]').focus();
         });
     }
 
@@ -857,55 +907,54 @@ class Automation
     {
         fetch('html/automation/' + name + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
 
-            automation.modal.querySelector('.data').innerHTML = html;
-
-            automation.conditionStatement.forEach(statement =>
+            this.conditionStatement.forEach(statement =>
             {
                 var option = document.createElement('option');
 
                 option.innerHTML = statement;
-                automation.modal.querySelector('select[name="statement"]').append(option);
+                this.modal.querySelector('select[name="statement"]').append(option);
 
                 if (!condition.hasOwnProperty(statement))
                     return;
 
-                automation.modal.querySelector('select[name="statement"]').value = statement;
+                this.modal.querySelector('select[name="statement"]').value = statement;
 
                 if (statement == 'between')
                 {
-                    automation.modal.querySelector('input[name="start"]').value = condition[statement][0];
-                    automation.modal.querySelector('input[name="end"]').value = condition[statement][1];
+                    this.modal.querySelector('input[name="start"]').value = condition[statement][0];
+                    this.modal.querySelector('input[name="end"]').value = condition[statement][1];
                 }
                 else
-                    automation.modal.querySelector('input[name="value"]').value = condition[statement];
+                this.modal.querySelector('input[name="value"]').value = condition[statement];
 
-                automation.valueForm(automation.modal, statement);
+                this.valueForm(this.modal, statement);
             });
 
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
-                automation.conditionStatement.forEach(statement => delete condition[statement]);
+                this.conditionStatement.forEach(statement => delete condition[statement]);
                 condition[data.statement] = data.statement == 'between' ? [data.start, data.end] : data.value;
 
                 if (append)
                     list.push(condition);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { automation.valueForm(automation.modal, event.target.value); });
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(this.modal, event.target.value); }.bind(this));
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('select[name="statement"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('select[name="statement"]').focus();
         });
     }
 
@@ -913,14 +962,12 @@ class Automation
     {
         fetch('html/automation/weekCondition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="days"]').value = condition.days ? condition.days.join(', ') : '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="days"]').value = condition.days ? condition.days.join(', ') : '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
                 var days = data.days ? data.days.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 condition.days = days.length ? days : null;
@@ -928,17 +975,18 @@ class Automation
                 if (append)
                     list.push(condition);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="days"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="days"]').focus();
         });
     }
 
@@ -946,17 +994,15 @@ class Automation
     {
         fetch('html/automation/mqttAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
+            this.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            this.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            this.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="topic"]').value = action.topic ?? '';
-            automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
-            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
-            automation.modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 action.topic = data.topic;
                 action.message = data.message.trim();
@@ -970,17 +1016,18 @@ class Automation
                 if (append)
                     list.push(action);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="topic"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="topic"]').focus();
         });
     }
 
@@ -988,18 +1035,16 @@ class Automation
     {
         fetch('html/automation/stateAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="name"]').value = action.name ?? '';
+            this.modal.querySelector('input[name="value"]').value = action.value ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="name"]').value = action.name ?? '';
-            automation.modal.querySelector('input[name="value"]').value = action.value ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 action.name = data.name;
-                action.value = automation.parseValue(data.value);
+                action.value = this.parseValue(data.value);
 
                 if (data.triggerName)
                     action.triggerName = data.triggerName;
@@ -1009,17 +1054,18 @@ class Automation
                 if (append)
                     list.push(action);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="name"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="name"]').focus();
         });
     }
 
@@ -1027,17 +1073,15 @@ class Automation
     {
         fetch('html/automation/telegramAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            this.modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
+            this.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            autthisomation.modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('textarea[name="message"]').value = action.message ?? '';
-            automation.modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
-            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
-            automation.modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
                 var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 action.message = data.message.trim();
@@ -1052,17 +1096,18 @@ class Automation
                 if (append)
                     list.push(action);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('textarea[name="message"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('textarea[name="message"]').focus();
         });
     }
 
@@ -1070,15 +1115,13 @@ class Automation
     {
         fetch('html/automation/shellAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="command"]').value = action.command ?? '';
+            this.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="command"]').value = action.command ?? '';
-            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 action.command = data.command.trim();
 
@@ -1090,17 +1133,18 @@ class Automation
                 if (append)
                     list.push(action);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="command"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="command"]').focus();
         });
     }
 
@@ -1108,15 +1152,13 @@ class Automation
     {
         fetch('html/automation/delayAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var automation = this;
+            this.modal.querySelector('.data').innerHTML = html;
+            this.modal.querySelector('input[name="delay"]').value = action.delay ?? 0;
+            this.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
-            automation.modal.querySelector('.data').innerHTML = html;
-            automation.modal.querySelector('input[name="delay"]').value = action.delay ?? 0;
-            automation.modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
-
-            automation.modal.querySelector('.save').addEventListener('click', function()
+            this.modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(automation.modal.querySelector('form'));
+                var data = formData(this.modal.querySelector('form'));
 
                 action.delay = parseInt(data.delay);
 
@@ -1128,17 +1170,18 @@ class Automation
                 if (append)
                     list.push(action);
 
-                showModal(automation.modal, false);
-                automation.showAutomationInfo();
-            });
+                showModal(this.modal, false);
+                this.showAutomationInfo();
 
-            automation.modal.querySelector('.cancel').addEventListener('click', function() { showModal(automation.modal, false); });
+            }.bind(this));
 
-            automation.modal.removeEventListener('keypress', handleSave);
-            automation.modal.addEventListener('keypress', handleSave);
-            showModal(automation.modal, true);
+            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
 
-            automation.modal.querySelector('input[name="delay"]').focus();
+            this.modal.removeEventListener('keypress', handleSave);
+            this.modal.addEventListener('keypress', handleSave);
+            showModal(this.modal, true);
+
+            this.modal.querySelector('input[name="delay"]').focus();
         });
     }
 }
