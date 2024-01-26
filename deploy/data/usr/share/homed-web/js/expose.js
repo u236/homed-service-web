@@ -19,14 +19,14 @@ function exposeTitle(name, suffix)
     if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].includes(title[1]))
         title[1] = title[1].toUpperCase();
 
-    return title.join(' ') + (suffix != 'common' ? ' ' + suffix : '');
+    return title.join(' ') + (suffix != 'common' ? ' ' + suffix.toLowerCase() : '');
 }
 
 function exposeList(expose, options)
 {
     var list = new Array();
 
-    switch(expose)
+    switch (expose)
     {
         case 'cover':
             list = ['cover', 'position'];

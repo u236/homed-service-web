@@ -2,7 +2,6 @@ class ZigBee
 {
     logicalType = ['coordinator', 'router', 'end device'];
     content = document.querySelector('.content .container');
-    modal = document.querySelector('#modal');
 
     status = new Object();
     expose = new Object();
@@ -91,7 +90,7 @@ class ZigBee
                     case 'clusterRequest':
                     case 'globalRequest':
 
-                        var item = this.modal.querySelector('.debugResult');
+                        var item = modal.querySelector('.debugResult');
 
                         if (!item)
                             return;
@@ -101,7 +100,7 @@ class ZigBee
 
                     case 'requestFinished':
 
-                        var item = this.modal.querySelector('.debugStatus');
+                        var item = modal.querySelector('.debugStatus');
                         var status = parseInt(message.status);
 
                         if (!item)
@@ -410,20 +409,20 @@ class ZigBee
     {
         fetch('html/zigbee/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            this.modal.querySelector('.data').innerHTML = html;
-            this.modal.querySelector('.name').innerHTML = this.device.name;
-            this.modal.querySelector('input[name="name"]').value = this.device.name;
-            this.modal.querySelector('input[name="active"]').checked = this.device.active;
-            this.modal.querySelector('input[name="discovery"]').checked = this.device.discovery;
-            this.modal.querySelector('input[name="cloud"]').checked = this.device.cloud;
-            this.modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.device.name}, ...formData(this.modal.querySelector('form'))}); }.bind(this));
-            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = this.device.name;
+            modal.querySelector('input[name="name"]').value = this.device.name;
+            modal.querySelector('input[name="active"]').checked = this.device.active;
+            modal.querySelector('input[name="discovery"]').checked = this.device.discovery;
+            modal.querySelector('input[name="cloud"]').checked = this.device.cloud;
+            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.device.name}, ...formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.modal.removeEventListener('keypress', handleSave);
-            this.modal.addEventListener('keypress', handleSave);
-            showModal(this.modal, true);
+            modal.removeEventListener('keypress', handleSave);
+            modal.addEventListener('keypress', handleSave);
+            showModal(true);
 
-            this.modal.querySelector('input[name="name"]').focus();
+            modal.querySelector('input[name="name"]').focus();
         });
     }
 
@@ -431,13 +430,13 @@ class ZigBee
     {
         fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            this.modal.querySelector('.data').innerHTML = html;
-            this.modal.querySelector('.name').innerHTML = this.device.name;
-            this.modal.querySelector('.graceful').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: this.device.name}); this.controller.clearPage('zigbee'); }.bind(this));
-            this.modal.querySelector('.force').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: this.device.name, force: true}); this.controller.clearPage('zigbee'); }.bind(this));
-            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = this.device.name;
+            modal.querySelector('.graceful').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: this.device.name}); this.controller.clearPage('zigbee'); }.bind(this));
+            modal.querySelector('.force').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: this.device.name, force: true}); this.controller.clearPage('zigbee'); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            showModal(this.modal, true);
+            showModal(true);
         });
     }
 
@@ -445,12 +444,12 @@ class ZigBee
     {
         fetch('html/zigbee/deviceData.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            this.modal.querySelector('.data').innerHTML = html;
-            this.modal.querySelector('.name').innerHTML = this.device.name;
-            this.modal.querySelector('.json').innerHTML = JSON.stringify(this.device, null, 2);
-            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = this.device.name;
+            modal.querySelector('.json').innerHTML = JSON.stringify(this.device, null, 2);
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            showModal(this.modal, true);
+            showModal(true);
         });
     }
 
@@ -458,19 +457,19 @@ class ZigBee
     {
         fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            this.modal.querySelector('.data').innerHTML = html;
-            this.modal.querySelector('.name').innerHTML = this.device.name;
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = this.device.name;
 
             this.device.endpoints.forEach(item =>
             {
                 var option = document.createElement('option');
                 option.innerHTML = item.endpointId;
-                this.modal.querySelector('select[name="endpointId"]').append(option);
+                modal.querySelector('select[name="endpointId"]').append(option);
             });
 
-            this.modal.querySelector('.send').addEventListener('click', function()
+            modal.querySelector('.send').addEventListener('click', function()
             {
-                var data = formData(this.modal.querySelector('form'));
+                var data = formData(modal.querySelector('form'));
                 var request = new Object();
 
                 request.action = data.clusterSpecific ? 'clusterRequest' : 'globalRequest';
@@ -483,16 +482,16 @@ class ZigBee
                 if (data.manufacturerCode && !isNaN(data.manufacturerCode))
                     request.manufacturerCode = parseInt(data.manufacturerCode);
 
-                this.modal.querySelector('.debugStatus').innerHTML = 'status: pending';
+                modal.querySelector('.debugStatus').innerHTML = 'status: pending';
                 this.controller.socket.publish('command/zigbee', request);
 
             }.bind(this));
 
-            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.modal.removeEventListener('keypress', handleSend);
-            this.modal.addEventListener('keypress', handleSend);
-            showModal(this.modal, true);
+            modal.removeEventListener('keypress', handleSend);
+            modal.addEventListener('keypress', handleSend);
+            showModal(true);
         });
     }
 
@@ -503,7 +502,7 @@ class ZigBee
             var item = this.status.names ? this.device.name : this.device.ieeeAddress;
             var list;
 
-            this.modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.data').innerHTML = html;
 
             list = modal.querySelector('.list');
             list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/zigbee/' + item + '</pre>';
@@ -521,10 +520,10 @@ class ZigBee
                 this.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
             }
 
-            this.modal.querySelector('.name').innerHTML = this.device.name;
-            this.modal.querySelector('.cancel').addEventListener('click', function() { showModal(this.modal, false); }.bind(this));
+            modal.querySelector('.name').innerHTML = this.device.name;
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            showModal(this.modal, true);
+            showModal(true);
         });
     }
 }

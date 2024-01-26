@@ -1,4 +1,4 @@
-var controller, theme = localStorage.getItem('theme') ?? 'dark', empty = '<span class="shade">&bull;</span>';
+var modal, controller, theme = localStorage.getItem('theme') ?? 'dark', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -15,8 +15,6 @@ class Socket
 
     connect()
     {
-        var socket = this;
-
         this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host);
 
         this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
@@ -132,7 +130,7 @@ class Controller
 
         document.querySelectorAll('.header .services span').forEach(item => { item.classList.toggle('highlight', item.innerHTML == service); });
 
-        switch(service)
+        switch (service)
         {
             case 'automation': this.automation.showMenu(); break;
             case 'zigbee': this.zigbee.showMenu(); break;
@@ -180,7 +178,6 @@ class Controller
     {
         var content = document.querySelector('.content .container');
 
-        document.querySelector('#modal').style.display = 'none';
         content.innerHTML = '<div class="loader"></div><div class="center warning"></div>';
 
         if (warning)
@@ -196,6 +193,7 @@ class Controller
         }
 
         this.setPage(name);
+        showModal(false);
     }
 
     showToast(message, style = 'success')
@@ -224,10 +222,11 @@ class Controller
 
 window.onload = function()
 {
+    modal = document.querySelector('#modal');
     controller = new Controller();
 
     window.addEventListener('hashchange', function() { controller.showPage(location.hash.slice(1)); });
-    window.addEventListener('mousedown', function(event) { if (event.target == document.querySelector('#modal')) document.querySelector('#modal').style.display = 'none'; });
+    window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
 
     document.querySelector('body').setAttribute('theme', theme);
     document.querySelector('.homed').setAttribute('theme', theme);
@@ -240,10 +239,7 @@ window.onload = function()
 document.onkeydown = function(event)
 {
     if (event.key == 'Esc' || event.key == 'Escape')
-    {
-        document.querySelector('#modal').style.display = 'none';
-        document.querySelector('#modal').querySelector('.data').innerHTML = null;
-    }
+        showModal(false);
 };
 
 function sortTable(table, index, first = true)
@@ -320,7 +316,7 @@ function addDropdown(dropdown, options, callback, separator = 0)
     document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) list.style.display = 'none'; });
 }
 
-function showModal(modal, show)
+function showModal(show)
 {
     if (show)
     {
@@ -328,8 +324,8 @@ function showModal(modal, show)
         return;
     }
 
+    modal.querySelector('.data').innerHTML = null;
     modal.style.display = 'none';
-    modal.querySelector('.data').innerHTML = '';
 }
 
 function handleSave(event)

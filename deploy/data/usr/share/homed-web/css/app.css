@@ -63,15 +63,15 @@ body[theme="dark"] {
 }
 
 .homed button {
+    cursor: pointer;
     height: 30px;
     padding: 0 10px;
-    background-color: var(--background-shade);
-    cursor: pointer;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
+    background-color: var(--background-shade);
     font-family: var(--font-family);
-    color: var(--color-main);
     text-transform: uppercase;
+    color: var(--color-main);
 }
 
 .homed button:hover {
@@ -86,14 +86,14 @@ body[theme="dark"] {
 .homed input[type="number"], .homed input[type="text"], .homed select, .homed textarea {
     -moz-appearance: none;
     -webkit-appearance: none;
-    box-sizing: border-box;
     width: 100%;
     height: 30px;
     margin-bottom: 10px;
     padding: 0 5px;
-    background-color: var(--background-main);
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
+    background-color: var(--background-main);
+    box-sizing: border-box;
     font-family: var(--font-family);
     color: var(--color-main);
 }
@@ -101,6 +101,8 @@ body[theme="dark"] {
 .homed textarea {
     height: 72px;
     padding: 5px;
+    font-family: 'Roboto Mono';
+    font-size: 0.8125rem;
 }
 
 .homed input[type="range"] {
@@ -108,27 +110,27 @@ body[theme="dark"] {
     width: 100%;
     height: 5px;
     margin-left: -2px;
-    background-color: var(--range-main);
     border: 2px solid var(--background-main);
     border-radius: 5px;
+    background-color: var(--range-main);
 }
 
 .homed input[type="range"]::-webkit-slider-thumb {
     appearance: none;
-    box-shadow: 0 0 2px 0 #000000;
     width: 13px;
     height: 13px;
-    background-color: #ffffff;
     border-radius: 50%;
+    background-color: #ffffff;
+    box-shadow: 0 0 2px 0 #000000;
 }
 
 .homed input[type="range"]::-moz-range-thumb {
-    box-shadow: 0 0 2px #666666;
     width: 13px;
     height: 13px;
-    background-color: #ffffff;
     border: none;
     border-radius: 50%;
+    background-color: #ffffff;
+    box-shadow: 0 0 2px #666666;
 }
 
 .homed input[type="time"] {
@@ -175,17 +177,17 @@ body[theme="dark"] {
 }
 
 .homed span.value {
-    background-color: var(--background-shade);
-    border-radius: var(--border-radius);
-    font-size: 0.8125rem;
-    font-family: 'Roboto Mono';
     padding: 1px 10px;
+    border-radius: var(--border-radius);
+    background-color: var(--background-shade);
+    font-family: 'Roboto Mono';
+    font-size: 0.8125rem;
 }
 
 .homed table {
-    border-collapse: collapse;
-    margin-top: 10px;
     width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
 }
 
 .homed th {
@@ -193,9 +195,9 @@ body[theme="dark"] {
     border-bottom: 1px solid var(--border-shade);
     font-size: 0.8125rem;
     font-weight: normal;
-    color: var(--color-shade);
-    text-align: left;
     text-transform: uppercase;
+    text-align: left;
+    color: var(--color-shade);
 }
 
 .homed td {
@@ -267,13 +269,13 @@ body[theme="dark"] {
 }
 
 .homed .loader {
-    animation: homedSpin 1s linear infinite;
+    width: 20px;
+    height: 20px;
+    margin: 20px auto;
     border: 2px solid var(--border-main);
     border-top: 2px solid var(--border-loader);
     border-radius: 50%;
-    margin: 20px auto;
-    height: 20px;
-    width: 20px;
+    animation: homedSpin 1s linear infinite;
 }
 
 .homed .dropdown {
@@ -286,32 +288,32 @@ body[theme="dark"] {
 }
 
 .homed .dropdown hr {
-    background-color: var(--border-main);
-    border: none;
-    margin: 5px -10px;
     height: 1px;
+    margin: 5px -10px;
+    border: none;
+    background-color: var(--border-main);
 }
 
 .homed .dropdown .list {
-    cursor: pointer;
     display: none;
     position: absolute;
-    background-color: var(--background-shade);
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    padding: 3px 10px;
     right: -1px;
     top: -1px;
     z-index: 1;
+    cursor: pointer;
+    padding: 3px 10px;
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    background-color: var(--background-shade);
+    box-shadow: var(--box-shadow);
 }
 
 .homed .dropdown .item {
     padding: 2px 0;
-    text-align: left;
-    text-transform: none;
-    color: var(--color-main);
     white-space: nowrap;
+    text-transform: none;
+    text-align: left;
+    color: var(--color-main);
 }
 
 .homed .dropdown .item:hover {
@@ -319,9 +321,9 @@ body[theme="dark"] {
 }
 
 .homed .container {
-    margin: 0 auto;
-    max-width: 1000px;
     overflow: auto;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .homed .content {
@@ -331,10 +333,10 @@ body[theme="dark"] {
 
 .homed .header
 {
-    background-color: var(--background-shade);
     height: var(--header-height);
     line-height: var(--header-height);
     padding: 0 15px;
+    background-color: var(--background-shade);
     white-space: nowrap;
 }
 
@@ -364,13 +366,13 @@ body[theme="dark"] {
 
 .homed .footer
 {
-    background-color: var(--background-shade);
-    color: var(--color-shade);
-    font-size: 0.8125rem;
     height: var(--footer-height);
     line-height: var(--footer-height);
     padding: 0 15px;
+    background-color: var(--background-shade);
+    font-size: 0.8125rem;
     white-space: nowrap;
+    color: var(--color-shade);
 }
 
 .homed .footer .container {
@@ -379,8 +381,8 @@ body[theme="dark"] {
 }
 
 .homed .footer a {
-    color: var(--color-shade);
     text-decoration: none;
+    color: var(--color-shade);
 }
 
 .homed .footer a:hover {
@@ -388,9 +390,9 @@ body[theme="dark"] {
 }
 
 .homed .emptyList {
-    color: var(--color-shade);
     padding: 15px 0;
     text-align: center;
+    color: var(--color-shade);
 }
 
 .homed .itemList tbody tr {
@@ -440,8 +442,8 @@ body[theme="dark"] {
 
 .homed .automationInfo td.move {
     cursor: pointer;
-    color: var(--color-shade);
     width: 14px;
+    color: var(--color-shade);
 }
 
 .homed .automationInfo td.move:hover {
@@ -450,8 +452,8 @@ body[theme="dark"] {
 
 .homed .automationInfo td.remove {
     cursor: pointer;
-    text-align: right;
     width: 14px;
+    text-align: right;
 }
 
 .homed .automationInfo td.remove:hover {
@@ -459,10 +461,10 @@ body[theme="dark"] {
 }
 
 .homed .automationInfo .title {
-    align-items: center;
     display: flex;
-    gap: 10px;
+    align-items: center;
     justify-content: space-between;
+    gap: 10px;
     margin: 10px 5px 10px 4px;
 }
 
@@ -488,40 +490,40 @@ body[theme="dark"] {
 }
 
 .homed .deviceInfo td:last-child {
-    font-size: 13px;
     font-family: 'Roboto Mono';
+    font-size: 13px;
 }
 
 .homed .deviceInfo .title {
-    align-items: center;
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 10px 5px 10px 4px;
     font-size: 1.25em;
     font-weight: 700;
-    gap: 10px;
-    justify-content: space-between;
-    margin: 10px 5px 10px 4px;
 }
 
 .homed .deviceMap svg {
-    background-color: var(--background-main);
+    display: block;
+    width: calc(100% - 10px);
+    height: calc(100vh - var(--header-height) - var(--footer-height) - 48px);
+    margin: 10px 5px;
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
+    background-color: var(--background-main);
     box-sizing: border-box;
-    display: block;
-    margin: 10px 5px;
-    height: calc(100vh - var(--header-height) - var(--footer-height) - 48px);
-    width: calc(100% - 10px);
 }
 
 .homed .deviceMap svg text {
-    fill: var(--color-main);
-    font-size: 12px;
+    cursor: pointer;
     paint-order: stroke;
     stroke: var(--background-main);
     stroke-linecap: butt;
     stroke-linejoin: miter;
     stroke-width: 2px;
-    cursor: pointer;
+    fill: var(--color-main);
+    font-size: 12px;
 }
 
 .homed .deviceMap svg text:hover {
@@ -529,9 +531,9 @@ body[theme="dark"] {
 }
 
 .homed .deviceMap svg .node {
-    fill: var(--background-shade);
     stroke: var(--color-main);
     stroke-width: 1.5px;
+    fill: var(--background-shade);
 }
 
 .homed .deviceMap svg .node:hover {
@@ -603,9 +605,9 @@ body[theme="dark"] {
 .homed #modal {
     display: none;
     position: fixed;
-    z-index: 1;
     top: 0;
     left: 0;
+    z-index: 1;
     overflow: auto;
     width: 100%;
     height: 100%;
@@ -618,28 +620,28 @@ body[theme="dark"] {
 }
 
 .homed #modal .data {
-    box-shadow: var(--box-shadow);
     max-width: min(600px, calc(100% - 40px));
     margin: 25px auto;
     padding: 10px;
-    background-color: var(--background-main);
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
+    background-color: var(--background-main);
+    box-shadow: var(--box-shadow);
 }
 
 .homed #modal .title {
-    align-items: center;
     display: flex;
-    gap: 10px;
+    align-items: center;
     justify-content: space-between;
+    gap: 10px;
     margin: 0;
     margin-bottom: 10px;
 }
 
 .homed #modal .dropdown .list {
+    overflow: auto;
     min-width: min(400px, calc(100vw - 60px));
     max-height: calc(100vh - 140px);
-    overflow: auto;
 }
 
 .homed #modal .dropdown .list input[type="text"] {
@@ -650,21 +652,21 @@ body[theme="dark"] {
     position: fixed;
     right: 25px;
     top: 25px;
-    width: 300px;
     z-index: 2;
+    width: 300px;
 }
 
 .homed #toast .item {
-    background-color: var(--background-main);
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 10px;
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    background-color: var(--background-main);
     box-sizing: border-box;
-    color: var(--color-main);
-    cursor: pointer;
-    margin-bottom: 10px;
+    box-shadow: var(--box-shadow);
     text-align: left;
-    width: 100%;
+    color: var(--color-main);
 }
 
 .homed #toast .message {
@@ -688,8 +690,8 @@ body[theme="dark"] {
 }
 
 .homed #toggleTheme {
-    padding: 0 5px;
     cursor: pointer;
+    padding: 0 5px;
 }
 
 .homed #toggleTheme:hover {
