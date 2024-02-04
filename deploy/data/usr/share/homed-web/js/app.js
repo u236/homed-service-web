@@ -15,7 +15,7 @@ class Socket
 
     connect()
     {
-        this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host);
+        this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.hostname + ':' + (location.pathname.startsWith('/api/hassio_ingress/') ? 8081 : location.port));
 
         this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
         this.ws.onmessage = function(event) { var data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
