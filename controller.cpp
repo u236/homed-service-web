@@ -157,7 +157,6 @@ void Controller::textMessageReceived(const QString &message)
         {
             QJsonObject json = m_messages.value(subTopic);
             it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
-            return;
         }
 
         mqttSubscribe(mqttTopic(subTopic));
