@@ -22,6 +22,7 @@ private:
     QWebSocketServer *m_webSocket;
 
     QString m_path;
+    quint16 m_port;
 
     QList <QString> m_retained;
     QMap <QString, QJsonObject> m_messages;
