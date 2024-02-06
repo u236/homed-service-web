@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "1.3.8"
+#define SERVICE_VERSION     "1.3.9"
 
 #include <QTcpServer>
 #include <QWebSocket>
@@ -22,7 +22,6 @@ private:
     QWebSocketServer *m_webSocket;
 
     QString m_path;
-    quint16 m_port;
 
     QList <QString> m_retained;
     QMap <QString, QJsonObject> m_messages;

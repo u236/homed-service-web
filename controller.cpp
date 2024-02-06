@@ -13,23 +13,22 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_tcpServ
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
     connect(m_webSocket, &QWebSocketServer::newConnection, this, &Controller::clientConnected);
 
+    m_tcpServer->listen(QHostAddress::Any, static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
     m_path = getConfig()->value("server/path", "/usr/share/homed-web").toString();
-    m_port = static_cast <quint16> (getConfig()->value("server/port", 8080).toInt());
-
-    m_tcpServer->listen(QHostAddress::Any, m_port);
 }
 
 void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
 {
     QList <QByteArray> list = request.split(' ');
-    QFile file = QString(m_path).append(list.value(1) != "/" ? list.value(1).split('?').value(0) : "/index.html");
-    QByteArray data;
+    QFile file;
 
     if (list.value(0) != "GET")
     {
         socket->write("HTTP/1.1 405 Method Not Allowed\r\n\r\n");
         return;
     }
+
+    file.setFileName(QString(m_path).append(list.value(1) != "/" ? list.value(1).split('?').value(0) : "/index.html"));
 
     if (!file.exists())
     {
@@ -43,13 +42,8 @@ void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
         return;
     }
 
-    data = file.readAll();
-
-    if (file.fileName().endsWith("/js/app.js"))
-        data.replace("{{ wsPort }}", QString::number(m_port).toUtf8().constData());
-
-    socket->write(QString("HTTP/1.1 200 OK\r\nContent-Type: %1\r\nContent-Length: %2\r\n\r\n").arg(QMimeDatabase().mimeTypeForFile(file.fileName()).name()).arg(data.length()).toUtf8());
-    socket->write(data);
+    socket->write(QString("HTTP/1.1 200 OK\r\nContent-Type: %1\r\nContent-Length: %2\r\n\r\n").arg(QMimeDatabase().mimeTypeForFile(file.fileName()).name()).arg(file.size()).toUtf8());
+    socket->write(file.readAll());
 
     file.close();
 }

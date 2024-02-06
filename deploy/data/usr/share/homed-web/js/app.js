@@ -15,7 +15,7 @@ class Socket
 
     connect()
     {
-        this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.hostname + ':{{ wsPort }}');
+        this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host + location.pathname);
 
         this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
         this.ws.onmessage = function(event) { var data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
