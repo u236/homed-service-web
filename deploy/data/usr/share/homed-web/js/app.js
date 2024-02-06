@@ -57,7 +57,7 @@ class Socket
 
 class Controller
 {
-    services = ['automation', 'zigbee'];
+    services = {'automation': 'offline', 'zigbee': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
 
     automation = new Automation(this);
@@ -65,27 +65,8 @@ class Controller
 
     onopen()
     {
-        var services = document.querySelector('.header .services');
-
         console.log('socket successfully connected');
-        services.innerHTML = '';
-
-        this.services.forEach(service =>
-        {
-            var item = document.createElement('span');
-
-            if (services.innerHTML)
-                services.append('|');
-
-            if (this.service == service)
-                item.classList.add('highlight');
-
-            item.innerHTML = service;
-            item.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
-
-            this.socket.subscribe('service/' + service);
-            services.appendChild(item);
-        });
+        Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + service); });
     }
 
     onclose()
@@ -113,6 +94,8 @@ class Controller
                 this.socket.subscribe('event/' + service);
             }
 
+            this.services[service] = message.status;
+            this.updateMenu();
             return;
         }
 
@@ -121,6 +104,32 @@ class Controller
             case 'automation': this.automation.parseMessage(list, message); break;
             case 'zigbee': this.zigbee.parseMessage(list, message); break;
         }
+    }
+
+    updateMenu()
+    {
+        var services = document.querySelector('.header .services');
+
+        services.innerHTML = '';
+
+        Object.keys(this.services).forEach(service =>
+        {
+            var item = document.createElement('span');
+
+            if (this.services[service] != 'online')
+                return;
+
+            if (services.innerHTML)
+                services.append('|');
+
+            if (this.service == service)
+                item.classList.add('highlight');
+
+            item.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
+            item.innerHTML = service;
+
+            services.appendChild(item);
+        });
     }
 
     setService(service)
