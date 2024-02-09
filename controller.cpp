@@ -85,11 +85,10 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
         check = true;
     }
 
-    if (!check)
-    {
-        mqttUnsubscribe(topic.name());
-        m_messages.remove(subTopic);
-    }
+    if (check)
+        return;
+
+    mqttUnsubscribe(topic.name());
 }
 
 void Controller::socketConnected(void)

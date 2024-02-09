@@ -209,7 +209,7 @@ class Controller
     {
         var item = document.createElement('div');
 
-        item.addEventListener('click', function() { this.clearToast(this); }.bind(this));
+        item.addEventListener('click', function() { this.clearToast(item); }.bind(this));
         item.innerHTML = '<div class="message">' + message + '</div>';
         item.classList.add('item', 'fade-in', style);
 

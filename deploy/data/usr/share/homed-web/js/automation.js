@@ -23,16 +23,12 @@ class Automation
         {
             case 'status':
 
-                var check = this.status.automations ? this.status.automations.map(automation => automation.name) : null;
-
                 this.status = message;
 
                 if (this.controller.service == 'automation')
                 {
-                    if (JSON.stringify(check) != JSON.stringify(this.status.automations.map(automation => automation.name)))
-                        this.showAutomationList();
-
                     document.querySelector('#serviceVersion').innerHTML = this.status.version;
+                    this.showAutomationList();
                 }
 
                 break;
@@ -41,7 +37,7 @@ class Automation
 
                 var html = 'Automation <b>' + message.automation + '</b> ';
 
-                if (message.event == 'updated')
+                if (message.event == 'added' || message.event == 'updated')
                     this.controller.clearPage('automation');
 
                 switch (message.event)
@@ -712,8 +708,6 @@ class Automation
                 if (append)
                     list.push(item);
 
-                console.log(item);
-
                 this.showAutomationInfo();
 
             }.bind(this));
@@ -741,7 +735,7 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(modal.querySelector('form'));
-                var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                var chats = data.chats ? data.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 trigger.message = data.message.trim();
                 trigger.chats = chats.length ? chats : null;
@@ -961,7 +955,7 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(modal.querySelector('form'));
-                var days = data.days ? data.days.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                var days = data.days ? data.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 condition.days = days.length ? days : null;
 
@@ -1072,7 +1066,7 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 var data = formData(modal.querySelector('form'));
-                var chats = data.chats ? data.chats.split(",").map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                var chats = data.chats ? data.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 action.message = data.message.trim();
                 action.chats = chats.length ? chats : null;
