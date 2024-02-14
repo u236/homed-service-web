@@ -57,10 +57,11 @@ class Socket
 
 class Controller
 {
-    services = {'automation': 'offline', 'zigbee': 'offline'};
+    services = {'automation': 'offline', 'custom': 'offline', 'zigbee': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
 
     automation = new Automation(this);
+    custom = new Custom(this);
     zigbee = new ZigBee(this);
 
     onopen()
@@ -102,6 +103,7 @@ class Controller
         switch (service)
         {
             case 'automation': this.automation.parseMessage(list, message); break;
+            case 'custom': this.custom.parseMessage(list, message); break;
             case 'zigbee': this.zigbee.parseMessage(list, message); break;
         }
     }
@@ -142,6 +144,7 @@ class Controller
         switch (service)
         {
             case 'automation': this.automation.showMenu(); break;
+            case 'custom': this.custom.showMenu(); break;
             case 'zigbee': this.zigbee.showMenu(); break;
         }
 
@@ -161,25 +164,13 @@ class Controller
 
         switch (page)
         {
-            case 'automation':
-                this.automation.showAutomationList();
-                break;
-
-            case 'automationInfo':
-                this.automation.showAutomationInfo();
-                break;
-
-            case 'zigbeeMap':
-                this.zigbee.showDeviceMap();
-                break;
-
-            case 'zigbeeDevice':
-                this.zigbee.showDeviceInfo();
-                break;
-
-            default:
-                this.zigbee.showDeviceList();
-                break;
+            case 'automation':     this.automation.showAutomationList(); break;
+            case 'automationInfo': this.automation.showAutomationInfo(); break;
+            case 'custom':         this.custom.showDeviceList(); break;
+            case 'customDevice':   this.custom.showDeviceInfo(); break;
+            case 'zigbeeMap':      this.zigbee.showDeviceMap(); break;
+            case 'zigbeeDevice':   this.zigbee.showDeviceInfo(); break;
+            default:               this.zigbee.showDeviceList(); break;
         }
     }
 
@@ -198,6 +189,7 @@ class Controller
         switch (this.service)
         {
             case 'automation': this.automation.status = new Object(); break;
+            case 'custom': this.custom.status = new Object(); break;
             case 'zigbee': this.zigbee.status = new Object(); break;
         }
 
@@ -376,5 +368,9 @@ function timeInterval(interval)
 
 function sendData(endpoint, data)
 {
-    controller.socket.publish('td/zigbee/' + controller.zigbee.device.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint), data);
+    switch (controller.service)
+    {
+        case 'custom': controller.socket.publish('td/custom/' + controller.custom.device.id, data); break;
+        case 'zigbee': controller.socket.publish('td/zigbee/' + controller.zigbee.device.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint), data); break;
+    }
 }

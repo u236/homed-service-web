@@ -464,7 +464,7 @@ class Automation
             }
 
             if (!this.data.name)
-            this.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
+                this.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
 
             if (!this.name)
             {
@@ -629,7 +629,7 @@ class Automation
                 if (!item.hasOwnProperty(statement))
                     return;
 
-                    modal.querySelector('select[name="statement"]').value = statement;
+                modal.querySelector('select[name="statement"]').value = statement;
 
                 if (statement == 'between')
                 {
@@ -647,16 +647,27 @@ class Automation
 
             if (!mqtt)
             {
-                var dropdown = modal.querySelector('.dropdown')
-                var status = this.controller.zigbee.status ?? new Object();
+                var services = ['custom', 'zigbee'];
                 var exposes = new Object();
+                var dropdown = modal.querySelector('.dropdown')
 
-                if (status.devices)
+                services.forEach(service =>
                 {
+                    var status = this.controller[service].status ?? new Object();
+
+                    if (!status.devices)
+                        return;
+
                     status.devices.forEach(device =>
                     {
-                        var names = status.names;
-                        var expose = this.controller.zigbee.expose[names ? device.name : device.ieeeAddress];
+                        var id;
+                        var expose;
+
+                        switch (service)
+                        {
+                            case 'custom': id = device.id; expose = this.controller.custom.expose[id]; break;
+                            case 'zigbee': id = status.names ? device.name : device.ieeeAddress; expose = this.controller.zigbee.expose[id]; break;
+                        }
 
                         if (!expose)
                             return;
@@ -665,7 +676,7 @@ class Automation
                         {
                             expose[key].items.forEach(item =>
                             {
-                                var endpoint = 'zigbee/' + (names ? device.name : device.ieeeAddress) + (!isNaN(key) ? '/' + key : '');
+                                var endpoint = service + '/' + id + (!isNaN(key) ? '/' + key : '');
 
                                 exposeList(item, expose[key].options).forEach(value =>
                                 {
@@ -677,7 +688,10 @@ class Automation
                             });
                         });
                     });
+                });
 
+                if (Object.keys(exposes).length)
+                {
                     addDropdown(dropdown, Object.keys(exposes), function(item)
                     {
                         modal.querySelector('input[name="item"]').value = exposes[item][0];
@@ -782,7 +796,7 @@ class Automation
                     delete trigger.name;
 
                 if (append)
-                this.data.triggers.push(trigger);
+                    this.data.triggers.push(trigger);
 
                 this.showAutomationInfo();
 
@@ -818,7 +832,7 @@ class Automation
                     delete trigger.name;
 
                 if (append)
-                this.data.triggers.push(trigger);
+                    this.data.triggers.push(trigger);
 
                 this.showAutomationInfo();
 
@@ -859,7 +873,7 @@ class Automation
                     modal.querySelector('input[name="max"]').value = condition[statement][1];
                 }
                 else
-                modal.querySelector('input[name="value"]').value = condition[statement];
+                    modal.querySelector('input[name="value"]').value = condition[statement];
 
                 this.valueForm(modal, statement);
             });
@@ -915,7 +929,7 @@ class Automation
                     modal.querySelector('input[name="end"]').value = condition[statement][1];
                 }
                 else
-                modal.querySelector('input[name="value"]').value = condition[statement];
+                    modal.querySelector('input[name="value"]').value = condition[statement];
 
                 this.valueForm(modal, statement);
             });
