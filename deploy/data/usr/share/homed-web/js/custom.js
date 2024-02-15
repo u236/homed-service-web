@@ -97,8 +97,6 @@ class Custom
             case 'real':
                 return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
 
-            // case 'options': return '<pre>' + JSON.stringify(value, null, 2) + '</pre>';
-
             default: return value;
         }
     }
@@ -149,7 +147,7 @@ class Custom
                 row.addEventListener('click', function() { this.device = device; this.showDeviceInfo(); }.bind(this));
                 row.dataset.device = device.id;
 
-                for (var i = 0; i < 6; i++)
+                for (var i = 0; i < 7; i++)
                 {
                     var cell = row.insertCell();
 
@@ -157,10 +155,11 @@ class Custom
                     {
                         case 0: cell.innerHTML = device.name; break;
                         case 1: cell.innerHTML = device.id; break;
-                        case 2: cell.innerHTML = this.parseValue('real', device.real); cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
-                        case 4: cell.innerHTML = this.parseValue('discovery', device.discovery); cell.classList.add('center'); break;
-                        case 5: cell.innerHTML = this.parseValue('cloud', device.cloud); cell.classList.add('center'); break;
+                        case 2: cell.innerHTML = '<span class="value">' + device.exposes.length + '</span>'; cell.classList.add('center'); break;
+                        case 3: cell.innerHTML = this.parseValue('real', device.real); cell.classList.add('center'); break;
+                        case 4: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
+                        case 5: cell.innerHTML = this.parseValue('discovery', device.discovery); cell.classList.add('center'); break;
+                        case 6: cell.innerHTML = this.parseValue('cloud', device.cloud); cell.classList.add('center'); break;
                     }
                 }
 
@@ -253,7 +252,7 @@ class Custom
                 else
                     delete data.options;
 
-                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: this.device.name, data: data});
+                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.device.name, data: data});
 
             }.bind(this));
 
