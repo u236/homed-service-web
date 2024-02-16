@@ -26,8 +26,9 @@ class Custom
 
                 this.status.devices.forEach(device =>
                 {
-                    this.controller.socket.subscribe('expose/custom/' + device.id);
-                    this.controller.socket.subscribe('fd/custom/' + device.id);
+                    var item = this.status.names && device.name ? device.name : device.id;
+                    this.controller.socket.subscribe('expose/custom/' + item);
+                    this.controller.socket.subscribe('fd/custom/' + item);
                 });
 
                 break;
@@ -53,10 +54,10 @@ class Custom
 
             case 'device':
 
-                var device = this.status.devices.find(item => item.id == list[2]);
+                var device = this.status.devices ? this.status.devices.find(item => this.status.names ? item.name == list[2] : item.id == list[2]) : undefined;
                 var row = document.querySelector('tr[data-device="' + list[2] + '"]');
 
-                if (this.controller.page == 'custom' && row)
+                if (this.controller.page == 'custom' && device && row)
                 {
                     row.classList.remove('online', 'offline', 'inactive');
 
@@ -80,7 +81,7 @@ class Custom
 
             case 'fd':
 
-                if (this.device && this.device.id == list[2])
+                if (this.device && (this.status.names ? this.device.name == list[2] : this.device.id == list[2]))
                     Object.keys(message).forEach(item => { updateExpose('common', item, message[item]); });
 
                 break;
@@ -145,7 +146,7 @@ class Custom
                     device.name = device.id;
 
                 row.addEventListener('click', function() { this.device = device; this.showDeviceInfo(); }.bind(this));
-                row.dataset.device = device.id;
+                row.dataset.device = this.status.names ? device.name : device.id;
 
                 for (var i = 0; i < 7; i++)
                 {
@@ -163,7 +164,7 @@ class Custom
                     }
                 }
 
-                this.controller.socket.subscribe('device/custom/' + device.id);
+                this.controller.socket.subscribe('device/custom/' + (this.status.names ? device.name : device.id));
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('customSort', this.dataset.index); }) );
@@ -173,7 +174,7 @@ class Custom
 
     showDeviceInfo()
     {
-        var expose = this.device.active ? this.expose[this.device.id] : new Object();
+        var expose = this.device.active ? this.expose[this.status.names ? this.device.name : this.device.id] : new Object();
 
         this.controller.setService('custom');
         this.controller.setPage('customDevice');
@@ -283,15 +284,16 @@ class Custom
     {
         fetch('html/custom/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            var item = this.status.names ? this.device.name : this.device.id;
             var list;
 
             modal.querySelector('.data').innerHTML = html;
 
             list = modal.querySelector('.list');
-            list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/custom/' + this.device.id + '</pre>';
-            list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/custom/' + this.device.id + '</pre>';
-            list.innerHTML += '<label>From device:</label><pre>{prefix}/fd/custom/' + this.device.id + '</pre>';
-            list.innerHTML += '<label>To device:</label><pre>{prefix}/td/custom/' + this.device.id + '</pre>';
+            list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/custom/' + item + '</pre>';
+            list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/custom/' + item + '</pre>';
+            list.innerHTML += '<label>From device:</label><pre>{prefix}/fd/custom/' + item + '</pre>';
+            list.innerHTML += '<label>To device:</label><pre>{prefix}/td/custom/' + item + '</pre>';
 
             modal.querySelector('.name').innerHTML = this.device.name;
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });

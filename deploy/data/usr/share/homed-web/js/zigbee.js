@@ -114,8 +114,11 @@ class ZigBee
 
             case 'device':
 
-                var device = this.status.devices.find(item => this.status.names ? item.name == list[2] : item.ieeeAddress == list[2]);
+                var device = this.status.devices ? this.status.devices.find(item => this.status.names ? item.name == list[2] : item.ieeeAddress == list[2]) : undefined;
                 var row = document.querySelector('tr[data-device="' + list[2] + '"]');
+
+                if (!device)
+                    break;
 
                 if (message)
                     device.lastSeen = message.lastSeen;
