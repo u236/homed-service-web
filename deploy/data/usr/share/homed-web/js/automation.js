@@ -665,7 +665,7 @@ class Automation
 
                         switch (service)
                         {
-                            case 'custom': id = device.id; expose = this.controller.custom.expose[id]; break;
+                            case 'custom': id = status.names ? device.name : device.id; expose = this.controller.custom.expose[id]; break;
                             case 'zigbee': id = status.names ? device.name : device.ieeeAddress; expose = this.controller.zigbee.expose[id]; break;
                         }
 
@@ -683,7 +683,7 @@ class Automation
                                     if (value == 'switch')
                                         value = 'status';
 
-                                    exposes[id + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = new Array(endpoint, value);
+                                    exposes[(device.name ?? id) + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = new Array(endpoint, value);
                                 });
                             });
                         });
