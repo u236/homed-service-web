@@ -683,7 +683,7 @@ class Automation
                                     if (value == 'switch')
                                         value = 'status';
 
-                                    exposes[device.name + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = new Array(endpoint, value);
+                                    exposes[id + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = new Array(endpoint, value);
                                 });
                             });
                         });
