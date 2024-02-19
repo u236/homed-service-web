@@ -213,7 +213,7 @@ class Custom
                 return;
             }
 
-            expose.common.items.forEach(item => { addExpose('common', item, expose.options); });
+            expose.common.items.forEach(item => { addExpose('common', item, expose.common.options); });
             this.controller.socket.publish('command/custom', {action: 'getProperties', device: this.device.id});
         });
     }
