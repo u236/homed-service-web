@@ -16,12 +16,16 @@ class Custom
         {
             case 'status':
 
+                var check = this.status.devices ? this.status.devices.map(device => device.id) : null;
+
                 this.status = message;
 
                 if (this.controller.service == 'custom')
                 {
+                    if (JSON.stringify(check) != JSON.stringify(this.status.devices.map(device => device.id)))
+                        this.showDeviceList();
+
                     document.querySelector('#serviceVersion').innerHTML = this.status.version;
-                    this.showDeviceList();
                 }
 
                 this.status.devices.forEach(device =>

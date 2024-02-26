@@ -60,11 +60,11 @@ void Controller::quit(void)
 
 void Controller::mqttConnected(void)
 {
-    logInfo << "MQTT connected";
-
     for (auto it = m_clients.begin(); it != m_clients.end(); it++)
         for (int i = 0; i < it.value().count(); i++)
             mqttSubscribe(mqttTopic(it.value().at(i)));
+
+    mqttPublishStatus();
 }
 
 void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &topic)

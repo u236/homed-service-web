@@ -23,12 +23,16 @@ class Automation
         {
             case 'status':
 
+                var check = this.status.automations ? this.status.automations.map(automation => automation.name) : null;
+
                 this.status = message;
 
                 if (this.controller.service == 'automation')
                 {
+                    if (JSON.stringify(check) != JSON.stringify(this.status.automations.map(automation => automation.name)))
+                        this.showAutomationList();
+
                     document.querySelector('#serviceVersion').innerHTML = this.status.version;
-                    this.showAutomationList();
                 }
 
                 break;
