@@ -45,37 +45,54 @@ function exposeList(expose, options)
 
         case 'thermostatProgram':
 
-            if (options.thermostatProgram.moes)
-            {
-                var types = ['weekday', 'saturday', 'sunday'];
-                var option = options.targetTemperature ?? {};
+            var option = options.targetTemperature ?? {};
 
-                if (isNaN(option.min) || isNaN(option.max))
+            if (isNaN(option.min) || isNaN(option.max))
+                break;
+
+            switch (options.thermostatProgram)
+            {
+                case 'daily':
+
+                    var types = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+                    for (var i = 0; i < 28; i++)
+                    {
+                        var item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
+                        list.push(item + 'Time');
+                        list.push(item + 'Temperature');
+                        options[item + 'Temperature'] = option;
+                    }
+
                     break;
 
-                for (var i = 0; i < 12; i++)
-                {
-                    var item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
-                    list.push(item + 'Time');
-                    list.push(item + 'Temperature');
-                    options[item + 'Temperature'] = option;
-                }
-            }
-            else
-            {
-                var types = ['weekday', 'holiday'];
-                var option = options.targetTemperature ?? {};
+                case 'moes':
 
-                if (isNaN(option.min) || isNaN(option.max))
+                    var types = ['weekday', 'saturday', 'sunday'];
+
+                    for (var i = 0; i < 12; i++)
+                    {
+                        var item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
+                        list.push(item + 'Time');
+                        list.push(item + 'Temperature');
+                        options[item + 'Temperature'] = option;
+                    }
+
                     break;
 
-                for (var i = 0; i < 12; i++)
-                {
-                    var item = types[parseInt(i / 6)] + 'P' + parseInt(i % 6 + 1);
-                    list.push(item + 'Time');
-                    list.push(item + 'Temperature');
-                    options[item + 'Temperature'] = option;
-                }
+                default:
+
+                    var types = ['weekday', 'holiday'];
+
+                    for (var i = 0; i < 12; i++)
+                    {
+                        var item = types[parseInt(i / 6)] + 'P' + parseInt(i % 6 + 1);
+                        list.push(item + 'Time');
+                        list.push(item + 'Temperature');
+                        options[item + 'Temperature'] = option;
+                    }
+
+                    break;
             }
 
             break;
@@ -209,7 +226,7 @@ function addExpose(endpoint, expose, options = {}, endpoints = undefined)
 
                     default:
 
-                        if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
+                        if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
                         {
                             controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
                             controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
@@ -277,7 +294,7 @@ function updateExpose(endpoint, name, value)
         return;
     }
 
-    if (name.startsWith('holiday') || name.startsWith('saturday') || name.startsWith('sunday') || name.startsWith('weekday'))
+    if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
     {
         var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
         var cell = document.querySelector('.deviceInfo .exposes tr[data-name="' + item + '"] td.value');
