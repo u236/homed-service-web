@@ -12,9 +12,11 @@ function exposeTitle(name, suffix)
         case 'pm10':   title[0] = 'PM10'; break;
         case 'pm25':   title[0] = 'PM2.5'; break;
         case 'voc':    title[0] = 'VOC'; break;
-        case 'switch': title[0] = 'Status'; break;
         default:       title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
+
+    if (name == 'switch')
+        title[0] = 'Status';
 
     if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].includes(title[1]))
         title[1] = title[1].toUpperCase();
