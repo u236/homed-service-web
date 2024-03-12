@@ -190,7 +190,7 @@ class Controller
         {
             case 'automation': this.automation.status = new Object(); break;
             case 'custom': this.custom.status = new Object(); break;
-            case 'zigbee': this.zigbee.status = new Object(); break;
+            case 'zigbee': this.zigbee.devices = new Object(); break;
         }
 
         this.setPage(name);
@@ -218,6 +218,55 @@ class Controller
 
         setTimeout(function() { toast.removeChild(item); }, 200);
         item.classList.add('fade-out');
+    }
+}
+
+class Device // TODO: info setter/getter?
+{
+    endpoints = new Object();
+
+    constructor(service, id)
+    {
+        this.service = service;
+        this.id = id;
+    }
+
+    endpoint(endpoint)
+    {
+        if (!this.endpoints[endpoint])
+            this.endpoints[endpoint] = new Object;
+
+        return this.endpoints[endpoint];
+    }
+
+    exposes(endpoint)
+    {
+        return this.endpoint(endpoint).exposes ?? new Object();
+    }
+
+    items(endpoint)
+    {
+        return this.exposes(endpoint).items ?? new Array();
+    }
+
+    options(endpoint)
+    {
+        return this.exposes(endpoint).options ?? new Object();
+    }
+
+    properties(endpoint)
+    {
+        return this.endpoint(endpoint).properties ?? new Object();
+    }
+
+    setExposes(endpoint, expose)
+    {
+        this.endpoint(endpoint).exposes = expose;
+    }
+
+    setProperties(endpoint, properties)
+    {
+        this.endpoint(endpoint).properties = properties;
     }
 }
 
@@ -366,11 +415,13 @@ function timeInterval(interval)
     }
 }
 
-function sendData(endpoint, data)
+function sendData(device, endpoint, data) // TODO: rename
 {
-    switch (controller.service)
+    switch (device.service)
     {
-        case 'custom': controller.socket.publish('td/custom/' + controller.custom.device.id, data); break;
-        case 'zigbee': controller.socket.publish('td/zigbee/' + controller.zigbee.device.ieeeAddress + (isNaN(endpoint) ? '' : '/' + endpoint), data); break;
+        case 'zigbee':
+            var item = controller.zigbee.names ? device.info.name : device.info.ieeeAddress;
+            controller.socket.publish('td/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
+            break;
     }
 }

@@ -2,9 +2,7 @@ class ZigBee
 {
     logicalType = ['coordinator', 'router', 'end device'];
     content = document.querySelector('.content .container');
-
-    status = new Object();
-    expose = new Object();
+    devices = new Object();
 
     constructor(controller)
     {
@@ -12,33 +10,22 @@ class ZigBee
         this.controller = controller;
     }
 
+    findDevice(item)
+    {
+        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
+    }
+
     updateLastSeen()
     {
-        if (!this.status.devices)
-            return;
-
-        this.status.devices.forEach(device =>
+        Object.keys(this.devices).forEach(ieeeAddress =>
         {
-            var interval = timeInterval(Date.now() / 1000 - device.lastSeen);
+            var interval = timeInterval(Date.now() / 1000 - this.devices[ieeeAddress].info.lastSeen);
+            var row = document.querySelector('tr[data-device="' + ieeeAddress + '"]');
 
-            switch (this.controller.page)
-            {
-                case 'zigbee':
+            if (!row)
+                return;
 
-                    var row = document.querySelector('tr[data-device="' + (this.status.names ? device.name : device.ieeeAddress) + '"]');
-
-                    if (row)
-                        row.querySelector('.lastSeen').innerHTML = interval;
-
-                    break;
-
-                case 'zigbeeDevice':
-
-                    if (this.device.ieeeAddress == device.ieeeAddress)
-                        document.querySelector('.lastSeen').innerHTML = interval;
-
-                    break;
-            }
+            row.querySelector('.lastSeen').innerHTML = interval;
         });
     }
 
@@ -48,25 +35,47 @@ class ZigBee
         {
             case 'status':
 
-                var check = this.status.devices ? this.status.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false})) : null;
+                var check = false;
 
-                this.status = message;
+                this.names = message.names;
+                this.version = message.version;
+                this.permitJoin = message.permitJoin;
+
+                message.devices.forEach(device =>
+                {
+                    if (device.removed) //TODO: check this
+                        return;
+
+                    if (!device.name)
+                        device.name = device.ieeeAddress;
+
+                    if (!this.devices[device.ieeeAddress])
+                    {
+                        this.devices[device.ieeeAddress] = new Device('zigbee', device.ieeeAddress);
+                        this.controller.socket.subscribe('expose/zigbee/' + (this.names ? device.name : device.ieeeAddress));
+                        check = true;
+                    }
+
+                    this.devices[device.ieeeAddress].info = device;
+                });
+
+                Object.keys(this.devices).forEach(ieeeAddress =>
+                {
+                    if (message.devices.filter(device => device.ieeeAddress == ieeeAddress).length)
+                        return;
+
+                    delete this.devices[ieeeAddress];
+                    check = true;
+                });
 
                 if (this.controller.service == 'zigbee')
                 {
-                    if (JSON.stringify(check) != JSON.stringify(this.status.devices.map(device => new Object({[device.ieeeAddress]: device.removed ?? false}))))
+                    if (check)
                         this.showDeviceList();
 
-                    document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.status.permitJoin ? 'warning' : 'shade');
-                    document.querySelector('#serviceVersion').innerHTML = this.status.version;
+                    document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
+                    document.querySelector('#serviceVersion').innerHTML = this.version;
                 }
-
-                this.status.devices.forEach(device =>
-                {
-                    var item = this.status.names && device.name ? device.name : device.ieeeAddress;
-                    this.controller.socket.subscribe('expose/zigbee/' + item);
-                    this.controller.socket.subscribe('fd/zigbee/' + item);
-                });
 
                 break;
 
@@ -114,49 +123,76 @@ class ZigBee
 
             case 'device':
 
-                var device = this.status.devices ? this.status.devices.find(item => this.status.names ? item.name == list[2] : item.ieeeAddress == list[2]) : undefined;
-                var row = document.querySelector('tr[data-device="' + list[2] + '"]');
+                var device = this.findDevice(list[2]);
 
-                if (!device)
-                    break;
-
-                if (message)
-                    device.lastSeen = message.lastSeen;
-
-                if (this.controller.page == 'zigbee' && row)
+                if (device && message)
                 {
-                    row.classList.remove('online', 'offline', 'inactive');
+                    var row = document.querySelector('tr[data-device="' + device.info.ieeeAddress + '"]');
 
-                    if (device.active)
+                    device.info.lastSeen = message.lastSeen;
+
+                    if (this.controller.page == 'zigbee' && row)
                     {
-                        row.classList.add(message.status);
-                        row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
-                    }
-                    else
-                    {
-                        row.classList.add('inactive');
-                        row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
+                        row.classList.remove('online', 'offline', 'inactive');
+
+                        if (device.info.active)
+                        {
+                            row.classList.add(message.status);
+                            row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
+                        }
+                        else
+                        {
+                            row.classList.add('inactive');
+                            row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
+                        }
                     }
                 }
 
                 break;
 
             case 'expose':
-                this.expose[list[2]] = message;
+
+                var device = this.findDevice(list[2]);
+
+                if (device && message)
+                {
+                    var item = this.names ? device.info.name : device.info.ieeeAddress;
+
+                    if (!message.common)
+                        message.common = {items: new Array()};
+
+                    message.common.items.push('linkQuality');
+
+                    Object.keys(message).forEach(endpoint =>
+                    {
+                        this.controller.socket.subscribe('fd/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item));
+                        device.setExposes(endpoint, message[endpoint]);
+                    });
+
+                    this.controller.socket.publish('command/zigbee', {action: 'getProperties', device: item});
+                }
+
                 break;
 
             case 'fd':
 
-                var row = document.querySelector('tr[data-device="' + list[2] + '"]');
+                var device = this.findDevice(list[2]);
 
-                if (this.controller.page == 'zigbee' && row)
+                if (device)
                 {
-                    row.querySelector('.linkQuality').innerHTML = message.linkQuality;
-                    break;
-                }
+                    var endpoint = list[3] ?? 'common';
+                    var row = document.querySelector('tr[data-device="' + device.info.ieeeAddress + '"]');
 
-                if (this.device && (this.status.names ? this.device.name == list[2] : this.device.ieeeAddress == list[2]))
-                    Object.keys(message).forEach(item => { updateExpose(list[3], item, message[item]); });
+                    device.setProperties(endpoint, message);
+
+                    if (this.controller.page == 'zigbee' && row)
+                    {
+                        row.querySelector('.linkQuality').innerHTML = message.linkQuality;
+                        break;
+                    }
+
+                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+                }
 
                 break;
         }
@@ -188,8 +224,7 @@ class ZigBee
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML = null;
-
+        menu.innerHTML  = null;
         menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
         menu.innerHTML += '<span id="permitJoin"><i class="icon-false"></i> Permit Join</span>';
@@ -198,11 +233,8 @@ class ZigBee
         menu.querySelector('#map').addEventListener('click', function() { this.showDeviceMap(); }.bind(this));
         menu.querySelector('#permitJoin').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'}); }.bind(this));
 
-        if (!this.status)
-            return;
-
-        document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.status.permitJoin ? 'warning' : 'shade');
-        document.querySelector('#serviceVersion').innerHTML = this.status.version;
+        document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
+        document.querySelector('#serviceVersion').innerHTML = this.version ?? 'unknown';
     }
 
     showDeviceList()
@@ -210,9 +242,9 @@ class ZigBee
         this.controller.setService('zigbee');
         this.controller.setPage('zigbee');
 
-        if (!this.status.devices || !this.status.devices.length)
+        if (!Object.keys(this.devices).length)
         {
-            this.controller.clearPage('zigbee', 'zigbee service devices list is empty');
+            this.content.innerHTML = '<div class="emptyList">zigbee devices list is empty</div>';
             return;
         }
 
@@ -223,39 +255,34 @@ class ZigBee
             this.content.innerHTML = html;
             table = this.content.querySelector('.deviceList table');
 
-            this.status.devices.forEach(device =>
+            Object.keys(this.devices).forEach(ieeeAddress =>
             {
-                if (!device.hasOwnProperty('removed'))
+                var device = this.devices[ieeeAddress];
+                var row = table.querySelector('tbody').insertRow(device.info.logicalType ? -1 : 0);
+
+                row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
+                row.dataset.device = device.info.ieeeAddress;
+
+                for (var i = 0; i < 10; i++)
                 {
-                    var row = table.querySelector('tbody').insertRow(device.logicalType ? -1 : 0);
+                    var cell = row.insertCell();
 
-                    if (!device.name)
-                        device.name = device.ieeeAddress;
-
-                    row.addEventListener('click', function() { this.device = device; this.showDeviceInfo(); }.bind(this));
-                    row.dataset.device = this.status.names ? device.name : device.ieeeAddress;
-
-                    for (var i = 0; i < 10; i++)
+                    switch (i)
                     {
-                        var cell = row.insertCell();
-
-                        switch (i)
-                        {
-                            case 0: cell.innerHTML = device.name; break;
-                            case 1: cell.innerHTML = device.manufacturerName ?? empty; break;
-                            case 2: cell.innerHTML = device.modelName ?? empty; break;
-                            case 3: cell.innerHTML = this.parseValue('powerSource', device.powerSource); cell.classList.add('center'); break;
-                            case 4: cell.innerHTML = this.parseValue('supported', device.supported); cell.classList.add('center'); break;
-                            case 5: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
-                            case 6: cell.innerHTML = this.parseValue('discovery', device.discovery); cell.classList.add('center'); break;
-                            case 7: cell.innerHTML = this.parseValue('cloud', device.cloud); cell.classList.add('center'); break;
-                            case 8: cell.innerHTML = device.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
-                            case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
-                        }
+                        case 0: cell.innerHTML = device.info.name; break;
+                        case 1: cell.innerHTML = device.info.manufacturerName ?? empty; break;
+                        case 2: cell.innerHTML = device.info.modelName ?? empty; break;
+                        case 3: cell.innerHTML = this.parseValue('powerSource', device.info.powerSource); cell.classList.add('center'); break;
+                        case 4: cell.innerHTML = this.parseValue('supported', device.info.supported); cell.classList.add('center'); break;
+                        case 5: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
+                        case 6: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center'); break;
+                        case 7: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
+                        case 8: cell.innerHTML = device.info.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
+                        case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                     }
-
-                    this.controller.socket.subscribe('device/zigbee/' + (this.status.names ? device.name : device.ieeeAddress));
                 }
+
+                this.controller.socket.subscribe('device/zigbee/' + (this.names ? device.info.name : device.info.ieeeAddress));
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('zigbeeSort', this.dataset.index); }) );
@@ -268,7 +295,7 @@ class ZigBee
         this.controller.setService('zigbee');
         this.controller.setPage('zigbeeMap');
 
-        if (!this.status.devices)
+        if (!Object.keys(this.devices).length)
         {
             this.controller.clearPage('zigbee', 'zigbee service devices list is empty');
             return;
@@ -289,22 +316,24 @@ class ZigBee
             width = parseInt(map.style('width'));
             height = parseInt(map.style('height'));
 
-            this.status.devices.forEach(device =>
+            Object.keys(this.devices).forEach(ieeeAddress =>  // TODO: refactor coordinator features
             {
-                if (device.hasOwnProperty('removed') || (device.hasOwnProperty('active') && !device.active))
+                var device = this.devices[ieeeAddress];
+
+                if (device.info.hasOwnProperty('removed') || (device.info.hasOwnProperty('active') && !device.info.active))
                     return;
 
-                data.nodes.push({id: device.networkAddress, name: device.name, type: device.logicalType});
+                data.nodes.push({id: device.info.networkAddress, name: device.info.name, type: device.info.logicalType});
 
-                if (!device.hasOwnProperty('neighbors'))
+                if (!device.info.neighbors)
                     return;
 
-                device.neighbors.forEach(neighbor =>
+                device.info.neighbors.forEach(neighbor =>
                 {
-                    if (!this.status.devices.find(item => { return item.networkAddress == neighbor.networkAddress && !item.removed && (!item.hasOwnProperty('active') || item.active); }))
+                    if (!Object.values(this.devices).find(item => item.info.networkAddress == neighbor.networkAddress && !item.info.removed && (!item.info.hasOwnProperty('active') || item.info.active)))
                         return;
 
-                    data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.networkAddress});
+                    data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.info.networkAddress});
                 });
             });
 
@@ -323,7 +352,7 @@ class ZigBee
             });
 
             node.select('path').on('mouseleave', function() { text.attr('display', 'block'); link.attr('display', 'block').classed('highlight', false); });
-            node.select('text').on('click', function(d) { this.device = this.status.devices.filter(i => i.networkAddress == d.id)[0]; this.showDeviceInfo(); }.bind(this));
+            //node.select('text').on('click', function(d) { this.device = this.status.devices.filter(i => i.networkAddress == d.id)[0]; this.showDeviceInfo(); }.bind(this));
 
             drag.on('start', function(d) { if (!d3.event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; });
             drag.on('drag', function(d) { d.fx = d3.event.x; d.fy = d3.event.y; });
@@ -345,41 +374,42 @@ class ZigBee
         });
     }
 
-    showDeviceInfo()
+    showDeviceInfo(device)
     {
-        var expose = this.device.active ? this.expose[this.status.names ? this.device.name : this.device.ieeeAddress] : undefined;
-
         this.controller.setService('zigbee');
         this.controller.setPage('zigbeeDevice');
 
-        if (!this.device)
-        {
-            this.controller.clearPage('zigbee', 'zigbee device data is empty');
-            return;
-        }
-
         fetch('html/zigbee/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            this.content.innerHTML = html;
-            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
-            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(); }.bind(this));
-            this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(); }.bind(this));
-            this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(); }.bind(this));
-            this.content.querySelector('.topics').addEventListener('click', function() { this.showDeviceTopics(); }.bind(this));
+            var table;
 
-            for (var key in this.device)
+            this.content.innerHTML = html;
+            table = this.content.querySelector('table.exposes');
+
+            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
+            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
+            this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(device); }.bind(this));
+            this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(device); }.bind(this));
+            this.content.querySelector('.topics').addEventListener('click', function() { this.showDeviceTopics(device); }.bind(this));
+
+            Object.keys(device.info).forEach(key =>
             {
                 var cell = document.querySelector('.' + key);
                 var row = cell ? cell.closest('tr') : undefined;
 
                 if (cell)
-                    cell.innerHTML = this.parseValue(key, this.device[key]);
+                    cell.innerHTML = this.parseValue(key, device.info[key]);
 
-                if (row)
-                    row.style.display = 'table-row';
-            }
+                if (!row)
+                    return;
 
-            if (!this.device.logicalType)
+                if (key == 'lastSeen')
+                    row.dataset.device = device.info.ieeeAddress;
+
+                row.style.display = 'table-row';
+            });
+
+            if (!device.info.logicalType)
             {
                 this.content.querySelector('.edit').style.display = 'none';
                 this.content.querySelector('.remove').style.display = 'none';
@@ -387,38 +417,27 @@ class ZigBee
                 return;
             }
 
-            if (!expose)
+            if (!device.info.active)
             {
                 this.content.querySelector('.exposes').style.display = 'none';
                 return;
             }
 
-            this.endpoints = {fd: new Array(), td: new Array()}; // TODO: refactor this
-
-            Object.keys(expose).forEach(endpoint =>
-            {
-                if (!isNaN(endpoint))
-                    this.controller.socket.subscribe('fd/zigbee/' + (this.status.names ? this.device.name : this.device.ieeeAddress) + '/' + endpoint);
-
-                expose[endpoint].items.forEach(item => { addExpose(endpoint, item, expose[endpoint].options, this.endpoints); });
-            });
-
-            addExpose('common', 'linkQuality');
-            this.controller.socket.publish('command/zigbee', {action: 'getProperties', device: this.device.ieeeAddress});
+            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
         });
     }
 
-    showDeviceEdit()
+    showDeviceEdit(device)
     {
         fetch('html/zigbee/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('input[name="name"]').value = this.device.name;
-            modal.querySelector('input[name="active"]').checked = this.device.active;
-            modal.querySelector('input[name="discovery"]').checked = this.device.discovery;
-            modal.querySelector('input[name="cloud"]').checked = this.device.cloud;
-            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.device.name}, ...formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('input[name="name"]').value = device.info.name;
+            modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
+            modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
+            modal.querySelector('input[name="active"]').checked = device.info.active;
+            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.names ? device.info.name : device.info.ieeeAddress}, ...formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             modal.removeEventListener('keypress', handleSave);
@@ -429,104 +448,106 @@ class ZigBee
         });
     }
 
-    showDeviceRemove()
+    showDeviceRemove(device)
     {
         fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            var item = this.names ? device.info.name : device.info.ieeeAddress;
+
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('.graceful').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: this.device.name}); this.controller.clearPage('zigbee'); }.bind(this));
-            modal.querySelector('.force').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: this.device.name, force: true}); this.controller.clearPage('zigbee'); }.bind(this));
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.graceful').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: item}); this.controller.clearPage('zigbee'); }.bind(this));
+            modal.querySelector('.force').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: item, force: true}); this.controller.clearPage('zigbee'); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
         });
     }
 
-    showDeviceData()
+    showDeviceData(device)
     {
         fetch('html/zigbee/deviceData.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('.json').innerHTML = JSON.stringify(this.device, null, 2);
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.json').innerHTML = JSON.stringify(device.info, null, 2);
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
         });
     }
 
-    showDeviceDebug()
+    showDeviceDebug(device)
     {
-        fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.device.name;
+        // fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
+        // {
+        //     modal.querySelector('.data').innerHTML = html;
+        //     modal.querySelector('.name').innerHTML = this.device.name;
 
-            this.device.endpoints.forEach(item =>
-            {
-                var option = document.createElement('option');
-                option.innerHTML = item.endpointId;
-                modal.querySelector('select[name="endpointId"]').append(option);
-            });
+        //     this.device.endpoints.forEach(item =>
+        //     {
+        //         var option = document.createElement('option');
+        //         option.innerHTML = item.endpointId;
+        //         modal.querySelector('select[name="endpointId"]').append(option);
+        //     });
 
-            modal.querySelector('.send').addEventListener('click', function()
-            {
-                var data = formData(modal.querySelector('form'));
-                var request = new Object();
+        //     modal.querySelector('.send').addEventListener('click', function()
+        //     {
+        //         var data = formData(modal.querySelector('form'));
+        //         var request = new Object();
 
-                request.action = data.clusterSpecific ? 'clusterRequest' : 'globalRequest';
-                request.device = this.device.ieeeAddress;
-                request.endpointId = parseInt(data.endpointId);
-                request.clusterId = parseInt(data.clusterId) || 0;
-                request.commandId = parseInt(data.commandId) || 0;
-                request.payload = data.payload;
+        //         request.action = data.clusterSpecific ? 'clusterRequest' : 'globalRequest';
+        //         request.device = this.device.ieeeAddress;
+        //         request.endpointId = parseInt(data.endpointId);
+        //         request.clusterId = parseInt(data.clusterId) || 0;
+        //         request.commandId = parseInt(data.commandId) || 0;
+        //         request.payload = data.payload;
 
-                if (data.manufacturerCode && !isNaN(data.manufacturerCode))
-                    request.manufacturerCode = parseInt(data.manufacturerCode);
+        //         if (data.manufacturerCode && !isNaN(data.manufacturerCode))
+        //             request.manufacturerCode = parseInt(data.manufacturerCode);
 
-                modal.querySelector('.debugStatus').innerHTML = 'status: pending';
-                this.controller.socket.publish('command/zigbee', request);
+        //         modal.querySelector('.debugStatus').innerHTML = 'status: pending';
+        //         this.controller.socket.publish('command/zigbee', request);
 
-            }.bind(this));
+        //     }.bind(this));
 
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSend);
-            modal.addEventListener('keypress', handleSend);
-            showModal(true);
-        });
+        //     modal.removeEventListener('keypress', handleSend);
+        //     modal.addEventListener('keypress', handleSend);
+        //     showModal(true);
+        // });
     }
 
-    showDeviceTopics() // TODO: refactor and add prefix?
+    showDeviceTopics(device) // TODO: refactor and add prefix?
     {
-        fetch('html/zigbee/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            var item = this.status.names ? this.device.name : this.device.ieeeAddress;
-            var list;
+        // fetch('html/zigbee/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
+        // {
+        //     var item = this.status.names ? this.device.name : this.device.ieeeAddress;
+        //     var list;
 
-            modal.querySelector('.data').innerHTML = html;
+        //     modal.querySelector('.data').innerHTML = html;
 
-            list = modal.querySelector('.list');
-            list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/zigbee/' + item + '</pre>';
-            list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/zigbee/' + item + '</pre>';
+        //     list = modal.querySelector('.list');
+        //     list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/zigbee/' + item + '</pre>';
+        //     list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/zigbee/' + item + '</pre>';
 
-            if (this.endpoints.fd.length)
-            {
-                list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
-                this.endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += '{prefix}/fd/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
-            }
+        //     if (this.endpoints.fd.length)
+        //     {
+        //         list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
+        //         this.endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += '{prefix}/fd/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
+        //     }
 
-            if (this.endpoints.td.length)
-            {
-                list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
-                this.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
-            }
+        //     if (this.endpoints.td.length)
+        //     {
+        //         list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
+        //         this.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
+        //     }
 
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+        //     modal.querySelector('.name').innerHTML = this.device.name;
+        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            showModal(true);
-        });
+        //     showModal(true);
+        // });
     }
 }
