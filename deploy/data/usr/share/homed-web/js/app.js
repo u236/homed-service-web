@@ -189,7 +189,7 @@ class Controller
         switch (this.service)
         {
             case 'automation': this.automation.status = new Object(); break;
-            case 'custom': this.custom.status = new Object(); break;
+            case 'custom': this.custom.devices = new Object(); break;
             case 'zigbee': this.zigbee.devices = new Object(); break;
         }
 
@@ -419,6 +419,11 @@ function sendData(device, endpoint, data) // TODO: rename
 {
     switch (device.service)
     {
+        case 'custom':
+            var item = controller.custom.names ? device.info.name : device.info.id;
+            controller.socket.publish('td/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
+            break;
+
         case 'zigbee':
             var item = controller.zigbee.names ? device.info.name : device.info.ieeeAddress;
             controller.socket.publish('td/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);

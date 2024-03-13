@@ -1,13 +1,16 @@
 class Custom
 {
     content = document.querySelector('.content .container');
-
-    status = new Object();
-    expose = new Object();
+    devices = new Object();
 
     constructor(controller)
     {
         this.controller = controller;
+    }
+
+    findDevice(item)
+    {
+        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
     }
 
     parseMessage(list, message)
@@ -16,24 +19,42 @@ class Custom
         {
             case 'status':
 
-                var check = this.status.devices ? this.status.devices.map(device => device.id) : null;
+                var check = false;
 
-                this.status = message;
+                this.names = message.names;
+                this.version = message.version;
+
+                message.devices.forEach(device =>
+                {
+                    if (!device.name)
+                        device.name = device.id;
+
+                    if (!this.devices[device.id])
+                    {
+                        this.devices[device.id] = new Device('custom', device.id);
+                        this.controller.socket.subscribe('expose/custom/' + (this.names ? device.name : device.id));
+                        check = true;
+                    }
+
+                    this.devices[device.id].info = device;
+                });
+
+                Object.keys(this.devices).forEach(id =>
+                {
+                    if (message.devices.filter(device => device.id == id).length)
+                        return;
+
+                    delete this.devices[id];
+                    check = true;
+                });
 
                 if (this.controller.service == 'custom')
                 {
-                    if (JSON.stringify(check) != JSON.stringify(this.status.devices.map(device => device.id)))
+                    if (check)
                         this.showDeviceList();
 
-                    document.querySelector('#serviceVersion').innerHTML = this.status.version;
+                    document.querySelector('#serviceVersion').innerHTML = this.version;
                 }
-
-                this.status.devices.forEach(device =>
-                {
-                    var item = this.status.names && device.name ? device.name : device.id;
-                    this.controller.socket.subscribe('expose/custom/' + item);
-                    this.controller.socket.subscribe('fd/custom/' + item);
-                });
 
                 break;
 
@@ -58,35 +79,62 @@ class Custom
 
             case 'device':
 
-                var device = this.status.devices ? this.status.devices.find(item => this.status.names ? item.name == list[2] : item.id == list[2]) : undefined;
-                var row = document.querySelector('tr[data-device="' + list[2] + '"]');
+                var device = this.findDevice(list[2]);
 
-                if (this.controller.page == 'custom' && device && row)
+                if (device && message)
                 {
-                    row.classList.remove('online', 'offline', 'inactive');
+                    var row = document.querySelector('tr[data-device="' + device.info.id + '"]');
 
-                    if (device.active)
+                    device.info.lastSeen = message.lastSeen;
+
+                    if (this.controller.page == 'custom' && row)
                     {
-                        row.classList.add(message.status);
-                        row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
-                    }
-                    else
-                    {
-                        row.classList.add('inactive');
-                        row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
+                        row.classList.remove('online', 'offline', 'inactive');
+
+                        if (device.info.active)
+                        {
+                            row.classList.add(message.status);
+                            row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
+                        }
+                        else
+                        {
+                            row.classList.add('inactive');
+                            row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
+                        }
                     }
                 }
 
                 break;
 
             case 'expose':
-                this.expose[list[2]] = message;
+
+                var device = this.findDevice(list[2]);
+
+                if (device && message)
+                {
+                    var item = this.names ? device.info.name : device.info.id;
+
+                    Object.keys(message).forEach(endpoint =>
+                    {
+                        this.controller.socket.subscribe('fd/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item));
+                        device.setExposes(endpoint, message[endpoint]);
+                    });
+
+                    this.controller.socket.publish('command/custom', {action: 'getProperties', device: item});
+                }
+
                 break;
 
             case 'fd':
 
-                if (this.device && (this.status.names ? this.device.name == list[2] : this.device.id == list[2]))
-                    Object.keys(message).forEach(item => { updateExpose('common', item, message[item]); });
+                var device = this.findDevice(list[2]);
+
+                if (device)
+                {
+                    var endpoint = list[3] ?? 'common';
+                    device.setProperties(endpoint, message);
+                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+                }
 
                 break;
         }
@@ -110,18 +158,17 @@ class Custom
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML = null;
-
+        menu.innerHTML  = null;
         menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(true); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
         if (!this.status)
             return;
 
-        document.querySelector('#serviceVersion').innerHTML = this.status.version;
+        document.querySelector('#serviceVersion').innerHTML = this.version ?? 'unknown';
     }
 
     showDeviceList()
@@ -129,7 +176,7 @@ class Custom
         this.controller.setService('custom');
         this.controller.setPage('custom');
 
-        if (!this.status.devices || !this.status.devices.length)
+        if (!Object.keys(this.devices).length)
         {
             this.content.innerHTML = '<div class="emptyList">custom devices list is empty</div>';
             return;
@@ -142,15 +189,13 @@ class Custom
             this.content.innerHTML = html;
             table = this.content.querySelector('.deviceList table');
 
-            this.status.devices.forEach(device =>
+            Object.keys(this.devices).forEach(id =>
             {
+                var device = this.devices[id];
                 var row = table.querySelector('tbody').insertRow();
 
-                if (!device.name)
-                    device.name = device.id;
-
-                row.addEventListener('click', function() { this.device = device; this.showDeviceInfo(); }.bind(this));
-                row.dataset.device = this.status.names ? device.name : device.id;
+                row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
+                row.dataset.device = device.info.id;
 
                 for (var i = 0; i < 7; i++)
                 {
@@ -158,17 +203,18 @@ class Custom
 
                     switch (i)
                     {
-                        case 0: cell.innerHTML = device.name; break;
-                        case 1: cell.innerHTML = device.id; break;
-                        case 2: cell.innerHTML = '<span class="value">' + device.exposes.length + '</span>'; cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = this.parseValue('real', device.real); cell.classList.add('center'); break;
-                        case 4: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
-                        case 5: cell.innerHTML = this.parseValue('discovery', device.discovery); cell.classList.add('center'); break;
-                        case 6: cell.innerHTML = this.parseValue('cloud', device.cloud); cell.classList.add('center'); break;
+                        case 0: cell.innerHTML = device.info.name; break;
+                        case 1: cell.innerHTML = device.info.id; break;
+                        case 2: cell.innerHTML = '<span class="value">' + device.info.exposes.length + '</span>'; cell.classList.add('center'); break;
+                        case 3: cell.innerHTML = this.parseValue('real', device.info.real); cell.classList.add('center'); break;
+                        case 4: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
+                        case 5: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center'); break;
+                        case 6: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
                     }
+
                 }
 
-                this.controller.socket.subscribe('device/custom/' + (this.status.names ? device.name : device.id));
+                this.controller.socket.subscribe('device/custom/' + (this.names ? device.info.name : device.info.id));
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('customSort', this.dataset.index); }) );
@@ -176,72 +222,72 @@ class Custom
         });
     }
 
-    showDeviceInfo()
+    showDeviceInfo(device)
     {
-        var expose = this.device.active ? this.expose[this.status.names ? this.device.name : this.device.id] : new Object();
-
         this.controller.setService('custom');
         this.controller.setPage('customDevice');
 
-        if (!this.device)
-        {
-            this.controller.clearPage('custom', 'custom device data is empty');
-            return;
-        }
-
         fetch('html/custom/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            this.content.innerHTML = html;
-            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
-            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(); }.bind(this));
-            this.content.querySelector('.topics').addEventListener('click', function() { this.showDeviceTopics(); }.bind(this));
+            var table;
 
-            for (var key in this.device)
+            this.content.innerHTML = html;
+            table = this.content.querySelector('table.exposes');
+
+            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
+            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
+            this.content.querySelector('.topics').addEventListener('click', function() { this.showDeviceTopics(device); }.bind(this));
+
+            Object.keys(device.info).forEach(key =>
             {
                 var cell = document.querySelector('.' + key);
                 var row = cell ? cell.closest('tr') : undefined;
 
                 if (key == 'exposes')
-                    continue;
+                    return;
 
                 if (cell)
-                    cell.innerHTML = this.parseValue(key, this.device[key]);
+                    cell.innerHTML = this.parseValue(key, device.info[key]);
 
-                if (row)
-                    row.style.display = 'table-row';
-            }
+                if (!row)
+                    return;
 
-            if (!expose.common)
+                row.style.display = 'table-row';
+            });
+
+            if (!device.info.active)
             {
                 this.content.querySelector('.exposes').style.display = 'none';
                 return;
             }
 
-            expose.common.items.forEach(item => { addExpose('common', item, expose.common.options); });
-            this.controller.socket.publish('command/custom', {action: 'getProperties', device: this.device.id});
+            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
         });
     }
 
-    showDeviceEdit(add = false)
+    showDeviceEdit(device = undefined)
     {
-        if (add)
+        var add = false;
+
+        if (!device)
         {
             var random = Math.random().toString(36).substring(2, 7);
-            this.device = {name: 'Device ' + random, id: 'device_' + random, active: true, exposes: ['switch']};
+            device = {info: {name: 'Device ' + random, id: 'device_' + random, active: true, exposes: ['switch']}};
+            add = true;
         }
 
         fetch('html/custom/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('input[name="name"]').value = this.device.name;
-            modal.querySelector('input[name="id"]').value = this.device.id;
-            modal.querySelector('input[name="real"]').checked = this.device.real;
-            modal.querySelector('input[name="exposes"]').value = this.device.exposes.join(', ');
-            modal.querySelector('textarea[name="options"]').value = this.device.options ? JSON.stringify(this.device.options) : '';
-            modal.querySelector('input[name="active"]').checked = this.device.active;
-            modal.querySelector('input[name="discovery"]').checked = this.device.discovery;
-            modal.querySelector('input[name="cloud"]').checked = this.device.cloud;
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('input[name="name"]').value = device.info.name;
+            modal.querySelector('input[name="id"]').value = device.info.id;
+            modal.querySelector('input[name="real"]').checked = device.info.real;
+            modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
+            modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
+            modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
+            modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
+            modal.querySelector('input[name="active"]').checked = device.info.active;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -257,7 +303,7 @@ class Custom
                 else
                     delete data.options;
 
-                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.device.name, data: data});
+                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: data});
 
             }.bind(this));
 
@@ -271,38 +317,38 @@ class Custom
         });
     }
 
-    showDeviceRemove()
+    showDeviceRemove(device)
     {
         fetch('html/custom/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/custom', {action: 'removeDevice', device: this.device.name}); this.controller.clearPage('custom'); }.bind(this));
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/custom', {action: 'removeDevice', device: this.names ? device.info.name : device.info.id}); this.controller.clearPage('custom'); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
         });
     }
 
-    showDeviceTopics() // TODO: refactor and add prefix?
+    showDeviceTopics(device) // TODO: refactor and add prefix?
     {
-        fetch('html/custom/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            var item = this.status.names ? this.device.name : this.device.id;
-            var list;
+        // fetch('html/custom/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
+        // {
+        //     var item = this.status.names ? this.device.name : this.device.id;
+        //     var list;
 
-            modal.querySelector('.data').innerHTML = html;
+        //     modal.querySelector('.data').innerHTML = html;
 
-            list = modal.querySelector('.list');
-            list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/custom/' + item + '</pre>';
-            list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/custom/' + item + '</pre>';
-            list.innerHTML += '<label>From device:</label><pre>{prefix}/fd/custom/' + item + '</pre>';
-            list.innerHTML += '<label>To device:</label><pre>{prefix}/td/custom/' + item + '</pre>';
+        //     list = modal.querySelector('.list');
+        //     list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/custom/' + item + '</pre>';
+        //     list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/custom/' + item + '</pre>';
+        //     list.innerHTML += '<label>From device:</label><pre>{prefix}/fd/custom/' + item + '</pre>';
+        //     list.innerHTML += '<label>To device:</label><pre>{prefix}/td/custom/' + item + '</pre>';
 
-            modal.querySelector('.name').innerHTML = this.device.name;
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+        //     modal.querySelector('.name').innerHTML = this.device.name;
+        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            showModal(true);
-        });
+        //     showModal(true);
+        // });
     }
 }
