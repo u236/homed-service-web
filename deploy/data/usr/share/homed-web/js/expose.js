@@ -1,8 +1,8 @@
 var colorPicker;
 
-function exposeTitle(name, suffix)
+function exposeTitle(name, endpoint)
 {
-    var title = name.replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
+    var title = name.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
     switch (title[0])
     {
@@ -18,22 +18,22 @@ function exposeTitle(name, suffix)
     if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].includes(title[1]))
         title[1] = title[1].toUpperCase();
 
-    return title.join(' ') + (suffix != 'common' ? ' ' + suffix.toLowerCase() : '');
+    return title.join(' ') + (endpoint != 'common' ? ' ' + endpoint.toLowerCase() : '');
 }
 
 function exposeList(expose, options)
 {
-    var name = expose.split('_');
     var list = new Array();
+    var part = expose.split('_');
 
-    switch (name[0])
+    switch (part[0])
     {
         case 'cover':
             list = ['cover', 'position'];
             break;
 
         case 'light':
-            list = ['status'].concat(options[name[1] ? 'light_' + name[1] : 'light'] ?? new Array());
+            list = ['status'].concat(options[part[1] ? 'light_' + part[1] : 'light'] ?? new Array());
             break;
 
         case 'switch':
@@ -106,13 +106,13 @@ function exposeList(expose, options)
             break;
     }
 
-    if (name[1])
-        list.forEach((item, index) => { list[index] = item + '_' + name[1]; });
+    if (part[1])
+        list.forEach((item, index) => { list[index] = item + '_' + part[1]; });
 
     return list;
 }
 
-function addExposeRow(table, device, endpoint, name, options)
+function addExposeItem(table, device, endpoint, name, options)
 {
     var row = table.insertRow();
     var titleCell = row.insertCell();
@@ -120,7 +120,7 @@ function addExposeRow(table, device, endpoint, name, options)
     var controlCell = row.insertCell();
 
     row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
-    titleCell.innerHTML = exposeTitle(name.replace('_', ' '), options.name ?? endpoint);
+    titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
     valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
     valueCell.classList.add('value');
     controlCell.classList.add('control');
@@ -242,7 +242,7 @@ function addExpose(table, device, endpoint, expose)
 
     list.forEach(name =>
     {
-        addExposeRow(table, device, endpoint, name, options); // TODO: dashboard items
+        addExposeItem(table, device, endpoint, name, options); // TODO: dashboard items
     });
 
     Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
@@ -250,69 +250,71 @@ function addExpose(table, device, endpoint, expose)
 
 function updateExpose(device, endpoint, name, value)
 {
-    var row = document.querySelector('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + name + '"]');
-    var cell = row ? row.querySelector('td.value') : undefined;
-
-    if (cell)
+    document.querySelectorAll('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + name + '"]').forEach(row =>
     {
-        switch (name.split('_')[0])
+        var cell = row ? row.querySelector('td.value') : undefined;
+
+        if (cell)
         {
-            case 'color':
-                colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
-                cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
-                break;
+            switch (name.split('_')[0])
+            {
+                case 'color':
+                    colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
+                    cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+                    break;
 
-            case 'status':
-                cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
-                break;
+                case 'status':
+                    cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
+                    break;
 
-            default:
+                default:
 
-                if (cell.dataset.type == 'number') // TODO: check it
-                {
-                    var input = row.querySelector('td.control input');
+                    if (cell.dataset.type == 'number') // TODO: check it
+                    {
+                        var input = row.querySelector('td.control input');
 
-                    if (name == 'level')
-                        value = Math.round(value * 100 / 255);
+                        if (name == 'level')
+                            value = Math.round(value * 100 / 255);
 
-                    if (cell.dataset.value == value)
-                        break;
+                        if (cell.dataset.value == value)
+                            break;
 
-                    if (input)
-                        input.value = value;
-                }
+                        if (input)
+                            input.value = value;
+                    }
 
-                cell.innerHTML = typeof value == 'number' ? value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
-                break;
+                    cell.innerHTML = typeof value == 'number' ? value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
+                    break;
+            }
+
+            cell.dataset.value = value;
+            return;
         }
 
-        cell.dataset.value = value;
-        return;
-    }
-
-    if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
-    {
-        var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
-
-        row = document.querySelector('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + item + '"]');
-        cell = row ? row.querySelector('td.value') : undefined;
-
-        if (cell && (name.endsWith('Hour') || name.endsWith('Minute')))
+        if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
         {
-            var input = row.querySelector('td.control input[type="time"]');
-            var time;
+            var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
 
-            if (!input)
-                return;
+            row = document.querySelector('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + item + '"]');
+            cell = row ? row.querySelector('td.value') : undefined;
 
-            if (value < 10)
-                value = '0' + value;
+            if (cell && (name.endsWith('Hour') || name.endsWith('Minute')))
+            {
+                var input = row.querySelector('td.control input[type="time"]');
+                var time;
 
-            time = input.value.split(':');
-            input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
+                if (!input)
+                    return;
 
-            cell.dataset.value = input.value;
-            cell.innerHTML = input.value;
+                if (value < 10)
+                    value = '0' + value;
+
+                time = input.value.split(':');
+                input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
+
+                cell.dataset.value = input.value;
+                cell.innerHTML = input.value;
+            }
         }
-    }
+    });
 }

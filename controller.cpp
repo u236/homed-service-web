@@ -3,18 +3,20 @@
 #include "controller.h"
 #include "logger.h"
 
-Controller::Controller(const QString &configFile) : HOMEd(configFile), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
+Controller::Controller(const QString &configFile) : HOMEd(configFile), m_dashboards(new DashboardList(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
 {
     logInfo << "Starting version" << SERVICE_VERSION;
     logInfo << "Configuration file is" << getConfig()->fileName();
 
+    m_path = getConfig()->value("server/path", "/usr/share/homed-web").toString();
     m_retained = {"device", "expose", "service", "status"};
 
+    connect(m_dashboards, &DashboardList::statusUpdated, this, &Controller::statusUpdated);
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
     connect(m_webSocket, &QWebSocketServer::newConnection, this, &Controller::clientConnected);
 
+    m_dashboards->init();
     m_tcpServer->listen(QHostAddress::Any, static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
-    m_path = getConfig()->value("server/path", "/usr/share/homed-web").toString();
 }
 
 void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
@@ -64,6 +66,7 @@ void Controller::mqttConnected(void)
         for (int i = 0; i < it.value().count(); i++)
             mqttSubscribe(mqttTopic(it.value().at(i)));
 
+    m_dashboards->store();
     mqttPublishStatus();
 }
 
@@ -89,6 +92,11 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
         return;
 
     mqttUnsubscribe(topic.name());
+}
+
+void Controller::statusUpdated(const QJsonObject &json)
+{
+    mqttPublish(mqttTopic("status/web"), json, true);
 }
 
 void Controller::socketConnected(void)

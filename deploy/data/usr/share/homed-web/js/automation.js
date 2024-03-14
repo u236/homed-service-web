@@ -349,15 +349,6 @@ class Automation
 
                         break;
 
-                    case 3:
-
-                        if (list.length < 2 || !index)
-                            break;
-
-                        cell.innerHTML = '&uarr;';
-                        cell.classList.add('move');
-                        cell.addEventListener('click', function() { list[index - 1] =  list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
-                        break;
 
                     case 2:
 
@@ -366,9 +357,18 @@ class Automation
 
                         cell.innerHTML = '&darr;';
                         cell.classList.add('move');
-                        cell.addEventListener('click', function() { list[index + 1] =  list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
+                        cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
                         break;
 
+                    case 3:
+
+                        if (list.length < 2 || !index)
+                            break;
+
+                        cell.innerHTML = '&uarr;';
+                        cell.classList.add('move');
+                        cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
+                        break;
 
                     case 4:
                         cell.innerHTML = '<i class="icon-trash"></i>';

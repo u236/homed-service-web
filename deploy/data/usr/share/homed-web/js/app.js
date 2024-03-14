@@ -57,9 +57,10 @@ class Socket
 
 class Controller
 {
-    services = {'automation': 'offline', 'custom': 'offline', 'zigbee': 'offline'};
+    services = {'dashboard': 'offline', 'automation': 'offline', 'custom': 'offline', 'zigbee': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
 
+    dashboard = new Dashboard(this);
     automation = new Automation(this);
     custom = new Custom(this);
     zigbee = new ZigBee(this);
@@ -67,7 +68,11 @@ class Controller
     onopen()
     {
         console.log('socket successfully connected');
-        Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + service); });
+        Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + (service != 'dashboard' ? service : 'web')); });
+
+        // TODO: refactor this
+        this.custom.devices = new Object();
+        this.zigbee.devices = new Object();
     }
 
     onclose()
@@ -78,21 +83,23 @@ class Controller
     onmessage(topic, message)
     {
         var list = topic.split('/');
-        var service = list[1];
+        var service = list[1] != 'web' ? list[1] : 'dashboard';
 
         if (list[0] == 'service')
         {
             if (message.status != 'online')
             {
+                var item = list[1];
+
                 if (this.service == service)
                     this.clearPage(this.page, service + ' service is offline');
 
-                this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == service; }).forEach(topic => { this.socket.unsubscribe(topic); });
+                this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == item; }).forEach(topic => { this.socket.unsubscribe(topic); });
             }
             else
             {
-                this.socket.subscribe('status/' + service);
-                this.socket.subscribe('event/' + service);
+                this.socket.subscribe('status/' + list[1]);
+                this.socket.subscribe('event/' + list[1]);
             }
 
             this.services[service] = message.status;
@@ -102,6 +109,7 @@ class Controller
 
         switch (service)
         {
+            case 'dashboard': this.dashboard.parseMessage(list, message); break;
             case 'automation': this.automation.parseMessage(list, message); break;
             case 'custom': this.custom.parseMessage(list, message); break;
             case 'zigbee': this.zigbee.parseMessage(list, message); break;
@@ -116,7 +124,7 @@ class Controller
 
         Object.keys(this.services).forEach(service =>
         {
-            var item = document.createElement('span');
+            var element = document.createElement('span');
 
             if (this.services[service] != 'online')
                 return;
@@ -125,12 +133,12 @@ class Controller
                 services.append('|');
 
             if (this.service == service)
-                item.classList.add('highlight');
+                element.classList.add('highlight');
 
-            item.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
-            item.innerHTML = service;
+            element.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
+            element.innerHTML = service;
 
-            services.appendChild(item);
+            services.appendChild(element);
         });
     }
 
@@ -143,6 +151,7 @@ class Controller
 
         switch (service)
         {
+            case 'dashboard': this.dashboard.showMenu(); break;
             case 'automation': this.automation.showMenu(); break;
             case 'custom': this.custom.showMenu(); break;
             case 'zigbee': this.zigbee.showMenu(); break;
@@ -168,9 +177,10 @@ class Controller
             case 'automationInfo': this.automation.showAutomationInfo(); break;
             case 'custom':         this.custom.showDeviceList(); break;
             case 'customDevice':   this.custom.showDeviceInfo(); break;
+            case 'zigbee':         this.zigbee.showDeviceList(); break;
             case 'zigbeeMap':      this.zigbee.showDeviceMap(); break;
             case 'zigbeeDevice':   this.zigbee.showDeviceInfo(); break;
-            default:               this.zigbee.showDeviceList(); break;
+            default:               this.dashboard.showDashboard(); break;
         }
     }
 
@@ -188,6 +198,7 @@ class Controller
 
         switch (this.service)
         {
+            case 'dashboard': this.dashboard.status = new Object(); break;
             case 'automation': this.automation.status = new Object(); break;
             case 'custom': this.custom.devices = new Object(); break;
             case 'zigbee': this.zigbee.devices = new Object(); break;
@@ -199,14 +210,14 @@ class Controller
 
     showToast(message, style = 'success')
     {
-        var item = document.createElement('div');
+        var element = document.createElement('div');
 
-        item.addEventListener('click', function() { this.clearToast(item); }.bind(this));
-        item.innerHTML = '<div class="message">' + message + '</div>';
-        item.classList.add('item', 'fade-in', style);
+        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
+        element.innerHTML = '<div class="message">' + message + '</div>';
+        element.classList.add('item', 'fade-in', style);
 
-        setTimeout(function() { this.clearToast(item); }.bind(this), 5000);
-        document.querySelector('#toast').appendChild(item);
+        setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
+        document.querySelector('#toast').appendChild(element);
     }
 
     clearToast(item)
@@ -283,7 +294,7 @@ window.onload = function()
     document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
     document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; localStorage.setItem('theme', theme); location.reload(); });
 
-    controller.showPage(localStorage.getItem('page') ?? 'zigbee');
+    controller.showPage(localStorage.getItem('page') ?? 'dashboard');
 };
 
 document.onkeydown = function(event)
@@ -327,7 +338,7 @@ function addDropdown(dropdown, options, callback, separator = 0)
 
     if (options.length > 10)
     {
-        search =  document.createElement('input');
+        search = document.createElement('input');
         search.type = 'text';
         search.placeholder = 'Type to search'
         list.append(search);
@@ -336,15 +347,15 @@ function addDropdown(dropdown, options, callback, separator = 0)
 
     options.forEach((option, index) =>
     {
-        var item = document.createElement('div');
-        item.addEventListener('click', function() { callback(option); });
-        item.classList.add('item');
-        item.innerHTML = option;
+        var element = document.createElement('div');
+        element.addEventListener('click', function() { callback(option); });
+        element.innerHTML = option;
+        element.classList.add('item');
 
         if (separator && index == separator)
             list.append(document.createElement('hr'));
 
-        list.append(item);
+        list.append(element);
     });
 
     dropdown.addEventListener('click', function(event)

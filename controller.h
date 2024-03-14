@@ -6,6 +6,7 @@
 #include <QTcpServer>
 #include <QWebSocket>
 #include <QWebSocketServer>
+#include "dashboard.h"
 #include "homed.h"
 
 class Controller : public HOMEd
@@ -18,6 +19,7 @@ public:
 
 private:
 
+    DashboardList *m_dashboards;
     QTcpServer *m_tcpServer;
     QWebSocketServer *m_webSocket;
 
@@ -39,6 +41,8 @@ private slots:
 
     void mqttConnected(void) override;
     void mqttReceived(const QByteArray &message, const QMqttTopicName &topic) override;
+
+    void statusUpdated(const QJsonObject &json);
 
     void socketConnected(void);
     void socketDisconnected(void);
