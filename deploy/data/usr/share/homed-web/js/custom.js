@@ -53,7 +53,7 @@ class Custom
                     if (check)
                         this.showDeviceList();
 
-                    document.querySelector('#serviceVersion').innerHTML = this.version;
+                    document.querySelector('#serviceVersion').innerHTML = 'Custom ' + this.version;
                 }
 
                 break;
@@ -120,7 +120,7 @@ class Custom
                         device.setExposes(endpoint, message[endpoint]);
                     });
 
-                    this.controller.socket.publish('command/custom', {action: 'getProperties', device: item});
+                    this.controller.socket.publish('command/custom', {action: 'getProperties', device: item, service: 'web'});
                 }
 
                 break;
@@ -165,10 +165,7 @@ class Custom
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
-        if (!this.status)
-            return;
-
-        document.querySelector('#serviceVersion').innerHTML = this.version ?? 'unknown';
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Custom ' + this.version : 'unknown';
     }
 
     showDeviceList()
@@ -236,7 +233,6 @@ class Custom
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
-            this.content.querySelector('.topics').addEventListener('click', function() { this.showDeviceTopics(device); }.bind(this));
 
             Object.keys(device.info).forEach(key =>
             {
@@ -328,27 +324,5 @@ class Custom
 
             showModal(true);
         });
-    }
-
-    showDeviceTopics(device) // TODO: refactor and add prefix?
-    {
-        // fetch('html/custom/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
-        // {
-        //     var item = this.status.names ? this.device.name : this.device.id;
-        //     var list;
-
-        //     modal.querySelector('.data').innerHTML = html;
-
-        //     list = modal.querySelector('.list');
-        //     list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/custom/' + item + '</pre>';
-        //     list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/custom/' + item + '</pre>';
-        //     list.innerHTML += '<label>From device:</label><pre>{prefix}/fd/custom/' + item + '</pre>';
-        //     list.innerHTML += '<label>To device:</label><pre>{prefix}/td/custom/' + item + '</pre>';
-
-        //     modal.querySelector('.name').innerHTML = this.device.name;
-        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-        //     showModal(true);
-        // });
     }
 }

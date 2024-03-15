@@ -49,7 +49,7 @@ class Automation
                     if (JSON.stringify(check) != JSON.stringify(this.status.automations.map(automation => automation.name)))
                         this.showAutomationList();
 
-                    document.querySelector('#serviceVersion').innerHTML = this.status.version;
+                    document.querySelector('#serviceVersion').innerHTML = 'Automation ' + this.status.version;
                 }
 
                 break;
@@ -412,7 +412,7 @@ class Automation
         if (!this.status)
             return;
 
-        document.querySelector('#serviceVersion').innerHTML = this.status.version;
+        document.querySelector('#serviceVersion').innerHTML = 'Automation ' + this.status.version;
     }
 
     showAutomationList()

@@ -45,7 +45,10 @@ class Dashboard
                 this.status = message;
 
                 if (this.controller.service == 'dashboard')
+                {
                     this.showDashboard();
+                    document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+                }
 
                 break;
         }
@@ -97,8 +100,14 @@ class Dashboard
     showMenu()
     {
         var menu = document.querySelector('.menu');
+
         menu.innerHTML = '<span id="add"><i class="icon-plus"></i> Add</span>';
         menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
+
+        if (!this.status)
+            return;
+
+        document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
     }
 
     showDashboard()
@@ -174,7 +183,7 @@ class Dashboard
 
                         if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
                         {
-                            setTimeout(wait.bind(this, resolve), 1000);
+                            setTimeout(wait.bind(this, resolve), 100);
                             return;
                         }
 
@@ -441,7 +450,7 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name + ' &rarr; ' + item.name;
             modal.querySelector('input[name="name"]').value = item.name;
-            modal.querySelector('.expose').innerHTML = item.add ? '<i>Select expose here</i>' : this.itemExpose(item);
+            modal.querySelector('.expose').innerHTML = item.add ? '<i>Select expose there &rarr;</i>' : this.itemExpose(item);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(exposes), function(key)
             {

@@ -43,7 +43,7 @@ class ZigBee
 
                 message.devices.forEach(device =>
                 {
-                    if (device.removed) //TODO: check this
+                    if (device.removed)
                         return;
 
                     if (!device.name)
@@ -74,7 +74,7 @@ class ZigBee
                         this.showDeviceList();
 
                     document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
-                    document.querySelector('#serviceVersion').innerHTML = this.version;
+                    document.querySelector('#serviceVersion').innerHTML = 'ZigBee ' + this.version;
                 }
 
                 break;
@@ -169,7 +169,7 @@ class ZigBee
                         device.setExposes(endpoint, message[endpoint]);
                     });
 
-                    this.controller.socket.publish('command/zigbee', {action: 'getProperties', device: item});
+                    this.controller.socket.publish('command/zigbee', {action: 'getProperties', device: item, service: 'web', test: list});
                 }
 
                 break;
@@ -234,7 +234,8 @@ class ZigBee
         menu.querySelector('#permitJoin').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'}); }.bind(this));
 
         document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
-        document.querySelector('#serviceVersion').innerHTML = this.version ?? 'unknown';
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : 'unknown';
+
     }
 
     showDeviceList()
@@ -316,7 +317,7 @@ class ZigBee
             width = parseInt(map.style('width'));
             height = parseInt(map.style('height'));
 
-            Object.keys(this.devices).forEach(ieeeAddress =>  // TODO: refactor coordinator features
+            Object.keys(this.devices).forEach(ieeeAddress =>
             {
                 var device = this.devices[ieeeAddress];
 
@@ -390,7 +391,6 @@ class ZigBee
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
             this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(device); }.bind(this));
             this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(device); }.bind(this));
-            this.content.querySelector('.topics').addEventListener('click', function() { this.showDeviceTopics(device); }.bind(this));
 
             Object.keys(device.info).forEach(key =>
             {
@@ -479,75 +479,43 @@ class ZigBee
 
     showDeviceDebug(device)
     {
-        // fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
-        // {
-        //     modal.querySelector('.data').innerHTML = html;
-        //     modal.querySelector('.name').innerHTML = this.device.name;
+        fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = device.info.name;
 
-        //     this.device.endpoints.forEach(item =>
-        //     {
-        //         var option = document.createElement('option');
-        //         option.innerHTML = item.endpointId;
-        //         modal.querySelector('select[name="endpointId"]').append(option);
-        //     });
+            device.info.endpoints.forEach(item =>
+            {
+                var option = document.createElement('option');
+                option.innerHTML = item.endpointId;
+                modal.querySelector('select[name="endpointId"]').append(option);
+            });
 
-        //     modal.querySelector('.send').addEventListener('click', function()
-        //     {
-        //         var data = formData(modal.querySelector('form'));
-        //         var request = new Object();
+            modal.querySelector('.send').addEventListener('click', function()
+            {
+                var form = formData(modal.querySelector('form'));
+                var request = new Object();
 
-        //         request.action = data.clusterSpecific ? 'clusterRequest' : 'globalRequest';
-        //         request.device = this.device.ieeeAddress;
-        //         request.endpointId = parseInt(data.endpointId);
-        //         request.clusterId = parseInt(data.clusterId) || 0;
-        //         request.commandId = parseInt(data.commandId) || 0;
-        //         request.payload = data.payload;
+                request.action = form.clusterSpecific ? 'clusterRequest' : 'globalRequest';
+                request.device = device.info.ieeeAddress;
+                request.endpointId = parseInt(form.endpointId);
+                request.clusterId = parseInt(form.clusterId) || 0;
+                request.commandId = parseInt(form.commandId) || 0;
+                request.payload = form.payload;
 
-        //         if (data.manufacturerCode && !isNaN(data.manufacturerCode))
-        //             request.manufacturerCode = parseInt(data.manufacturerCode);
+                if (form.manufacturerCode && !isNaN(form.manufacturerCode))
+                    request.manufacturerCode = parseInt(form.manufacturerCode);
 
-        //         modal.querySelector('.debugStatus').innerHTML = 'status: pending';
-        //         this.controller.socket.publish('command/zigbee', request);
+                modal.querySelector('.debugStatus').innerHTML = 'status: pending';
+                this.controller.socket.publish('command/zigbee', request);
 
-        //     }.bind(this));
+            }.bind(this));
 
-        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-        //     modal.removeEventListener('keypress', handleSend);
-        //     modal.addEventListener('keypress', handleSend);
-        //     showModal(true);
-        // });
-    }
-
-    showDeviceTopics(device) // TODO: refactor and add prefix?
-    {
-        // fetch('html/zigbee/deviceTopics.html?' + Date.now()).then(response => response.text()).then(html =>
-        // {
-        //     var item = this.status.names ? this.device.name : this.device.ieeeAddress;
-        //     var list;
-
-        //     modal.querySelector('.data').innerHTML = html;
-
-        //     list = modal.querySelector('.list');
-        //     list.innerHTML += '<label>Availability:</label><pre>{prefix}/device/zigbee/' + item + '</pre>';
-        //     list.innerHTML += '<label>Exposes:</label><pre>{prefix}/expose/zigbee/' + item + '</pre>';
-
-        //     if (this.endpoints.fd.length)
-        //     {
-        //         list.innerHTML += '<label>From device:</label><pre class="fd"></pre>';
-        //         this.endpoints.fd.forEach(endpoint => { list.querySelector('pre.fd').innerHTML += '{prefix}/fd/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
-        //     }
-
-        //     if (this.endpoints.td.length)
-        //     {
-        //         list.innerHTML += '<label>To device:</label><pre class="td"></pre>';
-        //         this.endpoints.td.forEach(endpoint => { list.querySelector('pre.td').innerHTML += '{prefix}/td/zigbee/' + item + (isNaN(endpoint) ? '' : '/' + endpoint) + '\n'; });
-        //     }
-
-        //     modal.querySelector('.name').innerHTML = this.device.name;
-        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-        //     showModal(true);
-        // });
+            modal.removeEventListener('keypress', handleSend);
+            modal.addEventListener('keypress', handleSend);
+            showModal(true);
+        });
     }
 }

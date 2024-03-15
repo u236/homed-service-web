@@ -71,8 +71,6 @@ class Controller
     {
         console.log('socket successfully connected');
         Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + (service != 'dashboard' ? service : 'web')); });
-
-        // TODO: refactor this
         this.custom.devices = new Object();
         this.zigbee.devices = new Object();
     }
@@ -234,7 +232,7 @@ class Controller
     }
 }
 
-class Device // TODO: info setter/getter?
+class Device
 {
     endpoints = new Object();
 
@@ -428,7 +426,7 @@ function timeInterval(interval)
     }
 }
 
-function sendData(device, endpoint, data) // TODO: rename
+function deviceCommand(device, endpoint, data)
 {
     switch (device.service)
     {

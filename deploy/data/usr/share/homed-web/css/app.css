@@ -155,12 +155,12 @@ body[theme="dark"] {
     text-transform: uppercase;
 }
 
-.homed label:hover {
-    color: var(--color-highlight);
-}
-
 .homed label.checkbox {
     cursor: pointer;
+}
+
+.homed label.checkbox:hover {
+    color: var(--color-highlight);
 }
 
 .homed form label:last-child {
@@ -207,15 +207,39 @@ body[theme="dark"] {
 }
 
 .homed th:first-child, .homed td:first-child {
-    padding-left: 5px !important;
+    padding-left: 5px;
 }
 
 .homed th:last-child, .homed td:last-child {
-    padding-right: 5px !important;
+    padding-right: 5px;
 }
 
 .homed tr:first-child td {
     border: none;
+}
+
+.homed td.edit {
+    cursor: pointer;
+}
+
+.homed td.move {
+    cursor: pointer;
+    width: 14px;
+    color: var(--color-shade);
+}
+
+.homed td.remove {
+    cursor: pointer;
+    width: 14px;
+    text-align: right;
+}
+
+.homed td.edit:hover, .homed td.move:hover {
+    color: var(--color-warning);
+}
+
+.homed td.remove:hover {
+    color: var(--color-error);
 }
 
 .homed .fade-in {
@@ -420,6 +444,80 @@ body[theme="dark"] {
     color: var(--color-warning);
 }
 
+.homed .dashboardMenu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 5px 8px 0;
+}
+
+.homed .dashboardList {
+    padding: 8px 0;
+}
+
+.homed .dashboardList span {
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.homed .dashboardList span:hover {
+    color: var(--color-highlight);
+}
+
+.homed .dashboardData {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.homed .dashboardData .column {
+    flex-grow: 1;
+    padding: 0 5px;
+    min-width: 300px;
+}
+
+.homed .dashboardBlock {
+    margin-bottom: 10px;
+    padding: 10px 5px;
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    background-color: var(--background-shade);
+}
+
+.homed .dashboardBlock .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 5px 10px 5px;
+}
+
+.homed .dashboardBlock tr {
+    cursor: pointer;
+}
+
+.homed .dashboardBlock tr:hover {
+    color: var(--color-highlight);
+}
+
+.homed .dashboardBlock td {
+    border-top: 1px solid var(--border-main);
+}
+
+.homed .dashboardBlock td:last-child {
+    width: 1%;
+    text-align: right;
+}
+
+.homed .dashboardBlock .edit {
+    cursor: pointer;
+    color: var(--color-shade);
+}
+
+.homed .dashboardBlock .edit:hover {
+    color: var(--color-warning);
+}
+
 .homed .automationInfo {
     padding-bottom: 150px;
 }
@@ -430,34 +528,6 @@ body[theme="dark"] {
 
 .homed .automationInfo td:first-child {
     width: 100px;
-}
-
-.homed .automationInfo td.edit {
-    cursor: pointer;
-}
-
-.homed .automationInfo td.edit:hover {
-    color: var(--color-warning);
-}
-
-.homed .automationInfo td.move {
-    cursor: pointer;
-    width: 14px;
-    color: var(--color-shade);
-}
-
-.homed .automationInfo td.move:hover {
-    color: var(--color-warning);
-}
-
-.homed .automationInfo td.remove {
-    cursor: pointer;
-    width: 14px;
-    text-align: right;
-}
-
-.homed .automationInfo td.remove:hover {
-    color: var(--color-error);
 }
 
 .homed .automationInfo .title {
@@ -619,6 +689,42 @@ body[theme="dark"] {
     margin-bottom: 10px;
 }
 
+.homed #modal table {
+    margin-top: 5px;
+    margin-bottom: 20px;
+    border-top: 1px solid var(--border-shade);
+    border-bottom: 1px solid var(--border-shade);
+}
+
+.homed #modal table.select {
+    margin-bottom: 10px;
+}
+
+.homed #modal table td:first-child {
+    padding-right: 20px;
+    padding-left: 0;
+}
+
+.homed #modal table.exposes td:first-child {
+    width: 1%;
+    padding-right: 20px;
+    padding-left: 0;
+}
+
+.homed #modal table td:last-child {
+    padding-right: 0;
+    text-align: right;
+}
+
+.homed #modal table td.control {
+    font-family: 'Roboto Mono';
+    font-size: 13px;
+}
+
+.homed #modal table td.dropdown {
+    width: 14px;
+}
+
 .homed #modal .data {
     max-width: min(600px, calc(100% - 40px));
     margin: 25px auto;
@@ -638,10 +744,15 @@ body[theme="dark"] {
     margin-bottom: 10px;
 }
 
+.homed #modal .note {
+    font-size: 0.8125rem;
+    color: var(--color-shade);
+}
+
 .homed #modal .dropdown .list {
     overflow: auto;
     min-width: min(400px, calc(100vw - 60px));
-    max-height: calc(100vh - 140px);
+    max-height: calc(100vh - 300px);
 }
 
 .homed #modal .dropdown .list input[type="text"] {

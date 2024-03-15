@@ -21,10 +21,12 @@ function exposeTitle(name, endpoint)
     return title.join(' ') + (endpoint != 'common' ? ' ' + endpoint.toLowerCase() : '');
 }
 
-function exposeList(expose, options)
+function addExpose(table, device, endpoint, expose)
 {
-    var list = new Array();
+    var options = device.options(endpoint);
+    var properties = device.properties(endpoint);
     var part = expose.split('_');
+    var list = new Array();
 
     switch (part[0])
     {
@@ -106,143 +108,127 @@ function exposeList(expose, options)
             break;
     }
 
-    if (part[1])
-        list.forEach((item, index) => { list[index] = item + '_' + part[1]; });
-
-    return list;
-}
-
-function addExposeItem(table, device, endpoint, name, options)
-{
-    var row = table.insertRow();
-    var titleCell = row.insertCell();
-    var valueCell = row.insertCell();
-    var controlCell = row.insertCell();
-
-    row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
-    titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
-    valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
-    valueCell.classList.add('value');
-    controlCell.classList.add('control');
-
-    switch (name.split('_')[0])
-    {
-        case 'color':
-            colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-            colorPicker.on('input:end', function() { sendData(device, endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
-            break;
-
-        case 'colorTemperature':
-            var option = options.colorTemperature ?? {};
-            valueCell.dataset.type = 'number';
-            controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
-            controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
-            controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(device, endpoint, {[name]: parseInt(this.value)}); });
-            break;
-
-        case 'cover':
-            controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-            controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(device, endpoint, {[name]: item.innerHTML}); }) );
-            break;
-
-        case 'level':
-        case 'position':
-            valueCell.dataset.type = 'number';
-            valueCell.dataset.unit = '%';
-            controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + name + '">';
-            controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
-            controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(device, endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
-            break;
-
-        case 'status':
-            controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-            controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { sendData(device, endpoint, {[name]: item.innerHTML}); }) );
-            break;
-
-        default:
-
-            var option = options[name.split('_')[0]] ?? new Object();
-
-            switch (option.type)
-            {
-                case 'button':
-                    controlCell.innerHTML = '<span>trigger</span>';
-                    controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; sendData(device, endpoint, {[name]: true}) });
-                    break;
-
-                case 'number':
-
-                    if (isNaN(option.min) || isNaN(option.max))
-                        break;
-
-                    valueCell.dataset.type = 'number';
-
-                    if (option.unit)
-                        valueCell.dataset.unit = option.unit;
-
-                    if ((option.max - option.min) / (option.step ?? 1) <= 1000)
-                    {
-                        controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
-                        controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
-                        controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) sendData(device, endpoint, {[name]: parseFloat(this.value)}); });
-                    }
-                    else
-                    {
-                        controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
-                        controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(device, endpoint, {[name]: parseFloat(value)}); } });
-                    }
-
-                    break;
-
-                case 'select':
-
-                    var items = Array.isArray(option.enum) ? option.enum : Object.values(option.enum);
-
-                    if (!items.length)
-                        break;
-
-                    items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; sendData(device, endpoint, {[name]: item.innerHTML}); } }) );
-                    break;
-
-                case 'sensor':
-
-                    if (option.unit)
-                        valueCell.dataset.unit = option.unit;
-
-                    break;
-
-                case 'toggle':
-                    controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                    controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(device, endpoint, {[name]: value}); } }) );
-                    break;
-
-                default:
-
-                    if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
-                    {
-                        controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
-                        controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; sendData(device, endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
-                        break;
-                    }
-
-                    control = false;
-                    break;
-            }
-
-            break;
-    }
-}
-
-function addExpose(table, device, endpoint, expose)
-{
-    var options = device.options(endpoint);
-    var properties = device.properties(endpoint);
-    var list = exposeList(expose, options);
-
     list.forEach(name =>
     {
-        addExposeItem(table, device, endpoint, name, options); // TODO: dashboard items
+        var row = table.insertRow();
+        var titleCell = row.insertCell();
+        var valueCell = row.insertCell();
+        var controlCell = row.insertCell();
+
+        if (part[1])
+            name += '_' + part[1];
+
+        row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
+        titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
+        valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
+        valueCell.classList.add('value');
+        controlCell.classList.add('control');
+
+        switch (name.split('_')[0])
+        {
+            case 'color':
+                colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
+                colorPicker.on('input:end', function() { deviceCommand(device, endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                break;
+
+            case 'colorTemperature':
+                var option = options.colorTemperature ?? {};
+                valueCell.dataset.type = 'number';
+                controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
+                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseInt(this.value)}); });
+                break;
+
+            case 'cover':
+                controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
+                break;
+
+            case 'level':
+            case 'position':
+                valueCell.dataset.type = 'number';
+                valueCell.dataset.unit = '%';
+                controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + name + '">';
+                controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
+                break;
+
+            case 'status':
+                controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
+                break;
+
+            default:
+
+                var option = options[name.split('_')[0]] ?? new Object();
+
+                switch (option.type)
+                {
+                    case 'button':
+                        controlCell.innerHTML = '<span>trigger</span>';
+                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpoint, {[name]: true}) });
+                        break;
+
+                    case 'number':
+
+                        if (isNaN(option.min) || isNaN(option.max))
+                            break;
+
+                        valueCell.dataset.type = 'number';
+
+                        if (option.unit)
+                            valueCell.dataset.unit = option.unit;
+
+                        if ((option.max - option.min) / (option.step ?? 1) <= 1000)
+                        {
+                            controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
+                            controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
+                            controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseFloat(this.value)}); });
+                        }
+                        else
+                        {
+                            controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
+                            controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name]: parseFloat(value)}); } });
+                        }
+
+                        break;
+
+                    case 'select':
+
+                        var items = Array.isArray(option.enum) ? option.enum : Object.values(option.enum);
+
+                        if (!items.length)
+                            break;
+
+                        items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
+                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); } }) );
+                        break;
+
+                    case 'sensor':
+
+                        if (option.unit)
+                            valueCell.dataset.unit = option.unit;
+
+                        break;
+
+                    case 'toggle':
+                        controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
+                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { var value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name]: value}); } }) );
+                        break;
+
+                    default:
+
+                        if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
+                        {
+                            controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
+                            controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
+                        }
+
+                        break;
+                }
+
+                break;
+        }
     });
 
     Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
@@ -269,7 +255,7 @@ function updateExpose(device, endpoint, name, value)
 
                 default:
 
-                    if (cell.dataset.type == 'number') // TODO: check it
+                    if (cell.dataset.type == 'number')
                     {
                         var input = row.querySelector('td.control input');
 
@@ -283,7 +269,7 @@ function updateExpose(device, endpoint, name, value)
                             input.value = value;
                     }
 
-                    cell.innerHTML = typeof value == 'number' ? value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
+                    cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
                     break;
             }
 
