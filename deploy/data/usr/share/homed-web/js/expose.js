@@ -21,10 +21,8 @@ function exposeTitle(name, endpoint)
     return title.join(' ') + (endpoint != 'common' ? ' ' + endpoint.toLowerCase() : '');
 }
 
-function addExpose(table, device, endpoint, expose)
+function exposeList(expose, options)
 {
-    var options = device.options(endpoint);
-    var properties = device.properties(endpoint);
     var part = expose.split('_');
     var list = new Array();
 
@@ -108,15 +106,24 @@ function addExpose(table, device, endpoint, expose)
             break;
     }
 
+    if (part[1])
+        list.forEach((item, index) => { list[index] = item + '_' + part[1]; });
+
+    return list;
+}
+
+function addExpose(table, device, endpoint, expose)
+{
+    var options = device.options(endpoint);
+    var properties = device.properties(endpoint);
+    var list = exposeList(expose, options);
+
     list.forEach(name =>
     {
         var row = table.insertRow();
         var titleCell = row.insertCell();
         var valueCell = row.insertCell();
         var controlCell = row.insertCell();
-
-        if (part[1])
-            name += '_' + part[1];
 
         row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
         titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
