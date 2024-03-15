@@ -11,8 +11,8 @@ DashboardList::DashboardList(QSettings *config, QObject *parent) : QObject(paren
 
 DashboardList::~DashboardList(void)
 {
-    // m_sync = true;
-    // writeDatabase();
+    m_sync = true;
+    writeDatabase();
 }
 
 void DashboardList::init(void)

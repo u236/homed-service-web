@@ -19,6 +19,8 @@ public:
     DashboardList(QSettings *config, QObject *parent);
     ~DashboardList(void);
 
+    inline void update(const QJsonArray &data) { m_data = data; }
+
     void init(void);
     void store(bool sync = false);
 

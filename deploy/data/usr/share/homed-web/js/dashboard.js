@@ -30,10 +30,8 @@ class Dashboard
 
     storeData()
     {
-        // SEND REQUEST HERE
-        this.showDashboard()
-        showModal(false);
-        ///
+        this.controller.socket.publish('command/web', {action: 'updateDashboards', data: this.status.dashboards});
+        this.controller.clearPage('dashboard');
     }
 
     parseMessage(list, message)

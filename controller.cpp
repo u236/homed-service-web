@@ -62,6 +62,8 @@ void Controller::quit(void)
 
 void Controller::mqttConnected(void)
 {
+    mqttSubscribe(mqttTopic("command/web"));
+
     for (auto it = m_clients.begin(); it != m_clients.end(); it++)
         for (int i = 0; i < it.value().count(); i++)
             mqttSubscribe(mqttTopic(it.value().at(i)));
@@ -75,6 +77,13 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
     QString subTopic = topic.name().replace(mqttTopic(), QString());
     QJsonObject json = QJsonDocument::fromJson(message).object();
     bool check = false;
+
+    if (subTopic == "command/web" && json.value("action").toString() == "updateDashboards")
+    {
+        m_dashboards->update(json.value("data").toArray());
+        m_dashboards->store(true);
+        return;
+    }
 
     if (m_retained.contains(subTopic.split('/').value(0)))
         m_messages.insert(subTopic, json);

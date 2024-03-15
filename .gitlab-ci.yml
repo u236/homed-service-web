@@ -1,5 +1,6 @@
 variables:
   NAME: homed-web
+  PACKAGE_EXTRA: mkdir -p deploy/data/opt/homed-web
   DOCKER_EXTRA: cp -r deploy/data/usr/share/homed-web deploy/docker/share
 
 include:
