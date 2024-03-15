@@ -21,7 +21,7 @@ class Automation
     {
         var list = item.endpoint.split('/');
         var devices = this.controller[list[0]].devices ?? new Object();
-        return devices[list[1]] ?? new Object();
+        return devices.hasOwnProperty(list[1]) ? devices[list[1]] : (Object.values(devices).find(device => device.info.name == list[1]) ?? new Object());
     }
 
     itemProperty(item, form = false)
