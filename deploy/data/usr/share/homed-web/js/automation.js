@@ -17,6 +17,23 @@ class Automation
         this.controller = controller;
     }
 
+    findDevice(item)
+    {
+        var list = item.endpoint.split('/');
+        var devices = this.controller[list[0]].devices ?? new Object();
+        return devices[list[1]] ?? new Object();
+    }
+
+    itemProperty(item, form = false)
+    {
+        var device = this.findDevice(item);
+
+        if (form)
+            return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
+
+        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common') + '</span>'
+    }
+
     parseMessage(list, message)
     {
         switch (list[0])
@@ -107,7 +124,7 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = '<span class="value">' + (trigger.type == 'mqtt' ? trigger.topic : trigger.endpoint) + '</span> ' + (trigger.property ? '&rarr; <span class="value">' + trigger.property + '</span> ' : '') + statement;
+                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '&rarr; <span class="value">' + trigger.property + '</span> ' : '')) + statement;
 
                     if (statement == 'updates')
                         break;
@@ -155,7 +172,7 @@ class Automation
             {
                 case 'property':
                 case 'mqtt':
-                    return '<span class="value">' + (condition.type == 'mqtt' ? condition.topic : condition.endpoint) + '</span> ' + (condition.property ? '&rarr; <span class="value">' + condition.property + '</span> ' : '') + statement + ' <span class="value">' + value + '</span>';
+                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '&rarr; <span class="value">' + condition.property + '</span> ' : '')) + statement + ' <span class="value">' + value + '</span>';
 
                 case 'state':
                     return '<span class="value">' + condition.name + '</span> ' + statement + ' <span class="value">' + value + '</span>';
@@ -184,7 +201,7 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = '<span class="value">' + action.endpoint + '</span> &rarr; <span class="value">' + action.property + '</span> &rarr; ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
+                    data = this.itemProperty(action) + ' &rarr; ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
                 }
 
                 break;
@@ -541,12 +558,12 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                this.data.name = data.name;
-                this.data.debounce = parseInt(data.debounce);
-                this.data.restart = data.restart;
-                this.data.active = data.active;
+                this.data.name = form.name;
+                this.data.debounce = parseInt(form.debounce);
+                this.data.restart = form.restart;
+                this.data.active = form.active;
 
                 this.showAutomationInfo();
 
@@ -580,7 +597,7 @@ class Automation
         switch (trigger.type)
         {
             case 'property': this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
-            case 'mqtt':     this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger', true); break;
+            case 'mqtt':     this.showMqttItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
             case 'telegram': this.showTelegramTrigger(trigger, append); break;
             case 'time':     this.showTimeTrigger(trigger, append); break;
             case 'interval': this.showIntervalTrigger(trigger, append); break;
@@ -592,7 +609,7 @@ class Automation
         switch (condition.type)
         {
             case 'property': this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition'); break;
-            case 'mqtt':     this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition', true); break;
+            case 'mqtt':     this.showMqttItem(condition, list, this.conditionStatement, append, 'condition'); break;
             case 'state':    this.showStateCondition(condition, list, append); break;
             case 'date':     this.showDateTimeCondition(condition, list, 'date', append); break;
             case 'time':     this.showDateTimeCondition(condition, list, 'time', append); break;
@@ -613,14 +630,129 @@ class Automation
         }
     }
 
-    showPropertyItem(item, list, statements, append, type, mqtt)
+    showPropertyItem(item, list, statements, append, type)
     {
+        var services = ['custom', 'modbus', 'zigbee'];
+        var properties = new Object();
+
+        services.forEach(service =>
+        {
+            var devices = this.controller[service].devices ?? new Object();
+
+            if (!Object.keys(devices))
+                return;
+
+            Object.keys(devices).forEach(id =>
+            {
+                var device = devices[id];
+
+                Object.keys(device.endpoints).forEach(endpoint =>
+                {
+                    device.items(endpoint).forEach( expose =>
+                    {
+                        exposeList(expose, device.options(endpoint)).forEach(property =>
+                        {
+                            var value = {endpoint: service + '/' + id, property: property}
+
+                            if (endpoint != 'common')
+                                value.endpoint += '/' + endpoint;
+
+                            properties[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
+                        });
+                    });
+                });
+            });
+        });
+
         fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            var data;
+
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = (mqtt ? 'mqtt ' : 'property ') + type;
-            modal.querySelector('.item').innerHTML = mqtt ? 'Topic:' : 'Endpoint:';
-            modal.querySelector('input[name="item"]').value = mqtt ? item.topic ?? '' : item.endpoint ?? '';
+            modal.querySelector('.name').innerHTML = 'property ' + type;
+            modal.querySelector('.property').innerHTML = append ? '<i>Select property there &rarr;</i>' : this.itemProperty(item, true);
+
+            addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
+            {
+                data = properties[key];
+                modal.querySelector('.property').innerHTML = this.itemProperty(data);
+                modal.querySelector('.property').classList.remove('error');
+
+            }.bind(this));
+
+            statements.forEach(statement =>
+            {
+                var option = document.createElement('option');
+
+                option.innerHTML = statement;
+                modal.querySelector('select[name="statement"]').append(option);
+
+                if (!item.hasOwnProperty(statement))
+                    return;
+
+                modal.querySelector('select[name="statement"]').value = statement;
+
+                if (statement == 'between')
+                {
+                    modal.querySelector('input[name="min"]').value = item[statement][0];
+                    modal.querySelector('input[name="max"]').value = item[statement][1];
+                }
+                else
+                    modal.querySelector('input[name="value"]').value = statement != 'updates' ? item[statement] : '';
+
+                this.valueForm(modal, statement);
+            });
+
+            modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
+            modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                var form = formData(modal.querySelector('form'));
+
+                if (data)
+                {
+                    item.endpoint = data.endpoint;
+                    item.property = data.property;
+                }
+
+                if (!item.endpoint || !item.property)
+                {
+                    modal.querySelector('.property').classList.add('error');
+                    return;
+                }
+
+                statements.forEach(statement => delete item[statement]);
+                item[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+
+                if (form.triggerName)
+                    item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
+                else
+                    delete item[type == 'trigger' ? 'name' : 'triggerName'];
+
+                if (append)
+                    list.push(item);
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            modal.removeEventListener('keypress', handleSave);
+            modal.addEventListener('keypress', handleSave);
+            showModal(true);
+        });
+    }
+
+    showMqttItem(item, list, statements, append, type)
+    {
+        fetch('html/automation/mqttItem.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = 'mqtt ' + type;
+            modal.querySelector('input[name="topic"]').value = item.topic ?? '';
             modal.querySelector('input[name="property"]').value = item.property ?? '';
 
             statements.forEach(statement =>
@@ -649,77 +781,18 @@ class Automation
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
-            if (!mqtt)
-            {
-                var services = ['custom', 'zigbee'];
-                var exposes = new Object();
-                var dropdown = modal.querySelector('.dropdown')
-
-                services.forEach(service =>
-                {
-                    var status = this.controller[service].status ?? new Object();
-
-                    if (!status.devices)
-                        return;
-
-                    status.devices.forEach(device =>
-                    {
-                        var id;
-                        var expose;
-
-                        switch (service)
-                        {
-                            case 'custom': id = status.names ? device.name : device.id; expose = this.controller.custom.expose[id]; break;
-                            case 'zigbee': id = status.names ? device.name : device.ieeeAddress; expose = this.controller.zigbee.expose[id]; break;
-                        }
-
-                        if (!expose)
-                            return;
-
-                        Object.keys(expose).forEach(key =>
-                        {
-                            expose[key].items.forEach(item =>
-                            {
-                                var endpoint = service + '/' + id + (!isNaN(key) ? '/' + key : '');
-
-                                exposeList(item, expose[key].options).forEach(value =>
-                                {
-                                    if (value == 'switch')
-                                        value = 'status';
-
-                                    exposes[(device.name ?? id) + ' &rarr; ' + value +  (!isNaN(key) ? ' ' + key : '')] = new Array(endpoint, value);
-                                });
-                            });
-                        });
-                    });
-                });
-
-                if (Object.keys(exposes).length)
-                {
-                    addDropdown(dropdown, Object.keys(exposes), function(item)
-                    {
-                        modal.querySelector('input[name="item"]').value = exposes[item][0];
-                        modal.querySelector('input[name="property"]').value = exposes[item][1];
-                        modal.querySelector('input[name="value"]').focus();
-
-                    }.bind(this));
-
-                    dropdown.style.display = 'block';
-                }
-            }
-
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
                 statements.forEach(statement => delete item[statement]);
 
-                item[mqtt ? 'topic' : 'endpoint'] = data.item;
-                item.property = data.property;
-                item[data.statement] = data.statement == 'between' ? [this.parseValue(data.min), this.parseValue(data.max)] : data.statement != 'updates' ? this.parseValue(data.value) : true;
+                item.topic = form.topic;
+                item.property = form.property;
+                item[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
 
-                if (data.triggerName)
-                    item[type == 'trigger' ? 'name' : 'triggerName'] = data.triggerName;
+                if (form.triggerName)
+                    item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
 
@@ -737,7 +810,7 @@ class Automation
             modal.addEventListener('keypress', handleSave);
             showModal(true);
 
-            modal.querySelector('input[name="item"]').focus();
+            modal.querySelector('input[name="topic"]').focus();
         });
     }
 
@@ -752,14 +825,14 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
-                var chats = data.chats ? data.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                var form = formData(modal.querySelector('form'));
+                var chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
-                trigger.message = data.message.trim();
+                trigger.message = form.message.trim();
                 trigger.chats = chats.length ? chats : null;
 
-                if (data.name)
-                    trigger.name = data.name;
+                if (form.name)
+                    trigger.name = form.name;
                 else
                     delete trigger.name;
 
@@ -790,12 +863,12 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                trigger.time = data.time;
+                trigger.time = form.time;
 
-                if (data.name)
-                    trigger.name = data.name;
+                if (form.name)
+                    trigger.name = form.name;
                 else
                     delete trigger.name;
 
@@ -826,12 +899,12 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                trigger.interval = parseInt(data.interval);
+                trigger.interval = parseInt(form.interval);
 
-                if (data.name)
-                    trigger.name = data.name;
+                if (form.name)
+                    trigger.name = form.name;
                 else
                     delete trigger.name;
 
@@ -884,12 +957,12 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
-                condition.name = data.name;
-                condition[data.statement] = data.statement == 'between' ? [this.parseValue(data.min), this.parseValue(data.max)] : this.parseValue(data.value);
+                condition.name = form.name;
+                condition[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
 
                 if (append)
                     list.push(condition);
@@ -940,10 +1013,10 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
-                condition[data.statement] = data.statement == 'between' ? [data.start, data.end] : data.value;
+                condition[form.statement] = form.statement == 'between' ? [form.start, form.end] : form.value;
 
                 if (append)
                     list.push(condition);
@@ -972,8 +1045,8 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
-                var days = data.days ? data.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                var form = formData(modal.querySelector('form'));
+                var days = form.days ? form.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 condition.days = days.length ? days : null;
 
@@ -1006,14 +1079,14 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                action.topic = data.topic;
-                action.message = data.message.trim();
-                action.retain = data.retain;
+                action.topic = form.topic;
+                action.message = form.message.trim();
+                action.retain = form.retain;
 
-                if (data.triggerName)
-                    action.triggerName = data.triggerName;
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
                 else
                     delete action.triggerName;
 
@@ -1044,13 +1117,13 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                action.name = data.name;
-                action.value = this.parseValue(data.value);
+                action.name = form.name;
+                action.value = this.parseValue(form.value);
 
-                if (data.triggerName)
-                    action.triggerName = data.triggerName;
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
                 else
                     delete action.triggerName;
 
@@ -1083,15 +1156,15 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
-                var chats = data.chats ? data.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                var form = formData(modal.querySelector('form'));
+                var chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
-                action.message = data.message.trim();
+                action.message = form.message.trim();
                 action.chats = chats.length ? chats : null;
-                action.silent = data.silent;
+                action.silent = form.silent;
 
-                if (data.triggerName)
-                    action.triggerName = data.triggerName;
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
                 else
                     delete action.triggerName;
 
@@ -1122,12 +1195,12 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                action.command = data.command.trim();
+                action.command = form.command.trim();
 
-                if (data.triggerName)
-                    action.triggerName = data.triggerName;
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
                 else
                     delete action.triggerName;
 
@@ -1158,12 +1231,12 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                action.delay = parseInt(data.delay);
+                action.delay = parseInt(form.delay);
 
-                if (data.triggerName)
-                    action.triggerName = data.triggerName;
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
                 else
                     delete action.triggerName;
 

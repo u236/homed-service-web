@@ -291,19 +291,19 @@ class Custom
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var data = formData(modal.querySelector('form'));
+                var form = formData(modal.querySelector('form'));
 
-                if (data.exposes)
-                    data.exposes = data.exposes.split(',').map(item =>item.trim());
+                if (form.exposes)
+                    form.exposes = form.exposes.split(',').map(item =>item.trim());
                 else
-                    delete data.exposes;
+                    delete form.exposes;
 
-                if (data.options)
-                    data.options = JSON.parse(data.options);
+                if (form.options)
+                    form.options = JSON.parse(form.options);
                 else
-                    delete data.options;
+                    delete form.options;
 
-                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: data});
+                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: form});
 
             }.bind(this));
 

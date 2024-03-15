@@ -62,8 +62,10 @@ class Controller
 
     dashboard = new Dashboard(this);
     automation = new Automation(this);
-    custom = new Custom(this);
     zigbee = new ZigBee(this);
+    custom = new Custom(this);
+
+    modbus = {devices: new Object()}; // for future purposes
 
     onopen()
     {
