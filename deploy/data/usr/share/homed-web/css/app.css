@@ -509,12 +509,25 @@ body[theme="dark"] {
     text-align: right;
 }
 
+.homed .dashboardMenu .edit {
+    opacity: 0.5;
+    cursor: pointer;
+    color: var(--color-shade);
+}
+
+.homed .dashboardMenu .edit:hover {
+    opacity: 1;
+    color: var(--color-warning);
+}
+
 .homed .dashboardBlock .edit {
+    opacity: 0.1;
     cursor: pointer;
     color: var(--color-shade);
 }
 
 .homed .dashboardBlock .edit:hover {
+    opacity: 1;
     color: var(--color-warning);
 }
 
@@ -622,6 +635,10 @@ body[theme="dark"] {
 
 .homed .deviceMap svg .highlight {
     stroke: var(--color-warning);
+}
+
+.under {
+    text-decoration: underline;
 }
 
 .homed .deviceMap .checkbox {

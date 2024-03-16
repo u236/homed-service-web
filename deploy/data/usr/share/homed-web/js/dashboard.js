@@ -141,8 +141,9 @@ class Dashboard
                 if (list.innerHTML)
                     list.append('|');
 
-                if (this.index == index)
+                if (this.index == index){
                     element.classList.add('highlight');
+                    element.classList.add('under');}
 
                 element.addEventListener('click', function() { this.setIndex(index); this.showDashboard(); }.bind(this));
                 element.innerHTML = dashboard.name;
@@ -272,6 +273,10 @@ class Dashboard
             modal.querySelector('.name').innerHTML = dashboard.name;
             modal.querySelector('input[name="name"]').value = dashboard.name;
             modal.querySelector('.add').addEventListener('click', function() { this.showBlockEdit(dashboard, null, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
+
+            modal.querySelector('.remove').addEventListener('click', function() { 
+                this.showDashboardRemove(dashboard); 
+            }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
             {
