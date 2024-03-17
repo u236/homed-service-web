@@ -243,6 +243,31 @@ function addExpose(table, device, endpoint, expose)
 
 function updateExpose(device, endpoint, name, value)
 {
+    if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
+    {
+        var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
+        var row = document.querySelector('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + item + '"]');
+        var cell = row ? row.querySelector('td.value') : undefined;
+
+        if (cell && (name.endsWith('Hour') || name.endsWith('Minute')))
+        {
+            var input = row.querySelector('td.control input[type="time"]');
+            var time;
+
+            if (!input)
+                return;
+
+            if (value < 10)
+                value = '0' + value;
+
+            time = input.value.split(':');
+            input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
+
+            cell.dataset.value = input.value;
+            cell.innerHTML = input.value;
+        }
+    }
+
     document.querySelectorAll('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + name + '"]').forEach(row =>
     {
         var cell = row ? row.querySelector('td.value') : undefined;
@@ -282,32 +307,6 @@ function updateExpose(device, endpoint, name, value)
 
             cell.dataset.value = value;
             return;
-        }
-
-        if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
-        {
-            var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
-
-            row = document.querySelector('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + item + '"]');
-            cell = row ? row.querySelector('td.value') : undefined;
-
-            if (cell && (name.endsWith('Hour') || name.endsWith('Minute')))
-            {
-                var input = row.querySelector('td.control input[type="time"]');
-                var time;
-
-                if (!input)
-                    return;
-
-                if (value < 10)
-                    value = '0' + value;
-
-                time = input.value.split(':');
-                input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
-
-                cell.dataset.value = input.value;
-                cell.innerHTML = input.value;
-            }
         }
     });
 }
