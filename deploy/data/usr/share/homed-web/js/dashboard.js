@@ -9,6 +9,24 @@ class Dashboard
         this.controller = controller;
     }
 
+    parseMessage(list, message)
+    {
+        switch (list[0])
+        {
+            case 'status':
+
+                this.status = message;
+
+                if (this.controller.service == 'dashboard')
+                {
+                    this.showDashboard();
+                    document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+                }
+
+                break;
+        }
+    }
+
     findDevice(item)
     {
         var list = item.endpoint.split('/');
@@ -32,24 +50,6 @@ class Dashboard
     {
         this.controller.socket.publish('command/web', {action: 'updateDashboards', data: this.status.dashboards});
         this.controller.clearPage('dashboard');
-    }
-
-    parseMessage(list, message)
-    {
-        switch (list[0])
-        {
-            case 'status':
-
-                this.status = message;
-
-                if (this.controller.service == 'dashboard')
-                {
-                    this.showDashboard();
-                    document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
-                }
-
-                break;
-        }
     }
 
     addBlockItem(table, item)
@@ -153,7 +153,7 @@ class Dashboard
             if (!dashboard.blocks.length)
             {
                 var element = this.content.querySelector('.dashboardData');
-                element.innerHTML = '<div class="emptyList">dashboard data is empty</div>';
+                element.innerHTML = '<div class="emptyList">dashboard "' + dashboard.name + '" data is empty</div>';
                 element.style.display = 'block';
                 return;
             }

@@ -17,27 +17,6 @@ class Automation
         this.controller = controller;
     }
 
-    findDevice(item)
-    {
-        var list = item.endpoint.split('/');
-        var devices = this.controller[list[0]].devices ?? new Object();
-
-        if (devices.hasOwnProperty(list[1]))
-            return devices[list[1]];
-
-        return Object.values(devices).find(device => device.info.name == list[1]) ?? new Object();
-    }
-
-    itemProperty(item, form = false)
-    {
-        var device = this.findDevice(item);
-
-        if (form)
-            return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
-
-        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common') + '</span>'
-    }
-
     parseMessage(list, message)
     {
         switch (list[0])
@@ -83,6 +62,26 @@ class Automation
         return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
     }
 
+    findDevice(item)
+    {
+        var list = item.endpoint.split('/');
+        var devices = this.controller[list[0]].devices ?? new Object();
+
+        if (devices.hasOwnProperty(list[1]))
+            return devices[list[1]];
+
+        return Object.values(devices).find(device => device.info.name == list[1]) ?? new Object();
+    }
+
+    itemProperty(item, form = false)
+    {
+        var device = this.findDevice(item);
+
+        if (form)
+            return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
+
+        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common') + '</span>'
+    }
     valueForm(form, statement)
     {
         switch (statement)

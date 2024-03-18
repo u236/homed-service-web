@@ -10,11 +10,6 @@ class ZigBee
         this.controller = controller;
     }
 
-    findDevice(item)
-    {
-        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
-    }
-
     updateLastSeen()
     {
         Object.keys(this.devices).forEach(ieeeAddress =>
@@ -218,6 +213,11 @@ class ZigBee
 
             default: return value;
         }
+    }
+
+    findDevice(item)
+    {
+        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
     }
 
     showMenu()

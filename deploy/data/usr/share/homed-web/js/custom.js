@@ -8,11 +8,6 @@ class Custom
         this.controller = controller;
     }
 
-    findDevice(item)
-    {
-        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
-    }
-
     parseMessage(list, message)
     {
         switch (list[0])
@@ -152,6 +147,11 @@ class Custom
 
             default: return value;
         }
+    }
+
+    findDevice(item)
+    {
+        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
     }
 
     showMenu()
