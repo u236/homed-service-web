@@ -748,6 +748,16 @@ body[theme="dark"] {
     margin-bottom: 10px;
 }
 
+.homed #modal .copy {
+    cursor: pointer;
+    color: var(--color-shade);
+}
+
+.homed #modal .copy:hover {
+    cursor: pointer;
+    color: var(--color-warning);
+}
+
 .homed #modal .note {
     font-size: 0.8125rem;
     color: var(--color-shade);

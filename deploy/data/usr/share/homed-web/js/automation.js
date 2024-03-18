@@ -82,6 +82,21 @@ class Automation
 
         return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common') + '</span>'
     }
+
+    handleCopy(item, list, append)
+    {
+        console.log(item, list, append);
+        var element = modal.querySelector('.copy');
+
+        if (append)
+        {
+            element.style.display = 'none';
+            return;
+        }
+
+        element.addEventListener('click', function() { list.push(item); this.showAutomationInfo(); }.bind(this));
+    }
+
     valueForm(form, statement)
     {
         switch (statement)
@@ -329,7 +344,7 @@ class Automation
                         {
                             cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>';
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { automation.showAction(action); });
+                            cell.addEventListener('click', function() { automation.showAction(action, list); });
                             break;
                         }
 
@@ -745,6 +760,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(item, list, append);
             showModal(true);
         });
     }
@@ -811,6 +828,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(item, list, append);
             showModal(true);
 
             modal.querySelector('input[name="topic"]').focus();
@@ -850,6 +869,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(trigger, this.data.triggers, append);
             showModal(true);
 
             modal.querySelector('textarea[name="message"]').focus();
@@ -886,6 +907,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(trigger, this.data.triggers, append);
             showModal(true);
 
             modal.querySelector('input[name="time"]').focus();
@@ -922,6 +945,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(trigger, this.data.triggers, append);
             showModal(true);
 
             modal.querySelector('input[name="interval"]').focus();
@@ -979,6 +1004,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(condition, this.data.conditions, append);
             showModal(true);
 
             modal.querySelector('input[name="name"]').focus();
@@ -1033,6 +1060,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(condition, this.data.conditions, append);
             showModal(true);
 
             modal.querySelector('select[name="statement"]').focus();
@@ -1064,6 +1093,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(condition, this.data.conditions, append);
             showModal(true);
 
             modal.querySelector('input[name="days"]').focus();
@@ -1104,6 +1135,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(action, this.data.actions, append);
             showModal(true);
 
             modal.querySelector('input[name="topic"]').focus();
@@ -1141,6 +1174,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(action, this.data.actions, append);
             showModal(true);
 
             modal.querySelector('input[name="name"]').focus();
@@ -1182,6 +1217,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(action, this.data.actions, append);
             showModal(true);
 
             modal.querySelector('textarea[name="message"]').focus();
@@ -1218,6 +1255,8 @@ class Automation
 
             modal.removeEventListener('keypress', handleSave);
             modal.addEventListener('keypress', handleSave);
+
+            this.handleCopy(action, this.data.actions, append);
             showModal(true);
 
             modal.querySelector('input[name="command"]').focus();
