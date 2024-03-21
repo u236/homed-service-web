@@ -1,0 +1,57 @@
+{
+  "name": "HOMEd Smart Home",
+  "short_name": "HOMEd",
+  "start_url": "/",
+  "display": "fullscreen",
+  "description": "Умный дом HOMEd",
+  "lang": "RU",
+  "dir": "auto",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "img/homed-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "img/homed-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "img/homed-512.png",
+      "sizes": "2880x1800",
+      "type": "image/png",
+      "description": "A screenshot of the home page"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "#dashboard",
+      "description": "HOMEd предоставляет возможность создавать пользовательские дашборды - специальные страницы веб-интерфейса, содержащие в себе произвольные наборы данных, таких, как показания датчиков или элементы управления освещением. Элементы дашбордов могут быть объеденены в блоки и отсортированы в любом порядке."
+    },
+    {
+      "name": "Automation",
+      "url": "#automation",
+      "description": "Автоматизация по условиям и триггерам."
+    },
+    {
+      "name": "Custom",
+      "url": "#custom",
+      "description": "Кастомные устройства."
+    },
+    {
+      "name": "Zigbee",
+      "url": "#zigbee",
+      "description": "Добавление новых Zigbee-устройств."
+    }
+  ]
+}
