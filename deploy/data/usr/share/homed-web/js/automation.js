@@ -517,6 +517,7 @@ class Automation
             this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
 
             this.content.querySelector('.name').innerHTML = this.data.name + (this.name ? '' : ' <span class="warning value">NEW</span>');
+            this.content.querySelector('.note').innerHTML = this.data.note ?? '';
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';
             this.content.querySelector('.restart').innerHTML = '<span class="value">' + (this.data.restart ?? false) + '</span>';
             this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
@@ -570,6 +571,7 @@ class Automation
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('input[name="name"]').value = this.data.name;
+            modal.querySelector('textarea[name="note"]').value = this.data.note ?? '';
             modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
             modal.querySelector('input[name="restart"]').checked = this.data.restart ?? false;
             modal.querySelector('input[name="active"]').checked = this.data.active;
@@ -579,6 +581,7 @@ class Automation
                 var form = formData(modal.querySelector('form'));
 
                 this.data.name = form.name;
+                this.data.note = form.note;
                 this.data.debounce = parseInt(form.debounce);
                 this.data.restart = form.restart;
                 this.data.active = form.active;

@@ -87,9 +87,6 @@ body[theme="dark"] {
     -moz-appearance: none;
     -webkit-appearance: none;
     width: 100%;
-    height: 30px;
-    margin-bottom: 10px;
-    padding: 0 5px;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
     background-color: var(--background-main);
@@ -98,8 +95,15 @@ body[theme="dark"] {
     color: var(--color-main);
 }
 
+.homed input[type="number"], .homed input[type="text"], .homed select {
+    height: 30px;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+
 .homed textarea {
     height: 72px;
+    margin-bottom: 5px;
     padding: 5px;
     font-family: 'Roboto Mono';
     font-size: 0.8125rem;
@@ -290,6 +294,11 @@ body[theme="dark"] {
     display: inline-flex;
     gap: 5px;
     white-space: nowrap;
+}
+
+.homed .note {
+    padding: 0 5px;
+    color: var(--color-shade);
 }
 
 .homed .loader {
@@ -759,8 +768,8 @@ body[theme="dark"] {
 }
 
 .homed #modal .note {
+    padding: 0;
     font-size: 0.8125rem;
-    color: var(--color-shade);
 }
 
 .homed #modal .dropdown .list {

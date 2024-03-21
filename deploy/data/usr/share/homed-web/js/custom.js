@@ -277,6 +277,7 @@ class Custom
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').value = device.info.name;
+            modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
             modal.querySelector('input[name="id"]').value = device.info.id;
             modal.querySelector('input[name="real"]').checked = device.info.real;
             modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
