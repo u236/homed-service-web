@@ -200,7 +200,18 @@ class Custom
 
                     switch (i)
                     {
-                        case 0: cell.innerHTML = device.info.name; break;
+                        case 0:
+
+                            cell.innerHTML = device.info.name;
+
+                            if (device.info.note)
+                            {
+                                cell.innerHTML += '<span class="note">' + device.info.note + '</span>';
+                                row.classList.add('tooltip');
+                            }
+
+                            break;
+
                         case 1: cell.innerHTML = device.info.id; break;
                         case 2: cell.innerHTML = '<span class="value">' + device.info.exposes.length + '</span>'; cell.classList.add('center'); break;
                         case 3: cell.innerHTML = this.parseValue('real', device.info.real); cell.classList.add('center'); break;

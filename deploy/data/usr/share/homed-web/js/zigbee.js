@@ -270,7 +270,18 @@ class ZigBee
 
                     switch (i)
                     {
-                        case 0: cell.innerHTML = device.info.name; break;
+                        case 0:
+
+                            cell.innerHTML = device.info.name;
+
+                            if (device.info.note)
+                            {
+                                cell.innerHTML += '<span class="note">' + device.info.note + '</span>';
+                                row.classList.add('tooltip');
+                            }
+
+                            break;
+
                         case 1: cell.innerHTML = device.info.manufacturerName ?? empty; break;
                         case 2: cell.innerHTML = device.info.modelName ?? empty; break;
                         case 3: cell.innerHTML = this.parseValue('powerSource', device.info.powerSource); cell.classList.add('center'); break;
