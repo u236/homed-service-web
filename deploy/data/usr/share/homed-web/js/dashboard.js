@@ -99,7 +99,8 @@ class Dashboard
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML = '<span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span><span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
 
         if (!this.status)
@@ -121,6 +122,8 @@ class Dashboard
 
         if (!this.status.dashboards[this.index])
             this.index = 0;
+
+        document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
 
         fetch('html/dashboard/dashboard.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -209,6 +212,62 @@ class Dashboard
         });
     }
 
+    showDashboardSort()
+    {
+        var showTable = function(table)
+        {
+            table.innerHTML = null;
+
+            this.status.dashboards.forEach((dashboard, index) =>
+            {
+                var row = table.insertRow();
+
+                for (var i = 0; i < 3; i++)
+                {
+                    var cell = row.insertCell();
+
+                    switch (i)
+                    {
+                        case 0: cell.innerHTML = dashboard.name; break;
+
+                        case 1:
+
+                            if (index == this.status.dashboards.length - 1)
+                                break;
+
+                            cell.innerHTML = '&darr;';
+                            cell.classList.add('move');
+                            cell.addEventListener('click', function() { this.status.dashboards[index + 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index + 1])[0]; showTable(table); }.bind(this));
+                            break;
+
+                        case 2:
+
+                            if (!index)
+                                break;
+
+                            cell.innerHTML = '&uarr;';
+                            cell.classList.add('move');
+                            cell.addEventListener('click', function() { this.status.dashboards[index - 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index - 1])[0]; showTable(table); }.bind(this));
+                            break;
+                    }
+                }
+            });
+
+        }.bind(this);
+
+        fetch('html/dashboard/dashboardSort.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.save').addEventListener('click', function() { this.storeData(); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            showTable(modal.querySelector('table.dashboards'));
+
+            modal.removeEventListener('keypress', handleSave);
+            modal.addEventListener('keypress', handleSave);
+            showModal(true);
+        });
+    }
+
     showDashboardEdit(dashboard)
     {
         var showTable = function(table, dashboard)
@@ -249,7 +308,7 @@ class Dashboard
 
                             cell.innerHTML = '&uarr;';
                             cell.classList.add('move');
-                            cell.addEventListener('click', function() { dashboard.blocks[index - 1] =  dashboard.blocks.splice(index, 1, dashboard.blocks[index - 1])[0]; showTable(table, dashboard); }.bind(this));
+                            cell.addEventListener('click', function() { dashboard.blocks[index - 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index - 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
 
                         case 3:
@@ -352,7 +411,7 @@ class Dashboard
 
                             cell.innerHTML = '&uarr;';
                             cell.classList.add('move');
-                            cell.addEventListener('click', function() { block.items[index - 1] =  block.items.splice(index, 1, block.items[index - 1])[0]; showTable(table, dashboard, block); }.bind(this));
+                            cell.addEventListener('click', function() { block.items[index - 1] = block.items.splice(index, 1, block.items[index - 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
 
                         case 3:
