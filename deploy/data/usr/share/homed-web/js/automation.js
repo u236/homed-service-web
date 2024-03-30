@@ -94,7 +94,7 @@ class Automation
             return;
         }
 
-        element.addEventListener('click', function() { list.push(item); this.showAutomationInfo(); }.bind(this));
+        element.addEventListener('click', function() { list.push({...item}); this.showAutomationInfo(); }.bind(this));
     }
 
     valueForm(form, statement)
