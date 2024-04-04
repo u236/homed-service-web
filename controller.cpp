@@ -167,7 +167,7 @@ void Controller::readyRead(void)
         items.insert(item.value(0), QUrl::fromPercentEncoding(item.value(1).toUtf8()));
     }
 
-    if (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/") && !m_database->tokens().contains(cookies.value("token")))
+    if (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/") && !m_database->tokens().contains(cookies.value("homed-auth-token")))
     {
         if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
         {
@@ -178,7 +178,7 @@ void Controller::readyRead(void)
                 buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
 
             token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", QString("token=%1").arg(token)}, {"Cache-Control", "no-cache, no-store"}});
+            httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", QString("homed-auth-token=%1").arg(token)}, {"Cache-Control", "no-cache, no-store"}});
             m_database->tokens().insert(token);
             m_database->store(true);
         }
@@ -190,8 +190,8 @@ void Controller::readyRead(void)
 
     if (url == "/logout")
     {
-        httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", "token=deleted; max-age=0"}, {"Cache-Control", "no-cache, no-store"}});
-        m_database->tokens().remove(cookies.value("token"));
+        httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", "homed-auth-token=deleted; max-age=0"}, {"Cache-Control", "no-cache, no-store"}});
+        m_database->tokens().remove(cookies.value("homed-auth-token"));
         m_database->store(true);
         return;
     }
