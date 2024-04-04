@@ -24,6 +24,7 @@ private:
     QWebSocketServer *m_webSocket;
 
     QString m_frontend, m_username, m_password;
+    bool m_auth;
 
     QList <QString> m_retained;
     QMap <QString, QJsonObject> m_messages;

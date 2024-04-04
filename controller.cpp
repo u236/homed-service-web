@@ -10,9 +10,10 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_databas
     logInfo << "Configuration file is" << getConfig()->fileName();
 
     m_frontend = getConfig()->value("server/frontend", "/usr/share/homed-web").toString();
-    m_username = getConfig()->value("server/username", "homed").toString();
-    m_password = getConfig()->value("server/password", "homed").toString();
+    m_username = getConfig()->value("server/username").toString();
+    m_password = getConfig()->value("server/password").toString();
 
+    m_auth = m_username.isEmpty() || m_password.isEmpty() ? false : true;
     m_retained = {"device", "expose", "service", "status"};
 
     connect(m_database, &Database::statusUpdated, this, &Controller::statusUpdated);
@@ -46,6 +47,7 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
 void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
 {
     QFile file(QString(m_frontend).append(fileName));
+    QByteArray data;
 
     if (!file.exists())
     {
@@ -59,7 +61,12 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
         return;
     }
 
-    httpResponse(socket, 200, {{"Content-Type", QMimeDatabase().mimeTypeForFile(file.fileName()).name()}, {"Content-Length", QString::number(file.size())}}, file.readAll());
+    data = file.readAll();
+
+    if (fileName == "/index.html")
+        data = QString(data).arg(SERVICE_VERSION, m_auth ? " | <a href=\"/logout\">Logout</a>" : QString()).toUtf8();
+
+    httpResponse(socket, 200, {{"Content-Type", QMimeDatabase().mimeTypeForFile(file.fileName()).name()}, {"Content-Length", QString::number(data.length())}}, data);
     file.close();
 }
 
@@ -167,7 +174,7 @@ void Controller::readyRead(void)
         items.insert(item.value(0), QUrl::fromPercentEncoding(item.value(1).toUtf8()));
     }
 
-    if (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/") && !m_database->tokens().contains(cookies.value("homed-auth-token")))
+    if (m_auth && !m_database->tokens().contains(cookies.value("homed-auth-token")) && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
     {
         if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
         {
