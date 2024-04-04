@@ -6,7 +6,7 @@
 #include <QTcpServer>
 #include <QWebSocket>
 #include <QWebSocketServer>
-#include "dashboard.h"
+#include "database.h"
 #include "homed.h"
 
 class Controller : public HOMEd
@@ -19,7 +19,7 @@ public:
 
 private:
 
-    DashboardList *m_dashboards;
+    Database *m_database;
     QTcpServer *m_tcpServer;
     QWebSocketServer *m_webSocket;
 

@@ -2,10 +2,10 @@ include(../homed-common/homed-common.pri)
 
 HEADERS += \
     controller.h \
-    dashboard.h
+    database.h
 
 SOURCES += \
     controller.cpp \
-    dashboard.cpp
+    database.cpp
 
 QT += websockets

@@ -4,7 +4,7 @@
 #include "controller.h"
 #include "logger.h"
 
-Controller::Controller(const QString &configFile) : HOMEd(configFile), m_dashboards(new DashboardList(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
+Controller::Controller(const QString &configFile) : HOMEd(configFile), m_database(new Database(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
 {
     logInfo << "Starting version" << SERVICE_VERSION;
     logInfo << "Configuration file is" << getConfig()->fileName();
@@ -15,11 +15,11 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_dashboa
 
     m_retained = {"device", "expose", "service", "status"};
 
-    connect(m_dashboards, &DashboardList::statusUpdated, this, &Controller::statusUpdated);
+    connect(m_database, &Database::statusUpdated, this, &Controller::statusUpdated);
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
     connect(m_webSocket, &QWebSocketServer::newConnection, this, &Controller::clientConnected);
 
-    m_dashboards->init();
+    m_database->init();
     m_tcpServer->listen(QHostAddress::Any, static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
 }
 
@@ -81,7 +81,7 @@ void Controller::mqttConnected(void)
         for (int i = 0; i < it.value().count(); i++)
             mqttSubscribe(mqttTopic(it.value().at(i)));
 
-    m_dashboards->store();
+    m_database->store();
     mqttPublishStatus();
 }
 
@@ -93,8 +93,8 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
 
     if (subTopic == "command/web" && json.value("action").toString() == "updateDashboards")
     {
-        m_dashboards->update(json.value("data").toArray());
-        m_dashboards->store(true);
+        m_database->update(json.value("data").toArray());
+        m_database->store(true);
         return;
     }
 
@@ -167,7 +167,7 @@ void Controller::readyRead(void)
         items.insert(item.value(0), QUrl::fromPercentEncoding(item.value(1).toUtf8()));
     }
 
-    if (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/") && !m_dashboards->tokens().contains(cookies.value("token")))
+    if (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/") && !m_database->tokens().contains(cookies.value("token")))
     {
         if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
         {
@@ -179,8 +179,8 @@ void Controller::readyRead(void)
 
             token = buffer.toHex();
             httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", QString("token=%1").arg(token)}, {"Cache-Control", "no-cache, no-store"}});
-            m_dashboards->tokens().insert(token);
-            m_dashboards->store(true);
+            m_database->tokens().insert(token);
+            m_database->store(true);
         }
         else
             fileResponse(socket, "/login.html");
@@ -191,8 +191,8 @@ void Controller::readyRead(void)
     if (url == "/logout")
     {
         httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", "token=deleted; max-age=0"}, {"Cache-Control", "no-cache, no-store"}});
-        m_dashboards->tokens().remove(cookies.value("token"));
-        m_dashboards->store(true);
+        m_database->tokens().remove(cookies.value("token"));
+        m_database->store(true);
         return;
     }
 

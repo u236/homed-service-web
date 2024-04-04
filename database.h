@@ -1,7 +1,7 @@
-#ifndef DASHBOARD_H
-#define DASHBOARD_H
+#ifndef DATABASE_H
+#define DATABASE_H
 
-#define STORE_DATABASE_DELAY    20
+#define STORE_DELAY     20
 
 #include <QFile>
 #include <QJsonArray>
@@ -10,14 +10,14 @@
 #include <QSettings>
 #include <QTimer>
 
-class DashboardList : public QObject
+class Database : public QObject
 {
     Q_OBJECT
 
 public:
 
-    DashboardList(QSettings *config, QObject *parent);
-    ~DashboardList(void);
+    Database(QSettings *config, QObject *parent);
+    ~Database(void);
 
     inline void update(const QJsonArray &data) { m_dashboards = data; }
     inline QSet <QString> &tokens(void) { return m_tokens; }
@@ -37,7 +37,7 @@ private:
 
 private slots:
 
-    void writeDatabase(void);
+    void write(void);
 
 signals:
 
