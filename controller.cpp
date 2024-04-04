@@ -1,5 +1,6 @@
 #include <QFile>
 #include <QMimeDatabase>
+#include <QRandomGenerator>
 #include "controller.h"
 #include "logger.h"
 
@@ -8,7 +9,10 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_dashboa
     logInfo << "Starting version" << SERVICE_VERSION;
     logInfo << "Configuration file is" << getConfig()->fileName();
 
-    m_path = getConfig()->value("server/path", "/usr/share/homed-web").toString();
+    m_frontend = getConfig()->value("server/frontend", "/usr/share/homed-web").toString();
+    m_username = getConfig()->value("server/username", "homed").toString();
+    m_password = getConfig()->value("server/password", "homed").toString();
+
     m_retained = {"device", "expose", "service", "status"};
 
     connect(m_dashboards, &DashboardList::statusUpdated, this, &Controller::statusUpdated);
@@ -19,34 +23,43 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_dashboa
     m_tcpServer->listen(QHostAddress::Any, static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
 }
 
-void Controller::handleRequest(QTcpSocket *socket, const QByteArray &request)
+void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers, const QByteArray &response)
 {
-    QList <QByteArray> list = request.split(' ');
-    QFile file;
+    QByteArray data;
 
-    if (list.value(0) != "GET")
+    switch (code)
     {
-        socket->write("HTTP/1.1 405 Method Not Allowed\r\n\r\n");
-        return;
+       case 200: data = "HTTP/1.1 200 OK"; break;
+       case 301: data = "HTTP/1.1 301 Moved Permanently"; break;
+       case 404: data = "HTTP/1.1 404 Not Found"; break;
+       case 405: data = "HTTP/1.1 405 Method Not Allowed"; break;
+       case 500: data = "HTTP/1.1 500 Internal Server Error"; break;
     }
 
-    file.setFileName(QString(m_path).append(list.value(1) != "/" ? list.value(1).split('?').value(0) : "/index.html"));
+    for (auto it = headers.begin(); it != headers.end(); it++)
+        data.append(QString("\r\n%1: %2").arg(it.key(), it.value()).toUtf8());
+
+    socket->write(data.append("\r\n\r\n").append(response));
+    socket->close();
+}
+
+void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
+{
+    QFile file(QString(m_frontend).append(fileName));
 
     if (!file.exists())
     {
-        socket->write("HTTP/1.1 404 Not Found\r\n\r\n");
+        httpResponse(socket, 404);
         return;
     }
 
     if (!file.open(QFile::ReadOnly))
     {
-        socket->write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        httpResponse(socket, 500);
         return;
     }
 
-    socket->write(QString("HTTP/1.1 200 OK\r\nContent-Type: %1\r\nContent-Length: %2\r\n\r\n").arg(QMimeDatabase().mimeTypeForFile(file.fileName()).name()).arg(file.size()).toUtf8());
-    socket->write(file.readAll());
-
+    httpResponse(socket, 200, {{"Content-Type", QMimeDatabase().mimeTypeForFile(file.fileName()).name()}, {"Content-Length", QString::number(file.size())}}, file.readAll());
     file.close();
 }
 
@@ -126,18 +139,76 @@ void Controller::socketDisconnected(void)
 void Controller::readyRead(void)
 {
     QTcpSocket *socket = reinterpret_cast <QTcpSocket*> (sender());
-    QByteArray request = socket->peek(socket->bytesAvailable());
+    QList <QString> list = QString(socket->peek(socket->bytesAvailable())).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(' '), cookieList, itemList;
+    QString method = target.value(0), url = target.value(1);
+    QMap <QString, QString> headers, cookies, items;
 
     disconnect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
 
-    if (request.contains("Upgrade: websocket\r\n"))
+    for (int i = 1; i < head.count(); i++)
+    {
+        QList <QString> header = head.at(i).split(':');
+        headers.insert(header.value(0).trimmed(), header.value(1).trimmed());
+    }
+
+    cookieList = headers.value("Cookie").split(';');
+
+    for (int i = 0; i < cookieList.count(); i++)
+    {
+        QList <QString> cookie = cookieList.at(i).split('=');
+        cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
+    }
+
+    itemList = list.value(1).split('&');
+
+    for (int i = 0; i < itemList.count(); i++)
+    {
+        QList <QString> item = itemList.at(i).split('=');
+        items.insert(item.value(0), QUrl::fromPercentEncoding(item.value(1).toUtf8()));
+    }
+
+    if (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/") && !m_dashboards->tokens().contains(cookies.value("token")))
+    {
+        if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
+        {
+            QByteArray buffer;
+            QString token;
+
+            for (int i = 0; i < 32; i++)
+                buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
+
+            token = buffer.toHex();
+            httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", QString("token=%1").arg(token)}, {"Cache-Control", "no-cache, no-store"}});
+            m_dashboards->tokens().insert(token);
+            m_dashboards->store(true);
+        }
+        else
+            fileResponse(socket, "/login.html");
+
+        return;
+    }
+
+    if (url == "/logout")
+    {
+        httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", "token=deleted; max-age=0"}, {"Cache-Control", "no-cache, no-store"}});
+        m_dashboards->tokens().remove(cookies.value("token"));
+        m_dashboards->store(true);
+        return;
+    }
+
+    if (method != "GET")
+    {
+        httpResponse(socket, 405);
+        return;
+    }
+
+    if (headers.value("Upgrade") == "websocket")
     {
         m_webSocket->handleConnection(socket);
         return;
     }
 
-    handleRequest(socket, request);
-    socket->close();
+    fileResponse(socket, url == "/" ? "/index.html" : url.mid(0, url.indexOf('?')));
 }
 
 void Controller::clientConnected(void)

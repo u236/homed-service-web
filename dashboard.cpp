@@ -4,7 +4,7 @@
 
 DashboardList::DashboardList(QSettings *config, QObject *parent) : QObject(parent), m_timer(new QTimer(this)), m_sync(false)
 {
-    m_file.setFileName(config->value("dashboard/database", "/opt/homed-web/database.json").toString());
+    m_file.setFileName(config->value("server/database", "/opt/homed-web/database.json").toString());
     connect(m_timer, &QTimer::timeout, this, &DashboardList::writeDatabase);
     m_timer->setSingleShot(true);
 }
@@ -17,10 +17,19 @@ DashboardList::~DashboardList(void)
 
 void DashboardList::init(void)
 {
+    QJsonObject json;
+    QJsonArray tokens;
+
     if (!m_file.open(QFile::ReadOnly))
         return;
 
-    m_data =  QJsonDocument::fromJson(m_file.readAll()).object().value("dashboards").toArray();
+    json = QJsonDocument::fromJson(m_file.readAll()).object();
+    tokens = json.value("tokens").toArray();
+    m_dashboards = json.value("dashboards").toArray();
+
+    for (int i = 0; i < tokens.count(); i++)
+        m_tokens.insert(tokens.at(i).toString());
+
     m_file.close();
 }
 
@@ -32,7 +41,7 @@ void DashboardList::store(bool sync)
 
 void DashboardList::writeDatabase(void)
 {
-    QJsonObject json = {{"dashboards", m_data}, {"timestamp", QDateTime::currentSecsSinceEpoch()}, {"version", SERVICE_VERSION}};
+    QJsonObject json = {{"dashboards", m_dashboards}, {"tokens", QJsonArray::fromStringList(m_tokens.values())}, {"timestamp", QDateTime::currentSecsSinceEpoch()}, {"version", SERVICE_VERSION}};
     QByteArray data = QJsonDocument(json).toJson(QJsonDocument::Compact);
     bool check = true;
 

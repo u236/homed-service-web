@@ -23,7 +23,7 @@ private:
     QTcpServer *m_tcpServer;
     QWebSocketServer *m_webSocket;
 
-    QString m_path;
+    QString m_frontend, m_username, m_password;
 
     QList <QString> m_retained;
     QMap <QString, QJsonObject> m_messages;
@@ -31,7 +31,8 @@ private:
     QList <QTcpSocket*> m_sockets;
     QMap <QWebSocket*, QStringList> m_clients;
 
-    void handleRequest(QTcpSocket *socket, const QByteArray &request);
+    void httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers = QMap <QString, QString> (), const QByteArray &response = QByteArray());
+    void fileResponse(QTcpSocket *socket, const QString &fileName);
 
 public slots:
 

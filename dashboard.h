@@ -19,7 +19,8 @@ public:
     DashboardList(QSettings *config, QObject *parent);
     ~DashboardList(void);
 
-    inline void update(const QJsonArray &data) { m_data = data; }
+    inline void update(const QJsonArray &data) { m_dashboards = data; }
+    inline QSet <QString> &tokens(void) { return m_tokens; }
 
     void init(void);
     void store(bool sync = false);
@@ -29,7 +30,9 @@ private:
     QTimer *m_timer;
     QFile m_file;
 
-    QJsonArray m_data;
+    QJsonArray m_dashboards;
+    QSet <QString> m_tokens;
+
     bool m_sync;
 
 private slots:

@@ -1,7 +1,7 @@
 {
   "name": "HOMEd",
   "short_name": "HOMEd",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "fullscreen",
   "theme_color": "#000000",
   "background_color": "#000000",
