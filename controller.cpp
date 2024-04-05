@@ -146,8 +146,9 @@ void Controller::socketDisconnected(void)
 void Controller::readyRead(void)
 {
     QTcpSocket *socket = reinterpret_cast <QTcpSocket*> (sender());
-    QList <QString> list = QString(socket->peek(socket->bytesAvailable())).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(' '), cookieList, itemList;
-    QString method = target.value(0), url = target.value(1);
+    QByteArray request = socket->peek(socket->bytesAvailable());
+    QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(' '), cookieList, itemList;
+    QString method = target.value(0), url = target.value(1), content = list.value(1);
     QMap <QString, QString> headers, cookies, items;
 
     disconnect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
@@ -166,7 +167,14 @@ void Controller::readyRead(void)
         cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
     }
 
-    itemList = QString(method == "GET" && url.contains('?') ? url.mid(url.indexOf('?') + 1) : list.value(1)).split('&');
+    if (method == "POST" && headers.value("Content-Length").toInt() > content.length())
+    {
+        socket->read(request.length());
+        socket->waitForReadyRead();
+        content.append(socket->readAll());
+    }
+
+    itemList = QString(method == "GET" && url.contains('?') ? url.mid(url.indexOf('?') + 1) : content).split('&');
 
     for (int i = 0; i < itemList.count(); i++)
     {
@@ -185,7 +193,7 @@ void Controller::readyRead(void)
                 buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
 
             token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", "/"}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
+            httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
             m_database->tokens().insert(token);
             m_database->store(true);
         }
@@ -199,7 +207,7 @@ void Controller::readyRead(void)
 
     if (url == "/logout")
     {
-        httpResponse(socket, 301, {{"Location", "/"}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; max-age=0"}});
+        httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; max-age=0"}});
 
         if (items.value("session") == "all")
         {
