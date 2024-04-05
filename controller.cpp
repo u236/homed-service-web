@@ -64,7 +64,7 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
     data = file.readAll();
 
     if (fileName == "/index.html")
-        data = QString(data).arg(SERVICE_VERSION, m_auth ? " | <a href=\"/logout\">Logout</a>" : QString()).toUtf8();
+        data = QString(data).arg(SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"icon-enable\"></i> LOGOUT</span>" : QString()).toUtf8();
 
     httpResponse(socket, 200, {{"Content-Type", QMimeDatabase().mimeTypeForFile(file.fileName()).name()}, {"Content-Length", QString::number(data.length())}}, data);
     file.close();
@@ -166,7 +166,7 @@ void Controller::readyRead(void)
         cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
     }
 
-    itemList = list.value(1).split('&');
+    itemList = QString(method == "GET" && url.contains('?') ? url.mid(url.indexOf('?') + 1) : list.value(1)).split('&');
 
     for (int i = 0; i < itemList.count(); i++)
     {
@@ -185,7 +185,7 @@ void Controller::readyRead(void)
                 buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
 
             token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", QString("homed-auth-token=%1").arg(token)}, {"Cache-Control", "no-cache, no-store"}});
+            httpResponse(socket, 301, {{"Location", "/"}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
             m_database->tokens().insert(token);
             m_database->store(true);
         }
@@ -195,10 +195,22 @@ void Controller::readyRead(void)
         return;
     }
 
+    url = url.mid(0, url.indexOf('?'));
+
     if (url == "/logout")
     {
-        httpResponse(socket, 301, {{"Location", "/"}, {"Set-Cookie", "homed-auth-token=deleted; max-age=0"}, {"Cache-Control", "no-cache, no-store"}});
-        m_database->tokens().remove(cookies.value("homed-auth-token"));
+        httpResponse(socket, 301, {{"Location", "/"}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; max-age=0"}});
+
+        if (items.value("session") == "all")
+        {
+            for (auto it = m_clients.begin(); it != m_clients.end(); it++)
+                it.key()->deleteLater();
+
+            m_database->tokens().clear();
+        }
+        else
+            m_database->tokens().remove(cookies.value("homed-auth-token"));
+
         m_database->store(true);
         return;
     }
@@ -215,7 +227,7 @@ void Controller::readyRead(void)
         return;
     }
 
-    fileResponse(socket, url == "/" ? "/index.html" : url.mid(0, url.indexOf('?')));
+    fileResponse(socket, url != "/" ? url : "/index.html");
 }
 
 void Controller::clientConnected(void)

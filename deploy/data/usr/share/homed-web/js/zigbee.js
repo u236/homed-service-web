@@ -235,7 +235,6 @@ class ZigBee
 
         document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
         document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : 'unknown';
-
     }
 
     showDeviceList()

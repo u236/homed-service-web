@@ -2,6 +2,7 @@
 #define CONTROLLER_H
 
 #define SERVICE_VERSION     "2.1.0"
+#define COOKIE_MAX_AGE      31536000
 
 #include <QTcpServer>
 #include <QWebSocket>

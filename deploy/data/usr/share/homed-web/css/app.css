@@ -874,12 +874,12 @@ body[theme="dark"] {
     padding: 0 5px;
 }
 
-.homed #toggleTheme {
+.homed #toggleTheme, .homed #logout {
     cursor: pointer;
     padding: 0 5px;
 }
 
-.homed #toggleTheme:hover {
+.homed #toggleTheme:hover, .homed #logout:hover {
     color: var(--color-main);
 }
 

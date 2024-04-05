@@ -283,6 +283,8 @@ class Device
 
 window.onload = function()
 {
+    var logout = document.querySelector('#logout');
+
     modal = document.querySelector('#modal');
     controller = new Controller();
 
@@ -295,6 +297,22 @@ window.onload = function()
     document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; localStorage.setItem('theme', theme); location.reload(); });
 
     controller.showPage(localStorage.getItem('page') ?? 'dashboard');
+
+    if (!logout)
+        return;
+
+    logout.addEventListener('click', function()
+    {
+        fetch('logout.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.current').addEventListener('click', function() { window.location.href = 'logout?session=current'; }.bind(this));
+            modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            showModal(true);
+        });
+    });
 };
 
 document.onkeydown = function(event)

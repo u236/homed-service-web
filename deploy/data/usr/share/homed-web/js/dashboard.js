@@ -65,7 +65,7 @@ class Dashboard
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
 
-        valueCell.innerHTML = empty;
+        valueCell.innerHTML = '<i class="icon-false shade"></i>';
         valueCell.classList.add('value');
 
         switch (part[0])
