@@ -167,6 +167,9 @@ void Controller::readyRead(void)
         cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
     }
 
+    if (method == "POST")
+        logInfo << request;
+
     if (method == "POST" && headers.value("Content-Length").toInt() > content.length())
     {
         socket->read(request.length());
@@ -184,6 +187,9 @@ void Controller::readyRead(void)
 
     if (m_auth && !m_database->tokens().contains(cookies.value("homed-auth-token")) && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
     {
+
+        logInfo << "here" << method << url << content << items;
+
         if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
         {
             QByteArray buffer;
@@ -193,7 +199,7 @@ void Controller::readyRead(void)
                 buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
 
             token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
+            httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
             m_database->tokens().insert(token);
             m_database->store(true);
         }
@@ -207,7 +213,7 @@ void Controller::readyRead(void)
 
     if (url == "/logout")
     {
-        httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; max-age=0"}});
+        httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
 
         if (items.value("session") == "all")
         {
