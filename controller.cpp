@@ -1,5 +1,4 @@
 #include <QFile>
-#include <QMimeDatabase>
 #include <QRandomGenerator>
 #include "controller.h"
 #include "logger.h"
@@ -14,7 +13,9 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_databas
     m_password = getConfig()->value("server/password").toString();
 
     m_auth = m_username.isEmpty() || m_password.isEmpty() ? false : true;
+
     m_retained = {"device", "expose", "service", "status"};
+    m_types = {"css", "js", "json", "png", "svg", "woff2"};
 
     connect(m_database, &Database::statusUpdated, this, &Controller::statusUpdated);
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
@@ -47,7 +48,7 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
 void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
 {
     QFile file(QString(m_frontend).append(fileName));
-    QByteArray data;
+    QByteArray type, data;
 
     if (!file.exists())
     {
@@ -61,12 +62,23 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
         return;
     }
 
+    switch (m_types.indexOf(fileName.mid(fileName.lastIndexOf('.') + 1)))
+    {
+        case 0:  type = "text/css"; break;         // css
+        case 1:  type = "text/javascript"; break;  // js
+        case 2:  type = "application/json"; break; // json
+        case 3:  type = "image/png"; break;        // png
+        case 4:  type = "image/svg+xml"; break;    // svg
+        case 5:  type = "font/woff2"; break;       // woff2
+        default: type = "text/html"; break;
+    }
+
     data = file.readAll();
 
     if (fileName == "/index.html")
         data = QString(data).arg(SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"icon-enable\"></i> LOGOUT</span>" : QString()).toUtf8();
 
-    httpResponse(socket, 200, {{"Content-Type", QMimeDatabase().mimeTypeForFile(file.fileName()).name()}, {"Content-Length", QString::number(data.length())}}, data);
+    httpResponse(socket, 200, {{"Content-Type", type}, {"Content-Length", QString::number(data.length())}}, data);
     file.close();
 }
 

@@ -27,7 +27,7 @@ private:
     QString m_frontend, m_username, m_password;
     bool m_auth;
 
-    QList <QString> m_retained;
+    QList <QString> m_retained, m_types;
     QMap <QString, QJsonObject> m_messages;
 
     QList <QTcpSocket*> m_sockets;
