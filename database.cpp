@@ -60,7 +60,7 @@ void Database::write(void)
 
     if (m_file.write(data) != data.length())
     {
-        logWarning << "Database not stored, file" << m_file.fileName() << "open error:" << m_file.errorString();
+        logWarning << "Database not stored, file" << m_file.fileName() << "write error:" << m_file.errorString();
         check = false;
     }
 
