@@ -179,9 +179,6 @@ void Controller::readyRead(void)
         cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
     }
 
-    if (method == "POST")
-        logInfo << request;
-
     if (method == "POST" && headers.value("Content-Length").toInt() > content.length())
     {
         socket->read(request.length());
@@ -199,9 +196,6 @@ void Controller::readyRead(void)
 
     if (m_auth && !m_database->tokens().contains(cookies.value("homed-auth-token")) && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
     {
-
-        logInfo << "here" << method << url << content << items;
-
         if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
         {
             QByteArray buffer;

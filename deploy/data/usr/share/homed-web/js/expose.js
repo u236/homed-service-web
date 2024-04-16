@@ -102,7 +102,7 @@ function exposeList(expose, options)
             break;
 
         default:
-            list.push(expose);
+            list.push(part[0]);
             break;
     }
 
