@@ -34,10 +34,10 @@ class Dashboard
         return devices[list[1]] ?? new Object();
     }
 
-    itemExpose(item)
+    itemString(item, edit = true)
     {
         var device = this.findDevice(item);
-        return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.expose, item.endpoint.split('/')[2] ?? 'common');
+        return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' &rarr; ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
     }
 
     setIndex(index)
@@ -52,7 +52,7 @@ class Dashboard
         this.controller.clearPage('dashboard');
     }
 
-    addBlockItem(table, item)
+    addBlockExpose(table, item)
     {
         var row = table.insertRow();
         var titleCell = row.insertCell();
@@ -161,7 +161,7 @@ class Dashboard
                 return;
             }
 
-            dashboard.blocks.forEach((block, index) =>
+            dashboard.blocks.forEach((block, blockIndex) =>
             {
                 var element = document.createElement('div');
                 var table = document.createElement('table');
@@ -171,43 +171,57 @@ class Dashboard
                 element.classList.add('dashboardBlock');
                 element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
 
-                block.items.forEach(item =>
+                block.items.forEach((item, itemIndex) =>
                 {
-                    var row = this.addBlockItem(table, item);
-                    var list = item.endpoint.split('/');
-                    var endpoint = list[2] ?? 'common';
-                    var device;
-
-                    function wait(resolve)
+                    if (item.hasOwnProperty('expose'))
                     {
-                        device = this.findDevice(item);
+                        var row = this.addBlockExpose(table, item);
+                        var list = item.endpoint.split('/');
+                        var endpoint = list[2] ?? 'common';
+                        var device;
 
-                        if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
+                        function wait(resolve)
                         {
-                            setTimeout(wait.bind(this, resolve), 100);
-                            return;
+                            device = this.findDevice(item);
+
+                            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
+                            {
+                                setTimeout(wait.bind(this, resolve), 10);
+                                return;
+                            }
+
+                            resolve();
                         }
 
-                        resolve();
+                        new Promise(wait.bind(this)).then(function()
+                        {
+                            var option = device.options(endpoint)[item.expose] ?? new Object();
+                            var properties = device.properties(endpoint);
+
+                            if (device.items(endpoint).includes(item.expose))
+                                row.querySelector('td.name').addEventListener('click', function() { this.showItemModal(item, device, endpoint); }.bind(this));
+
+                            if (option.unit)
+                                row.querySelector("td.value").dataset.unit = option.unit;
+
+                            Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
+
+                        }.bind(this));
                     }
-
-                    new Promise(wait.bind(this)).then(function()
+                    else
                     {
-                        var option = device.options(endpoint)[item.expose] ?? new Object();
-                        var properties = device.properties(endpoint);
+                        var row = table.insertRow();
+                        var cell = row.insertCell();
 
-                        if (device.items(endpoint).includes(item.expose))
-                            row.querySelector('td.name').addEventListener('click', function() { this.showItemModal(item, device, endpoint); }.bind(this));
+                        cell.innerHTML = item.name + '<div><canvas id="dashboard-chart-' + blockIndex + '-' + itemIndex + '"></canvas></div>';
+                        cell.classList.add('chart');
+                        cell.colSpan = 2;
 
-                        if (option.unit)
-                            row.querySelector("td.value").dataset.unit = option.unit;
-
-                        Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
-
-                    }.bind(this));
+                        this.controller.recorder.chartQuery(item, cell);
+                    }
                 });
 
-                this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
+                this.content.querySelector('.column.' + (blockIndex < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
             });
         });
     }
@@ -389,7 +403,7 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = item.name + '<div class="note">' + this.itemExpose(item) + '</div>';
+                            cell.innerHTML = item.name + '<div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)) }.bind(this));
                             break;
@@ -469,7 +483,8 @@ class Dashboard
     showItemEdit(dashboard, block, item, callback)
     {
         var services = ['custom', 'modbus', 'zigbee'];
-        var exposes = new Object();
+        var recorder = this.controller.recorder;
+        var items = new Object();
 
         if (!item)
             item = {name: 'New item', add: true};
@@ -487,18 +502,31 @@ class Dashboard
 
                 Object.keys(device.endpoints).forEach(endpoint =>
                 {
-                    device.items(endpoint).forEach( expose =>
+                    device.items(endpoint).forEach(expose =>
                     {
                         var value = {endpoint: service + '/' + id, expose: expose};
 
                         if (endpoint != 'common')
                             value.endpoint += '/' + endpoint;
 
-                        exposes[device.info.name + ' &rarr; ' + exposeTitle(expose, endpoint)] = value;
+                        items['Device &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(expose, endpoint)] = value;
                     });
                 });
             });
         });
+
+        if (recorder.status.items && recorder.status.items.length)
+        {
+            recorder.status.items.forEach(item =>
+            {
+                var device = this.findDevice(item);
+
+                if (!device.info)
+                    return;
+
+                items['Recorder &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
+            });
+        }
 
         fetch('html/dashboard/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -507,13 +535,13 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name + ' &rarr; ' + item.name;
             modal.querySelector('input[name="name"]').value = item.name;
-            modal.querySelector('.expose').innerHTML = item.add ? '<i>Select expose there &rarr;</i>' : this.itemExpose(item);
+            modal.querySelector('.item').innerHTML = item.add ? '<i>Select item there &rarr;</i>' : this.itemString(item);
 
-            addDropdown(modal.querySelector('.dropdown'), Object.keys(exposes), function(key)
+            addDropdown(modal.querySelector('.dropdown'), Object.keys(items), function(key)
             {
-                data = exposes[key];
-                modal.querySelector('.expose').innerHTML = this.itemExpose(data);
-                modal.querySelector('.expose').classList.remove('error');
+                data = items[key];
+                modal.querySelector('.item').innerHTML = this.itemString(data);
+                modal.querySelector('.item').classList.remove('error');
 
             }.bind(this));
 
@@ -524,12 +552,22 @@ class Dashboard
                 if (data)
                 {
                     item.endpoint = data.endpoint;
-                    item.expose = data.expose;
+
+                    if (data.expose)
+                    {
+                        item.expose = data.expose;
+                        delete item.property;
+                    }
+                    else
+                    {
+                        item.property = data.property;
+                        delete item.expose;
+                    }
                 }
 
-                if (!item.endpoint || !item.expose)
+                if (!item.endpoint || (!item.expose && !item.property))
                 {
-                    modal.querySelector('.expose').classList.add('error');
+                    modal.querySelector('.item').classList.add('error');
                     return;
                 }
 
@@ -567,7 +605,7 @@ class Dashboard
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = item.name;
-            modal.querySelector('.note').innerHTML = this.itemExpose(item);
+            modal.querySelector('.note').innerHTML = this.itemString(item, false);
 
             table = modal.querySelector('table.exposes');
             addExpose(table, device, endpoint, item.expose);

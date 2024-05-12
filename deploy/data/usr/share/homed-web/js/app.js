@@ -57,10 +57,11 @@ class Socket
 
 class Controller
 {
-    services = {'dashboard': 'offline', 'automation': 'offline', 'custom': 'offline', 'zigbee': 'offline'};
+    services = {'dashboard': 'offline', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'custom': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
 
     dashboard = new Dashboard(this);
+    recorder = new Recorder(this);
     automation = new Automation(this);
     zigbee = new ZigBee(this);
     custom = new Custom(this);
@@ -71,8 +72,8 @@ class Controller
     {
         console.log('socket successfully connected');
         Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + (service != 'dashboard' ? service : 'web')); });
-        this.custom.devices = new Object();
         this.zigbee.devices = new Object();
+        this.custom.devices = new Object();
     }
 
     onclose()
@@ -94,10 +95,16 @@ class Controller
                 if (this.service == service)
                     this.clearPage(this.page, service + ' service is offline');
 
+                if (service == 'recorder')
+                    this.socket.unsubscribe('recorder');
+
                 this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == item; }).forEach(topic => { this.socket.unsubscribe(topic); });
             }
             else
             {
+                if (service == 'recorder')
+                    this.socket.subscribe('recorder');
+
                 this.socket.subscribe('status/' + list[1]);
                 this.socket.subscribe('event/' + list[1]);
             }
@@ -107,12 +114,19 @@ class Controller
             return;
         }
 
+        if (list[0] == 'recorder')
+        {
+            this.recorder.parseData(message);
+            return;
+        }
+
         switch (service)
         {
             case 'dashboard': this.dashboard.parseMessage(list, message); break;
+            case 'recorder': this.recorder.parseMessage(list, message); break;
             case 'automation': this.automation.parseMessage(list, message); break;
-            case 'custom': this.custom.parseMessage(list, message); break;
             case 'zigbee': this.zigbee.parseMessage(list, message); break;
+            case 'custom': this.custom.parseMessage(list, message); break;
         }
     }
 
@@ -152,9 +166,10 @@ class Controller
         switch (service)
         {
             case 'dashboard': this.dashboard.showMenu(); break;
+            case 'recorder': this.recorder.showMenu(); break;
             case 'automation': this.automation.showMenu(); break;
-            case 'custom': this.custom.showMenu(); break;
             case 'zigbee': this.zigbee.showMenu(); break;
+            case 'custom': this.custom.showMenu(); break;
         }
 
         this.service = service;
@@ -173,13 +188,15 @@ class Controller
 
         switch (page)
         {
+            case 'recorder':       this.recorder.showItemList(); break;
+            case 'recorderItem':   this.recorder.showItemInfo(); break;
             case 'automation':     this.automation.showAutomationList(); break;
             case 'automationInfo': this.automation.showAutomationInfo(); break;
-            case 'custom':         this.custom.showDeviceList(); break;
-            case 'customDevice':   this.custom.showDeviceInfo(); break;
             case 'zigbee':         this.zigbee.showDeviceList(); break;
             case 'zigbeeMap':      this.zigbee.showDeviceMap(); break;
             case 'zigbeeDevice':   this.zigbee.showDeviceInfo(); break;
+            case 'custom':         this.custom.showDeviceList(); break;
+            case 'customDevice':   this.custom.showDeviceInfo(); break;
             default:               this.dashboard.showDashboard(); break;
         }
     }
@@ -188,7 +205,7 @@ class Controller
     {
         var content = document.querySelector('.content .container');
 
-        content.innerHTML = '<div class="loader"></div><div class="center warning"></div>';
+        content.innerHTML = '<div class="pageLoader"></div><div class="center warning"></div>';
 
         if (warning)
         {
@@ -199,9 +216,10 @@ class Controller
         switch (this.service)
         {
             case 'dashboard': this.dashboard.status = new Object(); break;
+            case 'recorder': this.recorder.status = new Object(); break;
             case 'automation': this.automation.status = new Object(); break;
-            case 'custom': this.custom.devices = new Object(); break;
             case 'zigbee': this.zigbee.devices = new Object(); break;
+            case 'custom': this.custom.devices = new Object(); break;
         }
 
         this.setPage(name);
@@ -448,14 +466,14 @@ function deviceCommand(device, endpoint, data)
 {
     switch (device.service)
     {
-        case 'custom':
-            var item = controller.custom.names ? device.info.name : device.info.id;
-            controller.socket.publish('td/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
-            break;
-
         case 'zigbee':
             var item = controller.zigbee.names ? device.info.name : device.info.ieeeAddress;
             controller.socket.publish('td/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
+            break;
+
+        case 'custom':
+            var item = controller.custom.names ? device.info.name : device.info.id;
+            controller.socket.publish('td/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
             break;
     }
 }

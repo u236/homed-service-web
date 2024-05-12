@@ -211,18 +211,6 @@ body[theme="dark"] {
     white-space: nowrap;
 }
 
-.homed th:first-child, .homed td:first-child {
-    padding-left: 5px;
-}
-
-.homed th:last-child, .homed td:last-child {
-    padding-right: 5px;
-}
-
-.homed tr:first-child td {
-    border: none;
-}
-
 .homed td.edit {
     cursor: pointer;
 }
@@ -302,10 +290,19 @@ body[theme="dark"] {
     color: var(--color-shade);
 }
 
-.homed .loader {
+.homed .pageLoader {
     width: 20px;
     height: 20px;
     margin: 20px auto;
+    border: 2px solid var(--border-main);
+    border-top: 2px solid var(--border-loader);
+    border-radius: 50%;
+    animation: homedSpin 1s linear infinite;
+}
+
+.homed .dataLoader {
+    width: 10px;
+    height: 10px;
     border: 2px solid var(--border-main);
     border-top: 2px solid var(--border-loader);
     border-radius: 50%;
@@ -535,7 +532,7 @@ body[theme="dark"] {
 }
 
 .homed .dashboardData .column {
-    flex-grow: 1;
+    flex: 1;
     padding: 0 5px;
     min-width: 300px;
 }
@@ -568,7 +565,11 @@ body[theme="dark"] {
     border-top: 1px solid var(--border-main);
 }
 
-.homed .dashboardBlock td:last-child {
+.homed .dashboardBlock canvas {
+    max-width: 100%;
+}
+
+.homed .dashboardBlock .value {
     width: 1%;
     text-align: right;
 }
@@ -586,22 +587,6 @@ body[theme="dark"] {
     padding-bottom: 150px;
 }
 
-.homed .automationInfo table {
-    margin-bottom: 20px;
-}
-
-.homed .automationInfo td:first-child {
-    width: 100px;
-}
-
-.homed .automationInfo .title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 10px 5px 10px 4px;
-}
-
 .homed .automationInfo .title a {
     color: var(--color-shade);
 }
@@ -610,8 +595,65 @@ body[theme="dark"] {
     color: var(--color-main);
 }
 
-.homed .deviceInfo table {
+.homed .automationInfo td:first-child, .homed .itemInfo td:first-child {
+    width: 100px;
+}
+
+.homed .automationInfo table, .homed .itemInfo table, .homed .deviceInfo table {
     margin-bottom: 20px;
+}
+
+.homed .automationInfo .title, .homed .itemInfo .title, .homed .deviceInfo .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 10px 5px 10px 4px;
+}
+
+.homed .itemInfo .interval {
+    font-family: 'Roboto Mono';
+    font-size: 13px;
+    color: var(--color-shade);
+}
+
+.homed .itemInfo .interval span {
+    cursor: pointer;
+}
+
+.homed .itemInfo .interval span:hover {
+    color: var(--color-highlight);
+}
+
+.homed .itemInfo .status {
+    font-size: 0.8125rem;
+    color: var(--color-shade);
+}
+
+.homed .itemInfo .chart {
+    height: 300px;
+    margin: 0 3px;
+}
+
+.homed .itemInfo .log {
+    display: block;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.homed .itemInfo .log td:first-child {
+    width: 1%;
+}
+
+.homed .itemInfo .log .circle {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.homed .itemInfo .log .timestamp {
+    font-size: 0.8125rem;
+    color: var(--color-shade);
 }
 
 .homed .deviceInfo .summary tr {
@@ -626,16 +668,6 @@ body[theme="dark"] {
 .homed .deviceInfo td:last-child {
     font-family: 'Roboto Mono';
     font-size: 13px;
-}
-
-.homed .deviceInfo .title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 10px 5px 10px 4px;
-    font-size: 1.25em;
-    font-weight: 700;
 }
 
 .homed .deviceMap svg {
@@ -734,6 +766,18 @@ body[theme="dark"] {
     font-size: 1.25rem;
     font-weight: 700;
     white-space: nowrap;
+}
+
+.homed th:first-child, .homed td:first-child {
+    padding-left: 5px;
+}
+
+.homed th:last-child, .homed td:last-child {
+    padding-right: 5px;
+}
+
+.homed tr:first-child td {
+    border: none;
 }
 
 .homed #modal {
