@@ -80,7 +80,7 @@ class Automation
         if (form)
             return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
 
-        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common') + '</span>'
+        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, device.info ? item.endpoint.split('/')[2] ?? 'common' : 'common') + '</span>'
     }
 
     handleCopy(item, list, append)
@@ -458,7 +458,7 @@ class Automation
                 if (!item.conditions)
                     item.conditions = new Array();
 
-                row.addEventListener('click', function() { this.data = JSON.parse(JSON.stringify(item)); this.name = item.name; this.showAutomationInfo(); }.bind(this));
+                row.addEventListener('click', function() { this.data = item; this.name = item.name; this.showAutomationInfo(); }.bind(this));
 
                 for (var i = 0; i < 6; i++)
                 {

@@ -363,7 +363,7 @@ class ZigBee
             });
 
             node.select('path').on('mouseleave', function() { text.attr('display', 'block'); link.attr('display', 'block').classed('highlight', false); });
-            //node.select('text').on('click', function(d) { this.device = this.status.devices.filter(i => i.networkAddress == d.id)[0]; this.showDeviceInfo(); }.bind(this));
+            node.select('text').on('click', function(d) { this.showDeviceInfo(Object.values(this.devices).filter(i => i.info.networkAddress == d.id)[0]); }.bind(this));
 
             drag.on('start', function(d) { if (!d3.event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; });
             drag.on('drag', function(d) { d.fx = d3.event.x; d.fy = d3.event.y; });

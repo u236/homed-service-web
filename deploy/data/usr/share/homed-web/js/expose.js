@@ -1,6 +1,6 @@
 var colorPicker;
 
-function exposeTitle(name, endpoint)
+function exposeTitle(name, endpoint = 'common')
 {
     var title = name.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
