@@ -378,10 +378,10 @@ class Recorder
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + this.data.debounce + '</span> seconds';
             this.content.querySelector('.threshold').innerHTML = '<span class="value">' + this.data.threshold + '</span>';
 
-            this.content.querySelector('.interval').querySelectorAll('span').forEach(item => item.addEventListener('click', function()
+            this.content.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
             {
                 this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                this.chartQuery(this.data, chart, item.innerHTML);
+                this.chartQuery(this.data, chart, element.innerHTML);
 
             }.bind(this)));
 

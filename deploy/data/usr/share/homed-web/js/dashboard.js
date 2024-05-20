@@ -199,7 +199,7 @@ class Dashboard
                             var properties = device.properties(endpoint);
 
                             if (device.items(endpoint).includes(item.expose))
-                                row.querySelector('td.name').addEventListener('click', function() { this.showItemModal(item, device, endpoint); }.bind(this));
+                                row.querySelector('td.name').addEventListener('click', function() { this.showExposeModal(item, device, endpoint); }.bind(this));
 
                             if (option.unit)
                                 row.querySelector("td.value").dataset.unit = option.unit;
@@ -217,6 +217,7 @@ class Dashboard
                         cell.classList.add('chart');
                         cell.colSpan = 2;
 
+                        row.addEventListener('click', function() { this.showRecorderModal(item); }.bind(this));
                         this.controller.recorder.chartQuery(item, cell);
                     }
                 });
@@ -597,9 +598,9 @@ class Dashboard
         });
     }
 
-    showItemModal(item, device, endpoint)
+    showExposeModal(item, device, endpoint)
     {
-        fetch('html/dashboard/itemModal.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/dashboard/exposeModal.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var table;
 
@@ -616,6 +617,32 @@ class Dashboard
             modal.querySelector('.device').addEventListener('click', function() { this.controller[device.service].showDeviceInfo(device); showModal(false); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
+            showModal(true);
+        });
+    }
+
+    showRecorderModal(item)
+    {
+        fetch('html/dashboard/recorderModal.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var chart;
+
+            modal.querySelector('.data').innerHTML = html;
+            chart = modal.querySelector('.chart');
+
+            modal.querySelector('.name').innerHTML = item.name;
+            modal.querySelector('.note').innerHTML = this.itemString(item, false);
+
+            modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
+            {
+                modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                this.controller.recorder.chartQuery(item, chart, element.innerHTML);
+
+            }.bind(this)));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.controller.recorder.chartQuery(item, chart);
             showModal(true);
         });
     }
