@@ -21,6 +21,20 @@ class Recorder
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
     }
 
+    timestampString(timestamp, seconds = true, interval = false)
+    {
+        var date = new Date(timestamp);
+        var data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+
+        if (seconds)
+            data += ':' + ('0' + date.getSeconds()).slice(-2);
+
+        if (interval)
+            data += ' (' + timeInterval((Date.now() - timestamp) / 1000) + ')';
+
+        return data;
+    }
+
     findDevice(item)
     {
         var list = item.endpoint.split('/');
@@ -83,6 +97,7 @@ class Recorder
         var chart = Chart.getChart(canvas);
         var datasets = new Array();
         var numeric = true;
+        var average = false;
         var options;
 
         if (!canvas)
@@ -134,7 +149,7 @@ class Recorder
             if (numeric)
             {
                 var data = new Array();
-                message.timestamp.forEach((timestamp, index) => { data.push({x: timestamp, y: message.value[index]}); });
+                message.timestamp.forEach((timestamp, index) => { data.push({x: timestamp, y: Number(parseFloat(message.value[index]).toFixed(2)) }); });
                 data.push({x: options.scales.x.max, y: data[data.length - 1].y});
                 datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true});
             }
@@ -170,14 +185,29 @@ class Recorder
 
             message.timestamp.forEach((timestamp, index) => // TODO: check for empty hours?
             {
-                avg.push({x: timestamp, y: message.avg[index]});
-                min.push({x: timestamp, y: message.min[index]});
-                max.push({x: timestamp, y: message.max[index]});
+                var avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2));
+                var minTooltip = 'min: ' + Number(message.min[index].toFixed(2));
+                var maxTooltip = 'max: ' + Number(message.max[index].toFixed(2));
+
+                if (message.min[index] != message.max[index])
+                {
+                    var tooltip = new Array(avgTooltip, minTooltip, maxTooltip);
+                    avgTooltip = tooltip;
+                    minTooltip = tooltip;
+                    maxTooltip = tooltip;
+                }
+
+                avg.push({x: timestamp, y: message.avg[index], tooltip: avgTooltip});
+                min.push({x: timestamp, y: message.min[index], tooltip: minTooltip});
+                max.push({x: timestamp, y: message.max[index], tooltip: maxTooltip});
+
             });
 
             datasets.push({data: avg, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0});
             datasets.push({data: min, borderWidth: 0, backgroundColor: this.color.area, pointRadius: 0, fill: '-1'});
             datasets.push({data: max, borderWidth: 0, backgroundColor: this.color.area, pointRadius: 0, fill: '-2'});
+
+            average = true;
         }
 
         if (numeric)
@@ -193,7 +223,8 @@ class Recorder
                 caretPadding: 10,
                 displayColors: false,
                 xAlign: 'center',
-                yAlign: 'bottom'
+                yAlign: 'bottom',
+                callbacks: {title: (context) => this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true)}
             };
             options.scales.y =
             {
@@ -201,6 +232,9 @@ class Recorder
                 border: {display: false},
                 grid: {color: this.color.grid}
             };
+
+            if (average)
+                options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; }
 
             new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
         }
@@ -217,7 +251,7 @@ class Recorder
                 xAlign: 'center',
                 yAlign: 'top',
                 position: 'custom',
-                callbacks: {title: (context) => context[0].dataset.label, label: (context) => new Date(context.dataset.timestamp).toLocaleString('RU')}
+                callbacks: {title: (context) => this.timestampString(context[0].dataset.timestamp), label: (context) => context.dataset.label}
             }
             options.scales.y =
             {
@@ -236,7 +270,7 @@ class Recorder
                     var recordCell = row.insertCell();
 
                     circleCell.innerHTML = '<div class="circle"></div>';
-                    recordCell.innerHTML = record.label + '<div class="timestamp">' + new Date(record.timestamp).toLocaleString('RU') + ' (' + timeInterval((Date.now() - record.timestamp) / 1000) + ')</div>';
+                    recordCell.innerHTML = record.label + '<div class="timestamp">' +  this.timestampString(record.timestamp, true, true) + '</div>';
 
                     circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
                 });
