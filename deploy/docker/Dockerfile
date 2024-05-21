@@ -5,4 +5,4 @@ RUN     ln -s /data/homed-web.conf /etc/homed/homed-web.conf
 RUN     ln -s /data/homed.log /var/log/homed.log
 ADD     share /usr/share/homed-web
 COPY    homed-web-$TARGETARCH /usr/bin/homed-web
-CMD     ["/usr/bin/homed-web"]
+CMD     /usr/bin/homed-web

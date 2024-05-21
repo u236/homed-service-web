@@ -567,6 +567,7 @@ body[theme="dark"] {
 
 .homed .dashboardBlock canvas {
     max-width: 100%;
+    max-height: 150px;
 }
 
 .homed .dashboardBlock .value {
