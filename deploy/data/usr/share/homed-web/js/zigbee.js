@@ -153,11 +153,6 @@ class ZigBee
                 {
                     var item = this.names ? device.info.name : device.info.ieeeAddress;
 
-                    if (!message.common)
-                        message.common = {items: new Array()};
-
-                    message.common.items.push('linkQuality');
-
                     Object.keys(message).forEach(endpoint =>
                     {
                         this.controller.socket.subscribe('fd/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item));
@@ -434,6 +429,7 @@ class ZigBee
             }
 
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+            addExpose(table, device, 'common', 'linkQuality');
         });
     }
 
