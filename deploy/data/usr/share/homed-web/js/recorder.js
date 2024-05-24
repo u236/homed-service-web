@@ -2,6 +2,7 @@ class Recorder
 {
     content = document.querySelector('.content .container');
     status = new Object();
+    data = new Object();
 
     constructor(controller)
     {
@@ -392,11 +393,91 @@ class Recorder
 
     showItemEdit(add = false)
     {
-        console.log('edit');
+        fetch('html/recorder/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var name;
+            var data;
+
+            modal.querySelector('.data').innerHTML = html;
+            name = modal.querySelector('.name');
+
+            if (add)
+            {
+                var properties = this.controller.propertiesList();
+
+                this.data = new Object();
+                name.innerHTML = 'New item';
+
+                addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
+                {
+                    data = properties[key];
+                    modal.querySelector('.property').innerHTML = key;
+                    modal.querySelector('.property').classList.remove('error');
+
+                }.bind(this));
+
+                modal.querySelector('.add').style.display = 'block';
+            }
+            else
+            {
+                name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+                this.devicePromise(this.data, name);
+            }
+
+            modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
+            modal.querySelector('input[name="threshold"]').value = this.data.threshold ?? 0;
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                var form = formData(modal.querySelector('form'));
+
+                if (add)
+                {
+                    if (data)
+                    {
+                        this.data.endpoint = data.endpoint;
+                        this.data.property = data.property;
+                    }
+
+                    if (!this.data.endpoint || !this.data.property)
+                    {
+                        modal.querySelector('.property').classList.add('error');
+                        return;
+                    }
+                }
+
+                this.data.debounce = parseInt(form.debounce);
+                this.data.threshold = parseInt(form.threshold);
+
+                this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
+                this.controller.clearPage('recorder'); // TODO: handle events
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            modal.removeEventListener('keypress', handleSave);
+            modal.addEventListener('keypress', handleSave);
+
+            showModal(true);
+        });
     }
 
     showItemRemove()
     {
-        console.log('remove');
+        fetch('html/recorder/itemRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var name;
+
+            modal.querySelector('.data').innerHTML = html;
+            name = modal.querySelector('.name');
+            name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+
+            modal.querySelector('.remove').addEventListener('click', function(){ this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage('recorder'); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.devicePromise(this.data, name);
+            showModal(true);
+        });
     }
 }

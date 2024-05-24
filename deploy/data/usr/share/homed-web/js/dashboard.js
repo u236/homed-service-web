@@ -199,7 +199,7 @@ class Dashboard
                             var properties = device.properties(endpoint);
 
                             if (device.items(endpoint).includes(item.expose))
-                                row.querySelector('td.name').addEventListener('click', function() { this.showExposeModal(item, device, endpoint); }.bind(this));
+                                row.querySelector('td.name').addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this));
 
                             if (option.unit)
                                 row.querySelector("td.value").dataset.unit = option.unit;
@@ -217,7 +217,7 @@ class Dashboard
                         cell.classList.add('chart');
                         cell.colSpan = 2;
 
-                        row.addEventListener('click', function() { this.showRecorderModal(item); }.bind(this));
+                        row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
                         this.controller.recorder.chartQuery(item, cell);
                     }
                 });
@@ -598,9 +598,9 @@ class Dashboard
         });
     }
 
-    showExposeModal(item, device, endpoint)
+    showExposeInfo(item, device, endpoint)
     {
-        fetch('html/dashboard/exposeModal.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/dashboard/exposeInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var table;
 
@@ -621,9 +621,9 @@ class Dashboard
         });
     }
 
-    showRecorderModal(item)
+    showRecorderInfo(item)
     {
-        fetch('html/dashboard/recorderModal.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/dashboard/recorderInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             var chart;
 

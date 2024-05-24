@@ -664,40 +664,9 @@ class Automation
 
     showPropertyItem(item, list, statements, append, type)
     {
-        var services = ['custom', 'modbus', 'zigbee'];
-        var properties = new Object();
-
-        services.forEach(service =>
-        {
-            var devices = this.controller[service].devices ?? new Object();
-
-            if (!Object.keys(devices))
-                return;
-
-            Object.keys(devices).forEach(id =>
-            {
-                var device = devices[id];
-
-                Object.keys(device.endpoints).forEach(endpoint =>
-                {
-                    device.items(endpoint).forEach( expose =>
-                    {
-                        exposeList(expose, device.options(endpoint)).forEach(property =>
-                        {
-                            var value = {endpoint: service + '/' + id, property: property}
-
-                            if (endpoint != 'common')
-                                value.endpoint += '/' + endpoint;
-
-                            properties[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
-                        });
-                    });
-                });
-            });
-        });
-
         fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            var properties = this.controller.propertiesList();
             var data;
 
             modal.querySelector('.data').innerHTML = html;

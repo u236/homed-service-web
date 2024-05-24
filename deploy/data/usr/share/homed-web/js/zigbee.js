@@ -200,7 +200,7 @@ class ZigBee
                 return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
 
             case 'logicalType': return this.logicalType[value];
-            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 0 && value != 3 ? 'plug' : 'battery') + '"></i>' : empty;
+            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' : empty;
 
             case 'manufacturerCode':
             case 'networkAddress':

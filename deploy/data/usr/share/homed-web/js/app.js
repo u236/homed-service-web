@@ -248,6 +248,43 @@ class Controller
         setTimeout(function() { toast.removeChild(item); }, 200);
         item.classList.add('fade-out');
     }
+
+    propertiesList()
+    {
+        var services = ['custom', 'modbus', 'zigbee'];
+        var list = new Object();
+
+        services.forEach(service =>
+        {
+            var devices = this[service].devices ?? new Object();
+
+            if (!Object.keys(devices))
+                return;
+
+            Object.keys(devices).forEach(id =>
+            {
+                var device = devices[id];
+
+                Object.keys(device.endpoints).forEach(endpoint =>
+                {
+                    device.items(endpoint).forEach( expose =>
+                    {
+                        exposeList(expose, device.options(endpoint)).forEach(property =>
+                        {
+                            var value = {endpoint: service + '/' + id, property: property}
+
+                            if (endpoint != 'common')
+                                value.endpoint += '/' + endpoint;
+
+                            list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
+                        });
+                    });
+                });
+            });
+        });
+
+        return list;
+    }
 }
 
 class Device
