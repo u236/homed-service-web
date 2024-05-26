@@ -447,7 +447,7 @@ class Recorder
                 }
 
                 this.data.debounce = parseInt(form.debounce);
-                this.data.threshold = parseInt(form.threshold);
+                this.data.threshold = parseFloat(form.threshold);
 
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
                 this.controller.clearPage('recorder'); // TODO: handle events
