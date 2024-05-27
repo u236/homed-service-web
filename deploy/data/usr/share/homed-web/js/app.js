@@ -57,22 +57,24 @@ class Socket
 
 class Controller
 {
-    services = {'dashboard': 'offline', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'custom': 'offline'};
+    services = {'dashboard': 'offline', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'modbus': 'offline', 'custom': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
 
     dashboard = new Dashboard(this);
     recorder = new Recorder(this);
     automation = new Automation(this);
-    zigbee = new ZigBee(this);
-    custom = new Custom(this);
 
-    modbus = {devices: new Object()}; // for future purposes
+    zigbee = new ZigBee(this);
+    modbus = new Modbus(this);
+    custom = new Custom(this);
 
     onopen()
     {
         console.log('socket successfully connected');
         Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + (service != 'dashboard' ? service : 'web')); });
+
         this.zigbee.devices = new Object();
+        this.modbus.devices = new Object();
         this.custom.devices = new Object();
     }
 
@@ -126,6 +128,7 @@ class Controller
             case 'recorder': this.recorder.parseMessage(list, message); break;
             case 'automation': this.automation.parseMessage(list, message); break;
             case 'zigbee': this.zigbee.parseMessage(list, message); break;
+            case 'modbus': this.modbus.parseMessage(list, message); break;
             case 'custom': this.custom.parseMessage(list, message); break;
         }
     }
@@ -169,6 +172,7 @@ class Controller
             case 'recorder': this.recorder.showMenu(); break;
             case 'automation': this.automation.showMenu(); break;
             case 'zigbee': this.zigbee.showMenu(); break;
+            case 'modbus': this.modbus.showMenu(); break;
             case 'custom': this.custom.showMenu(); break;
         }
 
@@ -189,14 +193,10 @@ class Controller
         switch (page)
         {
             case 'recorder':       this.recorder.showItemList(); break;
-            case 'recorderItem':   this.recorder.showItemInfo(); break;
             case 'automation':     this.automation.showAutomationList(); break;
-            case 'automationInfo': this.automation.showAutomationInfo(); break;
             case 'zigbee':         this.zigbee.showDeviceList(); break;
-            case 'zigbeeMap':      this.zigbee.showDeviceMap(); break;
-            case 'zigbeeDevice':   this.zigbee.showDeviceInfo(); break;
+            case 'modbus':         this.modbus.showDeviceList(); break;
             case 'custom':         this.custom.showDeviceList(); break;
-            case 'customDevice':   this.custom.showDeviceInfo(); break;
             default:               this.dashboard.showDashboard(); break;
         }
     }
@@ -219,6 +219,7 @@ class Controller
             case 'recorder': this.recorder.status = new Object(); break;
             case 'automation': this.automation.status = new Object(); break;
             case 'zigbee': this.zigbee.devices = new Object(); break;
+            case 'modbus': this.modbus.devices = new Object(); break;
             case 'custom': this.custom.devices = new Object(); break;
         }
 
@@ -457,8 +458,6 @@ class DeviceService
 
     showDeviceInfo(device)
     {
-        console.log(this.devices);
-
         this.controller.setService(this.service);
         this.controller.setPage(this.service + 'Device');
 
