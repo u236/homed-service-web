@@ -116,25 +116,69 @@ class Recorder
         if (!message.timestamp.length) // TODO: use canvas placeholder here
             return;
 
-        options =
-        {
-            animation: false,
-            maintainAspectRatio: false,
-            plugins: {legend: {display: false}},
-            scales:
+            options =
             {
-                x:
+                aspectRatio: 1.5,
+                animation: { duration: 0 },
+                responsive: true,
+                maintainAspectRatio: false,
+                showLines: true,
+            
+                plugins:
                 {
-                    type: 'time',
-                    time: {unit: 'hour', displayFormats: {hour: 'HH:mm'}},
-                    ticks: {maxRotation: 0, major: {enabled: true}, font: (context) => context.tick && context.tick.major ? {weight: 'bold'} : new Object()},
-                    min: new Date(parseInt(canvas.dataset.start)),
-                    max: new Date(),
-                    border: {display: false},
-                    grid: {color: (context) => context.tick && context.tick.major ? this.color.major : this.color.grid},
+                    legend: { display: false },
+            
+                    zoom: {
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                            },],
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: "x",
+                            speed: 10,
+                            threshold: 10
+                        },
+                        zoom: {
+                            wheel: { enabled: true },
+                            drag: { enabled: true },
+                            pinch: { enabled: true },
+                            drag: false,
+                            speed: 0.01,
+                            sensitivity: 0.1,
+                            limits: {
+                                max: 10,
+                                min: 0.5
+                            },
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            mode: 'x',
+                            onZoomComplete({ chart }) {
+            
+                                chart.update('none');
+                            }
+                        },
+                    }
+                },
+                scales:
+                {
+                    x:
+                    {
+                        type: 'time',
+                        time: { unit: 'hour', displayFormats: { hour: 'HH:mm' } },
+                        ticks: { maxRotation: 0, major: { enabled: true }, font: (context) => context.tick && context.tick.major ? { weight: 'bold' } : new Object() },
+                        min: new Date(parseInt(canvas.dataset.start)),
+                        max: new Date(),
+                        border: { display: false },
+                        grid: { color: (context) => context.tick && context.tick.major ? this.color.major : this.color.grid },
+                    }
                 }
-            }
-        };
+            };
 
         if (message.hasOwnProperty('value'))
         {
@@ -152,7 +196,7 @@ class Recorder
                 var data = new Array();
                 message.timestamp.forEach((timestamp, index) => { data.push({x: timestamp, y: Number(parseFloat(message.value[index]).toFixed(2)) }); });
                 data.push({x: options.scales.x.max, y: data[data.length - 1].y});
-                datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true});
+                datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true, fill: true, lineTension: 0.3,cubicInterpolationMode: "monotone",backgroundColor: "rgba(17, 209, 247, .06)",});
             }
             else
             {
