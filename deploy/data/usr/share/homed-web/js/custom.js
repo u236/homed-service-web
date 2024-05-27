@@ -1,157 +1,55 @@
-class Custom
+class Custom extends DeviceService
 {
-    content = document.querySelector('.content .container');
-    devices = new Object();
-
     constructor(controller)
     {
-        this.controller = controller;
+        super(controller, 'custom');
     }
 
     parseMessage(list, message)
     {
-        switch (list[0])
+        if (list[0] == 'status')
         {
-            case 'status':
+            var check = false;
 
-                var check = false;
+            this.names = message.names;
+            this.version = message.version;
 
-                this.names = message.names;
-                this.version = message.version;
+            message.devices.forEach(device =>
+            {
+                if (!device.name)
+                    device.name = device.id;
 
-                message.devices.forEach(device =>
+                if (!this.devices[device.id])
                 {
-                    if (!device.name)
-                        device.name = device.id;
-
-                    if (!this.devices[device.id])
-                    {
-                        this.devices[device.id] = new Device('custom', device.id);
-                        this.controller.socket.subscribe('expose/custom/' + (this.names ? device.name : device.id));
-                        check = true;
-                    }
-
-                    this.devices[device.id].info = device;
-                });
-
-                Object.keys(this.devices).forEach(id =>
-                {
-                    if (message.devices.filter(device => device.id == id).length)
-                        return;
-
-                    delete this.devices[id];
+                    this.devices[device.id] = new Device('custom', device.id);
+                    this.controller.socket.subscribe('expose/custom/' + (this.names ? device.name : device.id));
                     check = true;
-                });
-
-                if (this.controller.service == 'custom')
-                {
-                    if (check)
-                        this.showDeviceList();
-
-                    document.querySelector('#serviceVersion').innerHTML = 'Custom ' + this.version;
                 }
 
-                break;
+                this.devices[device.id].info = device;
+            });
 
-            case 'event':
+            Object.keys(this.devices).forEach(id =>
+            {
+                if (message.devices.filter(device => device.id == id).length)
+                    return;
 
-                var html = 'Device <b>' + message.device + '</b> ';
+                delete this.devices[id];
+                check = true;
+            });
 
-                if (message.event == 'added' || message.event == 'updated')
-                    this.controller.clearPage('custom');
+            if (this.controller.service == 'custom')
+            {
+                if (check)
+                    this.showDeviceList();
 
-                switch (message.event)
-                {
-                    case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); return;
-                    case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
-                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
-                    case 'added':          this.controller.showToast(html + 'successfully added'); return;
-                    case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
-                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
-                }
+                document.querySelector('#serviceVersion').innerHTML = 'Custom ' + this.version;
+            }
 
-                break;
-
-            case 'device':
-
-                var device = this.findDevice(list[2]);
-
-                if (device && message)
-                {
-                    var row = document.querySelector('tr[data-device="' + device.info.id + '"]');
-
-                    device.info.lastSeen = message.lastSeen;
-
-                    if (this.controller.page == 'custom' && row)
-                    {
-                        row.classList.remove('online', 'offline', 'inactive');
-
-                        if (device.info.active)
-                        {
-                            row.classList.add(message.status);
-                            row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
-                        }
-                        else
-                        {
-                            row.classList.add('inactive');
-                            row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
-                        }
-                    }
-                }
-
-                break;
-
-            case 'expose':
-
-                var device = this.findDevice(list[2]);
-
-                if (device && message)
-                {
-                    var item = this.names ? device.info.name : device.info.id;
-
-                    Object.keys(message).forEach(endpoint =>
-                    {
-                        this.controller.socket.subscribe('fd/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item));
-                        device.setExposes(endpoint, message[endpoint]);
-                    });
-
-                    this.controller.socket.publish('command/custom', {action: 'getProperties', device: item, service: 'web'});
-                }
-
-                break;
-
-            case 'fd':
-
-                var device = this.findDevice(list[2]);
-
-                if (device)
-                {
-                    var endpoint = list[3] ?? 'common';
-                    device.setProperties(endpoint, message);
-                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
-                }
-
-                break;
+            return;
         }
-    }
 
-    parseValue(key, value)
-    {
-        switch (key)
-        {
-            case 'active':
-            case 'cloud':
-            case 'discovery':
-            case 'real':
-                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
-
-            default: return value;
-        }
-    }
-
-    findDevice(item)
-    {
-        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
+        super.parseMessage(list, message);
     }
 
     showMenu()
@@ -227,48 +125,6 @@ class Custom
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('customSort', this.dataset.index); }) );
             sortTable(table, localStorage.getItem('customSort') ?? 0, false);
-        });
-    }
-
-    showDeviceInfo(device)
-    {
-        this.controller.setService('custom');
-        this.controller.setPage('customDevice');
-
-        fetch('html/custom/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            var table;
-
-            this.content.innerHTML = html;
-            table = this.content.querySelector('table.exposes');
-
-            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
-            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
-
-            Object.keys(device.info).forEach(key =>
-            {
-                var cell = document.querySelector('.' + key);
-                var row = cell ? cell.closest('tr') : undefined;
-
-                if (key == 'exposes')
-                    return;
-
-                if (cell)
-                    cell.innerHTML = this.parseValue(key, device.info[key]);
-
-                if (!row)
-                    return;
-
-                row.style.display = 'table-row';
-            });
-
-            if (!device.info.active)
-            {
-                this.content.querySelector('.exposes').style.display = 'none';
-                return;
-            }
-
-            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
         });
     }
 

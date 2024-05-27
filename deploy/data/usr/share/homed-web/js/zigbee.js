@@ -1,13 +1,11 @@
-class ZigBee
+class ZigBee extends DeviceService
 {
     logicalType = ['coordinator', 'router', 'end device'];
-    content = document.querySelector('.content .container');
-    devices = new Object();
 
     constructor(controller)
     {
+        super(controller, 'zigbee');
         setInterval(function() { this.updateLastSeen(); }.bind(this), 100);
-        this.controller = controller;
     }
 
     updateLastSeen()
@@ -116,54 +114,6 @@ class ZigBee
 
                 break;
 
-            case 'device':
-
-                var device = this.findDevice(list[2]);
-
-                if (device && message)
-                {
-                    var row = document.querySelector('tr[data-device="' + device.info.ieeeAddress + '"]');
-
-                    device.info.lastSeen = message.lastSeen;
-
-                    if (this.controller.page == 'zigbee' && row)
-                    {
-                        row.classList.remove('online', 'offline', 'inactive');
-
-                        if (device.info.active)
-                        {
-                            row.classList.add(message.status);
-                            row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
-                        }
-                        else
-                        {
-                            row.classList.add('inactive');
-                            row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
-                        }
-                    }
-                }
-
-                break;
-
-            case 'expose':
-
-                var device = this.findDevice(list[2]);
-
-                if (device && message)
-                {
-                    var item = this.names ? device.info.name : device.info.ieeeAddress;
-
-                    Object.keys(message).forEach(endpoint =>
-                    {
-                        this.controller.socket.subscribe('fd/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item));
-                        device.setExposes(endpoint, message[endpoint]);
-                    });
-
-                    this.controller.socket.publish('command/zigbee', {action: 'getProperties', device: item, service: 'web'});
-                }
-
-                break;
-
             case 'fd':
 
                 var device = this.findDevice(list[2]);
@@ -185,6 +135,10 @@ class ZigBee
                 }
 
                 break;
+
+            default:
+                super.parseMessage(list, message);
+                break;
         }
     }
 
@@ -192,13 +146,6 @@ class ZigBee
     {
         switch (key)
         {
-            case 'active':
-            case 'cloud':
-            case 'discovery':
-            case 'interviewFinished':
-            case 'supported':
-                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
-
             case 'logicalType': return this.logicalType[value];
             case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' : empty;
 
@@ -206,13 +153,8 @@ class ZigBee
             case 'networkAddress':
                 return '0x' + ('0000' + value.toString(16)).slice(-4);
 
-            default: return value;
+            default: return super.parseValue(key, value);
         }
-    }
-
-    findDevice(item)
-    {
-        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
     }
 
     showMenu()

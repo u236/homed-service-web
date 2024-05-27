@@ -251,7 +251,7 @@ class Controller
 
     propertiesList()
     {
-        var services = ['custom', 'modbus', 'zigbee'];
+        var services = ['zigbee', 'modbus', 'custom'];
         var list = new Object();
 
         services.forEach(service =>
@@ -333,6 +333,170 @@ class Device
     setProperties(endpoint, properties)
     {
         this.endpoint(endpoint).properties = properties;
+    }
+}
+
+class DeviceService
+{
+    content = document.querySelector('.content .container');
+    devices = new Object();
+
+    constructor(controller, service)
+    {
+        this.controller = controller;
+        this.service = service;
+    }
+
+    parseMessage(list, message)
+    {
+        switch (list[0])
+        {
+            case 'event':
+
+            var html = 'Device <b>' + message.device + '</b> ';
+
+            if (message.event == 'added' || message.event == 'updated')
+                this.controller.clearPage('custom');
+
+            switch (message.event)
+            {
+                case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); return;
+                case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
+                case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
+                case 'added':          this.controller.showToast(html + 'successfully added'); return;
+                case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
+                case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
+            }
+
+            break;
+
+        case 'device':
+
+            var device = this.findDevice(list[2]);
+
+            if (device && message)
+            {
+                var row = document.querySelector('tr[data-device="' + device.id + '"]');
+
+                if (message.lastSeen)
+                    device.info.lastSeen = message.lastSeen;
+
+                if (this.controller.page == this.service && row)
+                {
+                    row.classList.remove('online', 'offline', 'inactive');
+
+                    if (device.info.active)
+                    {
+                        row.classList.add(message.status);
+                        row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
+                    }
+                    else
+                    {
+                        row.classList.add('inactive');
+                        row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
+                    }
+                }
+            }
+
+            break;
+
+        case 'expose':
+
+            var device = this.findDevice(list[2]);
+
+            if (device && message)
+            {
+                var item = this.names ? device.info.name : device.id;
+
+                Object.keys(message).forEach(endpoint =>
+                {
+                    this.controller.socket.subscribe('fd/' + this.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item));
+                    device.setExposes(endpoint, message[endpoint]);
+                });
+
+                this.controller.socket.publish('command/' + this.service, {action: 'getProperties', device: item, service: 'web'});
+            }
+
+            break;
+
+        case 'fd':
+
+            var device = this.findDevice(list[2]);
+
+            if (device)
+            {
+                var endpoint = list[3] ?? 'common';
+                device.setProperties(endpoint, message);
+                Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+            }
+
+            break;
+        }
+    }
+
+    parseValue(key, value)
+    {
+        switch (key)
+        {
+            case 'active':
+            case 'cloud':
+            case 'discovery':
+            case 'interviewFinished':
+            case 'real':
+            case 'supported':
+                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
+
+            default: return value;
+        }
+    }
+
+    findDevice(item)
+    {
+        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
+    }
+
+    showDeviceInfo(device)
+    {
+        console.log(this.devices);
+
+        this.controller.setService(this.service);
+        this.controller.setPage(this.service + 'Device');
+
+        fetch('html/' + this.service + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            var table;
+
+            this.content.innerHTML = html;
+            table = this.content.querySelector('table.exposes');
+
+            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
+            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
+
+            Object.keys(device.info).forEach(key =>
+            {
+                var cell = document.querySelector('.' + key);
+                var row = cell ? cell.closest('tr') : undefined;
+
+                if (key == 'exposes')
+                    return;
+
+                if (cell)
+                    cell.innerHTML = this.parseValue(key, device.info[key]);
+
+                if (!row)
+                    return;
+
+                row.style.display = 'table-row';
+            });
+
+            if (!device.info.active)
+            {
+                this.content.querySelector('.exposes').style.display = 'none';
+                return;
+            }
+
+            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+        });
     }
 }
 
@@ -501,16 +665,6 @@ function timeInterval(interval)
 
 function deviceCommand(device, endpoint, data)
 {
-    switch (device.service)
-    {
-        case 'zigbee':
-            var item = controller.zigbee.names ? device.info.name : device.info.ieeeAddress;
-            controller.socket.publish('td/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
-            break;
-
-        case 'custom':
-            var item = controller.custom.names ? device.info.name : device.info.id;
-            controller.socket.publish('td/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
-            break;
-    }
+    var item = controller[device.service].names ? device.info.name : device.id;
+    controller.socket.publish('td/' + device.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
 }
