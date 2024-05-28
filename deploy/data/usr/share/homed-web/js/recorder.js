@@ -20,6 +20,7 @@ class Recorder
         };
 
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
+        setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { this.dataRequest(canvas); }); }.bind(this), 5000);
     }
 
     timestampString(timestamp, seconds = true, interval = false)
@@ -69,12 +70,11 @@ class Recorder
         new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' &rarr; ' + exposeTitle(item.property, endpoint); }.bind(this));
     }
 
-    chartQuery(item, element, interval)
+    dataRequest(canvas)
     {
-        var canvas = element.querySelector('canvas');
         var date = new Date();
 
-        switch (interval)
+        switch (canvas.dataset.interval)
         {
             case '2h':    date.setHours(date.getHours() - 2); break;
             case '8h':    date.setHours(date.getHours() - 8); break;
@@ -84,16 +84,27 @@ class Recorder
         }
 
         canvas.dataset.start = date.getTime();
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.start, end: Date.now()});
+    }
+
+    chartQuery(item, element, interval)
+    {
+        var canvas = element.querySelector('canvas');
+
+        if (interval)
+            canvas.dataset.interval = interval;
+
+        canvas.dataset.endpoint = item.endpoint;
         canvas.dataset.property = item.property;
         canvas.style.display = 'none';
 
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: item.endpoint, property: item.property, start: date.getTime(), end: Date.now()});
+        this.dataRequest(canvas);
     }
 
     parseData(message)
     {
-        var canvas = document.getElementById(message.id);
-        var status = document.querySelector('.status');
+        var canvas = document.querySelector('canvas#' + message.id);
+        var status = document.querySelector('.status#' + message.id);
         var table = document.querySelector('.log');
         var chart = Chart.getChart(canvas);
         var datasets = new Array();
