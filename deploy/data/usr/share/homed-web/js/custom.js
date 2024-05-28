@@ -56,8 +56,7 @@ class Custom extends DeviceService
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML  = null;
-        menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
@@ -146,9 +145,9 @@ class Custom extends DeviceService
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
             modal.querySelector('input[name="id"]').value = device.info.id;
-            modal.querySelector('input[name="real"]').checked = device.info.real;
             modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
             modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
+            modal.querySelector('input[name="real"]').checked = device.info.real;
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
@@ -178,19 +177,6 @@ class Custom extends DeviceService
             showModal(true);
 
             modal.querySelector('input[name="name"]').focus();
-        });
-    }
-
-    showDeviceRemove(device)
-    {
-        fetch('html/custom/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/custom', {action: 'removeDevice', device: this.names ? device.info.name : device.info.id}); this.controller.clearPage('custom'); }.bind(this));
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-            showModal(true);
         });
     }
 }

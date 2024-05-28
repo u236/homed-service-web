@@ -100,6 +100,7 @@ class Dashboard
         var menu = document.querySelector('.menu');
 
         menu.innerHTML = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span><span id="add"><i class="icon-plus"></i> Add</span>';
+
         menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
 

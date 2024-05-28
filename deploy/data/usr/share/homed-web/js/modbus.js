@@ -68,12 +68,16 @@ class Modbus extends DeviceService
         super.parseMessage(list, message);
     }
 
+    parseValue(key, value)
+    {
+        return key != 'type' ? super.parseValue(key, value) : this.deviceType[value] ?? '<span class="shade">' + value + '</span>';
+    }
+
     showMenu()
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML  = null;
-        menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));

@@ -303,8 +303,7 @@ class Recorder
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML  = null;
-        menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showItemList(); }.bind(this));
@@ -446,8 +445,8 @@ class Recorder
                     }
                 }
 
-                this.data.debounce = parseInt(form.debounce);
-                this.data.threshold = parseFloat(form.threshold);
+                this.data.debounce = form.debounce;
+                this.data.threshold = form.threshold;
 
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
                 this.controller.clearPage('recorder'); // TODO: handle events

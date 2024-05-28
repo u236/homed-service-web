@@ -161,8 +161,7 @@ class ZigBee extends DeviceService
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML  = null;
-        menu.innerHTML += '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
         menu.innerHTML += '<span id="permitJoin"><i class="icon-false"></i> Permit Join</span>';
 
@@ -445,6 +444,7 @@ class ZigBee extends DeviceService
                 var form = formData(modal.querySelector('form'));
                 var request = new Object();
 
+                // TODO: use number inputs in form
                 request.action = form.clusterSpecific ? 'clusterRequest' : 'globalRequest';
                 request.device = device.info.ieeeAddress;
                 request.endpointId = parseInt(form.endpointId);

@@ -424,7 +424,7 @@ class DeviceService
 
             var device = this.findDevice(list[2]);
 
-            if (device)
+            if (device && message)
             {
                 var endpoint = list[3] ?? 'common';
                 device.setProperties(endpoint, message);
@@ -495,6 +495,19 @@ class DeviceService
             }
 
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+        });
+    }
+
+    showDeviceRemove(device)
+    {
+        fetch('html/' + this.service + '/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'removeDevice', device: this.names ? device.info.name : device.info.id}); this.controller.clearPage(this.service); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            showModal(true);
         });
     }
 }
@@ -646,7 +659,17 @@ function handleSend(event, item)
 function formData(form)
 {
     var data = new Object();
-    Array.from(form).forEach(input => { data[input.name] = input.type == 'checkbox' ? input.checked : input.value; });
+
+    Array.from(form).forEach(input =>
+    {
+        switch (input.type)
+        {
+            case 'checkbox': data[input.name] = input.checked; break;
+            case 'number':   data[input.name] = parseFloat(input.value); break;
+            default:         data[input.name] = input.value;
+        }
+    });
+
     return data;
 }
 

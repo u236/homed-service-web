@@ -419,9 +419,7 @@ class Automation
     {
         var menu = document.querySelector('.menu');
 
-        menu.innerHTML = null;
-
-        menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showAutomationList(); }.bind(this));
@@ -593,7 +591,7 @@ class Automation
 
                 this.data.name = form.name;
                 this.data.note = form.note;
-                this.data.debounce = parseInt(form.debounce);
+                this.data.debounce = form.debounce;
                 this.data.restart = form.restart;
                 this.data.active = form.active;
 
@@ -910,7 +908,7 @@ class Automation
             {
                 var form = formData(modal.querySelector('form'));
 
-                trigger.interval = parseInt(form.interval);
+                trigger.interval = form.interval;
 
                 if (form.name)
                     trigger.name = form.name;
@@ -1251,14 +1249,14 @@ class Automation
         fetch('html/automation/delayAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('input[name="delay"]').value = action.delay ?? 0;
+            modal.querySelector('input[name="delay"]').value = action.delay ?? 1;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 var form = formData(modal.querySelector('form'));
 
-                action.delay = parseInt(form.delay);
+                action.delay = form.delay;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
