@@ -150,67 +150,52 @@ class Modbus extends DeviceService
 
     showDeviceEdit(device = undefined)
     {
-        // var add = false;
+        var add = false;
 
-        // if (!device)
-        // {
-        //     var random = Math.random().toString(36).substring(2, 7);
-        //     device = {info: {name: 'Device ' + random, id: 'device_' + random, active: true, exposes: ['switch']}};
-        //     add = true;
-        // }
+        if (!device)
+        {
+            var random = Math.random().toString(36).substring(2, 7);
+            device = {info: {name: 'Device ' + random, id: 'device_' + random, portId: 1, slaveId: 1, baudRate: 9600, pollInterval: 1000, active: true}};
+            add = true;
+        }
 
-        // fetch('html/custom/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
-        // {
-        //     modal.querySelector('.data').innerHTML = html;
-        //     modal.querySelector('.name').innerHTML = device.info.name;
-        //     modal.querySelector('input[name="name"]').value = device.info.name;
-        //     modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
-        //     modal.querySelector('input[name="id"]').value = device.info.id;
-        //     modal.querySelector('input[name="real"]').checked = device.info.real;
-        //     modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
-        //     modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
-        //     modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
-        //     modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
-        //     modal.querySelector('input[name="active"]').checked = device.info.active;
+        fetch('html/modbus/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('input[name="name"]').value = device.info.name;
+            modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
 
-        //     modal.querySelector('.save').addEventListener('click', function()
-        //     {
-        //         var form = formData(modal.querySelector('form'));
+            Object.keys(this.deviceType).forEach(key =>
+            {
+                var option = document.createElement('option');
 
-        //         if (form.exposes)
-        //             form.exposes = form.exposes.split(',').map(item =>item.trim());
-        //         else
-        //             delete form.exposes;
+                option.innerHTML = this.deviceType[key];
+                option.value = key;
 
-        //         if (form.options)
-        //             form.options = JSON.parse(form.options);
-        //         else
-        //             delete form.options;
+                modal.querySelector('select[name="type"]').append(option);
 
-        //         this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: form});
+                if (device.info.type != key)
+                    return;
 
-        //     }.bind(this));
+                modal.querySelector('select[name="type"]').value = key;
+            });
 
-        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('input[name="portId"]').value = device.info.portId;
+            modal.querySelector('input[name="slaveId"]').value = device.info.slaveId;
+            modal.querySelector('input[name="baudRate"]').value = device.info.baudRate;
+            modal.querySelector('input[name="pollInterval"]').value = device.info.pollInterval;
+            modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
+            modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
+            modal.querySelector('input[name="active"]').checked = device.info.active;
+            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/modbus', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-        //     modal.removeEventListener('keypress', handleSave);
-        //     modal.addEventListener('keypress', handleSave);
-        //     showModal(true);
+            modal.removeEventListener('keypress', handleSave);
+            modal.addEventListener('keypress', handleSave);
+            showModal(true);
 
-        //     modal.querySelector('input[name="name"]').focus();
-        // });
-    }
-
-    showDeviceRemove(device)
-    {
-        // fetch('html/custom/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
-        // {
-        //     modal.querySelector('.data').innerHTML = html;
-        //     modal.querySelector('.name').innerHTML = device.info.name;
-        //     modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/custom', {action: 'removeDevice', device: this.names ? device.info.name : device.info.id}); this.controller.clearPage('custom'); }.bind(this));
-        //     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-        //     showModal(true);
-        // });
+            modal.querySelector('input[name="name"]').focus();
+        });
     }
 }
