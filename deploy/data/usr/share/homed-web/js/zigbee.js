@@ -52,12 +52,12 @@ class ZigBee extends DeviceService
                     this.devices[device.ieeeAddress].info = device;
                 });
 
-                Object.keys(this.devices).forEach(ieeeAddress =>
+                Object.keys(this.devices).forEach(id =>
                 {
-                    if (message.devices.filter(device => device.ieeeAddress == ieeeAddress).length)
+                    if (message.devices.filter(device => device.ieeeAddress == id).length)
                         return;
 
-                    delete this.devices[ieeeAddress];
+                    delete this.devices[id];
                     check = true;
                 });
 
@@ -350,7 +350,7 @@ class ZigBee extends DeviceService
                     return;
 
                 if (key == 'lastSeen')
-                    row.dataset.device = device.info.ieeeAddress;
+                    row.dataset.device = 'zigbee/' + device.id;
 
                 row.style.display = 'table-row';
             });
@@ -385,7 +385,7 @@ class ZigBee extends DeviceService
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.names ? device.info.name : device.info.ieeeAddress}, ...formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.names ? device.info.name : device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             modal.removeEventListener('keypress', handleSave);
@@ -400,7 +400,7 @@ class ZigBee extends DeviceService
     {
         fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var item = this.names ? device.info.name : device.info.ieeeAddress;
+            var item = this.names ? device.info.name : device.id;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
@@ -446,7 +446,7 @@ class ZigBee extends DeviceService
 
                 // TODO: use number inputs in form
                 request.action = form.clusterSpecific ? 'clusterRequest' : 'globalRequest';
-                request.device = device.info.ieeeAddress;
+                request.device = this.names ? device.info.name : device.id;
                 request.endpointId = parseInt(form.endpointId);
                 request.clusterId = parseInt(form.clusterId) || 0;
                 request.commandId = parseInt(form.commandId) || 0;

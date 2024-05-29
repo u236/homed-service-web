@@ -109,7 +109,7 @@ class Custom extends DeviceService
 
                             break;
 
-                        case 1: cell.innerHTML = device.info.id; break;
+                        case 1: cell.innerHTML = device.id; break;
                         case 2: cell.innerHTML = '<span class="value">' + device.info.exposes.length + '</span>'; cell.classList.add('center'); break;
                         case 3: cell.innerHTML = this.parseValue('real', device.info.real); cell.classList.add('center'); break;
                         case 4: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
@@ -144,7 +144,7 @@ class Custom extends DeviceService
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
-            modal.querySelector('input[name="id"]').value = device.info.id;
+            modal.querySelector('input[name="id"]').value = device.id;
             modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
             modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
             modal.querySelector('input[name="real"]').checked = device.info.real;
@@ -166,7 +166,7 @@ class Custom extends DeviceService
                 else
                     delete form.options;
 
-                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: form});
+                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
 
             }.bind(this));
 

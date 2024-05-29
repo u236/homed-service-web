@@ -188,7 +188,7 @@ class Modbus extends DeviceService
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/modbus', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.info.id, data: formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/modbus', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             modal.removeEventListener('keypress', handleSave);
