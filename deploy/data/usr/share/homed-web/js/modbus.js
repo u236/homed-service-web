@@ -31,8 +31,12 @@ class Modbus extends DeviceService
 
                 if (!this.devices[device.id])
                 {
+                    var item = this.names ? device.name : device.id;
+
                     this.devices[device.id] = new Device('modbus', device.id);
-                    this.controller.socket.subscribe('expose/modbus/' + (this.names ? device.name : device.id));
+                    this.controller.socket.subscribe('expose/modbus/' + item);
+                    this.controller.socket.subscribe('device/modbus/' + item);
+
                     check = true;
                 }
 
@@ -110,7 +114,7 @@ class Modbus extends DeviceService
                 var row = table.querySelector('tbody').insertRow();
 
                 row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
-                row.dataset.device = device.info.id;
+                row.dataset.device = 'modbus/' + device.id;
 
                 for (var i = 0; i < 7; i++)
                 {
@@ -139,8 +143,6 @@ class Modbus extends DeviceService
                     }
 
                 }
-
-                this.controller.socket.subscribe('device/modbus/' + (this.names ? device.info.name : device.info.id));
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('customSort', this.dataset.index); }) );

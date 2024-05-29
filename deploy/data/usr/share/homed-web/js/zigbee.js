@@ -10,15 +10,14 @@ class ZigBee extends DeviceService
 
     updateLastSeen()
     {
-        Object.keys(this.devices).forEach(ieeeAddress =>
+        Object.keys(this.devices).forEach(id =>
         {
-            var interval = timeInterval(Date.now() / 1000 - this.devices[ieeeAddress].info.lastSeen);
-            var row = document.querySelector('tr[data-device="' + ieeeAddress + '"]');
+            var cell = document.querySelector('tr[data-device="zigbee/' + id + '"] .lastSeen');
 
-            if (!row)
+            if (!cell)
                 return;
 
-            row.querySelector('.lastSeen').innerHTML = interval;
+            cell.innerHTML = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
         });
     }
 
@@ -44,8 +43,12 @@ class ZigBee extends DeviceService
 
                     if (!this.devices[device.ieeeAddress])
                     {
+                        var item = this.names ? device.name : device.ieeeAddress;
+
                         this.devices[device.ieeeAddress] = new Device('zigbee', device.ieeeAddress);
-                        this.controller.socket.subscribe('expose/zigbee/' + (this.names ? device.name : device.ieeeAddress));
+                        this.controller.socket.subscribe('expose/zigbee/' + item);
+                        this.controller.socket.subscribe('device/zigbee/' + item);
+
                         check = true;
                     }
 
@@ -121,7 +124,7 @@ class ZigBee extends DeviceService
                 if (device)
                 {
                     var endpoint = list[3] ?? 'common';
-                    var row = document.querySelector('tr[data-device="' + device.info.ieeeAddress + '"]');
+                    var row = document.querySelector('tr[data-device="zigbee/' + device.id + '"]');
 
                     device.setProperties(endpoint, message);
 
@@ -197,7 +200,7 @@ class ZigBee extends DeviceService
                 var row = table.querySelector('tbody').insertRow(device.info.logicalType ? -1 : 0);
 
                 row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
-                row.dataset.device = device.info.ieeeAddress;
+                row.dataset.device = 'zigbee/' + device.id;
 
                 for (var i = 0; i < 10; i++)
                 {
@@ -228,8 +231,6 @@ class ZigBee extends DeviceService
                         case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                     }
                 }
-
-                this.controller.socket.subscribe('device/zigbee/' + (this.names ? device.info.name : device.info.ieeeAddress));
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('zigbeeSort', this.dataset.index); }) );

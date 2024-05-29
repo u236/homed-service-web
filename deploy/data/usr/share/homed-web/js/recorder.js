@@ -19,7 +19,9 @@ class Recorder
             major:  dark ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)',
         };
 
+        Chart.defaults.color = '#888888';
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
+
         setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { this.dataRequest(canvas); }); }.bind(this), 5000);
     }
 

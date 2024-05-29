@@ -35,7 +35,7 @@ body[theme="dark"] {
     --background-main:  #111111;
     --background-shade: #222222;
     --background-hover: #333333;
-    --background-error: #330000;
+    --background-error: #331111;
     --border-loader:    #888888;
     --border-main:      #444444;
     --border-shade:     #222222;
@@ -273,10 +273,6 @@ body[theme="dark"] {
 
 .homed .offline {
     background-color: var(--background-error);
-}
-
-.homed .inactive {
-    color: var(--color-shade);
 }
 
 .homed .buttons {
@@ -583,6 +579,11 @@ body[theme="dark"] {
     color: var(--color-warning);
 }
 
+.homed .dashboardBlock .offline {
+    background-color: var(--background-shade);
+    color: var(--color-shade);
+}
+
 .homed .automationInfo td:first-child, .homed .itemInfo td:first-child {
     width: 100px;
 }
@@ -617,6 +618,7 @@ body[theme="dark"] {
 }
 
 .homed .deviceInfo .summary tr {
+    background-color: var(--background-main);
     display: none;
 }
 

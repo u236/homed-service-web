@@ -181,6 +181,8 @@ class Dashboard
                         var endpoint = list[2] ?? 'common';
                         var device;
 
+                        row.classList.add('shade');
+
                         function wait(resolve)
                         {
                             device = this.findDevice(item);
@@ -198,6 +200,8 @@ class Dashboard
                         {
                             var option = device.options(endpoint)[item.expose] ?? new Object();
                             var properties = device.properties(endpoint);
+
+                            row.dataset.device = device.service + '/' + device.id;
 
                             if (device.items(endpoint).includes(item.expose))
                                 row.querySelector('td.name').addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this));

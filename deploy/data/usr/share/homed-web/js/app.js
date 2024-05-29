@@ -346,6 +346,32 @@ class DeviceService
     {
         this.controller = controller;
         this.service = service;
+
+        setInterval(function() { this.updateAvailability(); }.bind(this), 100);
+    }
+
+    updateAvailability()
+    {
+        Object.keys(this.devices).forEach(id =>
+        {
+            var device = this.devices[id];
+
+            if (this.service == 'zigbee' && !device.info.logicalType)
+                return;
+
+            document.querySelectorAll('tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
+            {
+                var cell = row.querySelector('.availability');
+
+                row.classList.remove('online', 'offline', 'shade');
+                row.classList.add(device.info.active ? device.availability : 'shade');
+
+                if (!cell)
+                    return;
+
+                cell.innerHTML = device.info.active ? '<i class="' + (device.availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>' : '<i class="icon-false shade"></i>';
+            });
+        });
     }
 
     parseMessage(list, message)
@@ -377,26 +403,10 @@ class DeviceService
 
             if (device && message)
             {
-                var row = document.querySelector('tr[data-device="' + device.id + '"]');
-
                 if (message.lastSeen)
-                    device.info.lastSeen = message.lastSeen;
+                    device.lastSeen = message.lastSeen;
 
-                if (this.controller.page == this.service && row)
-                {
-                    row.classList.remove('online', 'offline', 'inactive');
-
-                    if (device.info.active)
-                    {
-                        row.classList.add(message.status);
-                        row.querySelector('.availability').innerHTML = '<i class="' + (message.status == "online" ? 'icon-true success' : 'icon-false error') + '"></i>';
-                    }
-                    else
-                    {
-                        row.classList.add('inactive');
-                        row.querySelector('.availability').innerHTML = '<i class="icon-false shade"></i>';
-                    }
-                }
+                device.availability = message.status;
             }
 
             break;
