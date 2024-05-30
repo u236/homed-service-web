@@ -65,7 +65,7 @@ class Dashboard
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
 
-        valueCell.innerHTML = '<i class="icon-false shade"></i>';
+        valueCell.innerHTML = empty;
         valueCell.classList.add('value');
 
         switch (part[0])
@@ -187,7 +187,7 @@ class Dashboard
                         {
                             device = this.findDevice(item);
 
-                            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
+                            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes)
                             {
                                 setTimeout(wait.bind(this, resolve), 10);
                                 return;
@@ -218,7 +218,7 @@ class Dashboard
                         var row = table.insertRow();
                         var cell = row.insertCell();
 
-                        cell.innerHTML = item.name + '<div><canvas id="dashboard-chart-' + blockIndex + '-' + itemIndex + '"></canvas></div>';
+                        cell.innerHTML = item.name + '<div><canvas id="chart-' + randomString(8) + '"></canvas></div>';
                         cell.classList.add('chart');
                         cell.colSpan = 2;
 
@@ -630,6 +630,7 @@ class Dashboard
     {
         fetch('html/dashboard/recorderInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            var id = 'chart-' + randomString(8);
             var chart;
 
             modal.querySelector('.data').innerHTML = html;
@@ -645,6 +646,7 @@ class Dashboard
 
             }.bind(this)));
 
+            modal.querySelectorAll('#data').forEach(item => { item.id = id; });
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.controller.recorder.chartQuery(item, chart);

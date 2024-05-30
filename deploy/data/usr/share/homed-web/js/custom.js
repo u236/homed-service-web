@@ -66,7 +66,7 @@ class Custom extends DeviceService
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Custom ' + this.version : 'unknown';
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Custom ' + this.version : '<i>unknown</i>';
     }
 
     showDeviceList()
@@ -135,8 +135,8 @@ class Custom extends DeviceService
 
         if (!device)
         {
-            var random = Math.random().toString(36).substring(2, 7);
-            device = {info: {name: 'Device ' + random, id: 'device_' + random, active: true, exposes: ['switch']}};
+            var random = randomString(4);
+            device = {info: {name: 'Device ' + random, id: 'device_' + random, exposes: ['switch'], active: true}};
             add = true;
         }
 
@@ -146,7 +146,7 @@ class Custom extends DeviceService
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
-            modal.querySelector('input[name="id"]').value = device.id;
+            modal.querySelector('input[name="id"]').value = device.info.id;
             modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
             modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
             modal.querySelector('input[name="real"]').checked = device.info.real;

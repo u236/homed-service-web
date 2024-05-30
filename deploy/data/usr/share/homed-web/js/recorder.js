@@ -60,7 +60,7 @@ class Recorder
         {
             device = this.findDevice(item);
 
-            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
+            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes)
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -378,6 +378,7 @@ class Recorder
 
         fetch('html/recorder/itemInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            var id = 'chart-' + randomString(8);
             var name;
             var chart;
 
@@ -397,6 +398,8 @@ class Recorder
                 this.chartQuery(this.data, chart, element.innerHTML);
 
             }.bind(this)));
+
+            this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
 
             this.devicePromise(this.data, name);
             this.chartQuery(this.data, chart);

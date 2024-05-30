@@ -87,7 +87,7 @@ class Modbus extends DeviceService
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Modbus ' + this.version : 'unknown';
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Modbus ' + this.version : '<i>unknown</i>';
     }
 
     showDeviceList()
@@ -156,7 +156,7 @@ class Modbus extends DeviceService
 
         if (!device)
         {
-            var random = Math.random().toString(36).substring(2, 7);
+            var random = randomString(4);
             device = {info: {name: 'Device ' + random, id: 'device_' + random, portId: 1, slaveId: 1, baudRate: 9600, pollInterval: 1000, active: true}};
             add = true;
         }

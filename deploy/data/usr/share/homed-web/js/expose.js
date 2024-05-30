@@ -127,7 +127,7 @@ function addExpose(table, device, endpoint, expose)
 
         row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
         titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
-        valueCell.innerHTML = '<span class="shade"><i>unknown</i></span>';
+        valueCell.innerHTML = empty;
         valueCell.classList.add('value');
         controlCell.classList.add('control');
 

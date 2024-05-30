@@ -512,7 +512,7 @@ class Automation
             }
 
             if (!this.data.name)
-                this.data.name = 'Automation ' + Math.random().toString(36).substring(2, 7);
+                this.data.name = 'Automation ' + randomString(4);
 
             if (!this.name)
             {
