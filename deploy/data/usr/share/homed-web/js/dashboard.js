@@ -162,7 +162,7 @@ class Dashboard
                 return;
             }
 
-            dashboard.blocks.forEach((block, blockIndex) =>
+            dashboard.blocks.forEach((block, index) =>
             {
                 var element = document.createElement('div');
                 var table = document.createElement('table');
@@ -172,7 +172,7 @@ class Dashboard
                 element.classList.add('dashboardBlock');
                 element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
 
-                block.items.forEach((item, itemIndex) =>
+                block.items.forEach(item =>
                 {
                     if (item.hasOwnProperty('expose'))
                     {
@@ -227,7 +227,7 @@ class Dashboard
                     }
                 });
 
-                this.content.querySelector('.column.' + (blockIndex < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
+                this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
             });
         });
     }

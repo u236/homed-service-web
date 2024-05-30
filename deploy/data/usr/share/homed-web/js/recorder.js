@@ -123,10 +123,7 @@ class Recorder
         if (table)
             table.innerHTML = null;
 
-        if (chart)
-            chart.destroy();
-
-        if (!message.timestamp.length) // TODO: use canvas placeholder here
+        if (!message.timestamp.length) // TODO: use canvas placeholder here?
             return;
 
         options =
@@ -250,7 +247,8 @@ class Recorder
             if (average)
                 options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; }
 
-            new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
+            if (!chart)
+                chart = new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
         }
         else
         {
@@ -273,23 +271,28 @@ class Recorder
                 grid: {display: false}
             };
 
-            new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(canvas.dataset.property)], datasets: datasets}, options: options});
+            if (!chart)
+                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(canvas.dataset.property)]}});
 
             if (table)
             {
-                datasets.slice().reverse().forEach((record) =>
+                datasets.forEach(record =>
                 {
-                    var row = table.insertRow();
+                    var row = table.insertRow(0);
                     var circleCell = row.insertCell();
                     var recordCell = row.insertCell();
 
                     circleCell.innerHTML = '<div class="circle"></div>';
-                    recordCell.innerHTML = record.label + '<div class="timestamp">' +  this.timestampString(record.timestamp, true, true) + '</div>';
+                    recordCell.innerHTML = record.label + '<div class="timestamp">' + this.timestampString(record.timestamp, true, true) + '</div>';
 
                     circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
                 });
             }
         }
+
+        chart.data.datasets = datasets;
+        chart.options = options;
+        chart.update();
 
         canvas.style.display = 'block';
     }
