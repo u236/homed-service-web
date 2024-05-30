@@ -107,7 +107,7 @@ class Recorder
     {
         var canvas = document.querySelector('canvas#' + message.id);
         var status = document.querySelector('.status#' + message.id);
-        var table = document.querySelector('.log');
+        var table = document.querySelector('.log#' + message.id);
         var chart = Chart.getChart(canvas);
         var datasets = new Array();
         var numeric = true;
