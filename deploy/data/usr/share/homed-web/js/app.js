@@ -301,7 +301,7 @@ class Device
     endpoint(endpoint)
     {
         if (!this.endpoints[endpoint])
-            this.endpoints[endpoint] = new Object;
+            this.endpoints[endpoint] = {properties: new Object()};
 
         return this.endpoints[endpoint];
     }
@@ -323,17 +323,17 @@ class Device
 
     properties(endpoint)
     {
-        return this.endpoint(endpoint).properties ?? new Object();
+        return this.endpoint(endpoint).properties;
     }
 
-    setExposes(endpoint, expose)
+    setExposes(endpoint, exposes)
     {
-        this.endpoint(endpoint).exposes = expose;
+        this.endpoint(endpoint).exposes = exposes;
     }
 
-    setProperties(endpoint, properties)
+    setProperties(endpoint, data)
     {
-        this.endpoint(endpoint).properties = properties;
+        Object.keys(data).forEach(key => { this.endpoint(endpoint).properties[key] = data[key]; });
     }
 }
 
