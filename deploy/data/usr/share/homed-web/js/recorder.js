@@ -11,12 +11,23 @@ class Recorder
         this.controller = controller;
         this.color =
         {
-            line:   'rgba(54, 162, 235, 1.0)',
-            area:   'rgba(54, 162, 235, 0.4)',
-            on:     'rgba(243, 168, 59, 1.0)',
-            off:    dark ? 'rgba(68, 68, 68, 0.5)' : 'rgba(204, 204, 204, 0.5)',
-            grid:   dark ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)',
-            major:  dark ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)',
+            error: 'rgba(255, 0, 0, 0.5)',
+            line:  'rgba(54, 162, 235, 1.0)',
+            area:  'rgba(54, 162, 235, 0.4)',
+            on:    'rgba(243, 168, 59, 1.0)',
+            off:   dark ? 'rgba(68, 68, 68, 0.5)' : 'rgba(204, 204, 204, 0.5)',
+            grid:  dark ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)',
+            major: dark ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)',
+            bar:
+            [
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(255, 159, 64, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 205, 86, 0.5)',
+                'rgba(201, 203, 207, 0.5)'
+            ]
         };
 
         Chart.defaults.color = '#888888';
@@ -120,8 +131,11 @@ class Recorder
         if (status)
             status.innerHTML = message.timestamp.length + ' records, ' + message.time + ' ms';
 
-        if (table)
+        if (table && table.dataset.interval != canvas.dataset.interval)
+        {
+            table.dataset.interval = canvas.dataset.interval;
             table.innerHTML = null;
+        }
 
         if (!message.timestamp.length) // TODO: use canvas placeholder here?
             return;
@@ -166,6 +180,8 @@ class Recorder
             }
             else
             {
+                var count = 0;
+
                 message.timestamp.forEach((timestamp, index) =>
                 {
                     var value = message.value[index];
@@ -173,16 +189,20 @@ class Recorder
                     {
                         data: [[index ? timestamp : options.scales.x.min, message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max]],
                         timestamp: timestamp,
-                        label: value,
+                        label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
                         minBarLength: 2,
                     }
 
-                    if (value == null)
-                        return;
-
-                    if (canvas.dataset.property == 'status' || ['true', 'false'].includes(value))
+                    if (!value)
+                        data.backgroundColor = this.color.error;
+                    else if (canvas.dataset.property == 'status' || ['true', 'false'].includes(value))
                         data.backgroundColor = ['on', 'true'].includes(value) ? this.color.on : this.color.off;
+                    else
+                        data.backgroundColor = this.color.bar[count++];
+
+                    if (count == this.color.bar.length)
+                        count = 0;
 
                     datasets.push(data);
                 });
@@ -211,7 +231,6 @@ class Recorder
                 avg.push({x: timestamp, y: message.avg[index], tooltip: avgTooltip});
                 min.push({x: timestamp, y: message.min[index], tooltip: minTooltip});
                 max.push({x: timestamp, y: message.max[index], tooltip: maxTooltip});
-
             });
 
             datasets.push({data: avg, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0});
@@ -252,7 +271,6 @@ class Recorder
         }
         else
         {
-
             canvas.closest('div').style.height = '80px';
 
             options.indexAxis = 'y';
@@ -273,26 +291,53 @@ class Recorder
 
             if (!chart)
                 chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(canvas.dataset.property)]}});
-
-            if (table)
-            {
-                datasets.forEach(record =>
-                {
-                    var row = table.insertRow(0);
-                    var circleCell = row.insertCell();
-                    var recordCell = row.insertCell();
-
-                    circleCell.innerHTML = '<div class="circle"></div>';
-                    recordCell.innerHTML = record.label + '<div class="timestamp">' + this.timestampString(record.timestamp, true, true) + '</div>';
-
-                    circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
-                });
-            }
         }
 
         chart.data.datasets = datasets;
         chart.options = options;
         chart.update();
+
+        if (!numeric && table)
+        {
+            datasets.forEach(record =>
+            {
+                var row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
+                var timestamp = this.timestampString(record.timestamp, true, true);
+
+                if (!row)
+                {
+                    var row = table.insertRow(0);
+                    var circleCell = row.insertCell();
+                    var recordCell = row.insertCell();
+
+                    row.dataset.timestamp = record.timestamp;
+                    circleCell.innerHTML = '<div class="circle"></div>';
+                    recordCell.innerHTML = record.label + '<div class="timestamp">' + timestamp + '</div>';
+                    circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
+
+                    row.addEventListener('mouseover', function()
+                    {
+                        var index = chart.data.datasets.length - this.rowIndex - 1;
+
+                        if (index < 0)
+                            return;
+
+                        chart.tooltip.setActiveElements([{datasetIndex: index, index: 0}]);
+                        chart.update();
+                    });
+
+                    row.addEventListener('mouseleave', function()
+                    {
+                        chart.tooltip.setActiveElements(new Array());
+                        chart.update();
+                    });
+
+                    return;
+                }
+
+                row.querySelector('.timestamp').innerHTML = timestamp;
+            });
+        }
 
         canvas.style.display = 'block';
     }

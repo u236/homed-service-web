@@ -731,6 +731,10 @@ body[theme="dark"] {
     overflow-y: auto;
 }
 
+.homed .log tr:hover {
+    color: var(--color-highlight);
+}
+
 .homed .log td:first-child {
     width: 1%;
 }
