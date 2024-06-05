@@ -43,7 +43,7 @@ function exposeList(expose, options)
         case 'thermostat':
             var controls = ['systemMode', 'operationMode', 'targetTemperature'];
             controls.forEach(function(item) { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
-            list = list.concat(options.heatingStatus ? ['temperature', 'heating'] : ['temperature']);
+            list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
             options['temperature'] = {type:'sensor', unit: '°C'};
             break;
 
