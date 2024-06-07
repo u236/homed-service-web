@@ -128,7 +128,7 @@ class ZigBee extends DeviceService
 
                     device.setProperties(endpoint, message);
 
-                    if (this.controller.page == 'zigbee' && row)
+                    if (this.controller.page == 'zigbee' && message.linkQuality != undefined && row)
                     {
                         row.querySelector('.linkQuality').innerHTML = message.linkQuality;
                         break;

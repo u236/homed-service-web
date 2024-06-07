@@ -124,6 +124,7 @@ function addExpose(table, device, endpoint, expose)
         var titleCell = row.insertCell();
         var valueCell = row.insertCell();
         var controlCell = row.insertCell();
+        var item = name.split('_')[0];
 
         row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
         titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
@@ -131,11 +132,11 @@ function addExpose(table, device, endpoint, expose)
         valueCell.classList.add('value');
         controlCell.classList.add('control');
 
-        switch (name.split('_')[0])
+        switch (item)
         {
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-                colorPicker.on('input:end', function() { deviceCommand(device, endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                colorPicker.on('input:end', function() { deviceCommand(device, endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
 
             case 'colorTemperature':
@@ -143,12 +144,12 @@ function addExpose(table, device, endpoint, expose)
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {colorTemperature: parseInt(this.value)}); });
                 break;
 
             case 'cover':
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {cover: item.innerHTML}); }) );
                 break;
 
             case 'level':
@@ -162,12 +163,12 @@ function addExpose(table, device, endpoint, expose)
 
             case 'status':
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpoint, {status: item.innerHTML}); }) );
                 break;
 
             default:
 
-                var option = options[name.split('_')[0]] ?? new Object();
+                var option = options[item] ?? new Object();
 
                 switch (option.type)
                 {
@@ -272,41 +273,41 @@ function updateExpose(device, endpoint, name, value)
     {
         var cell = row ? row.querySelector('td.value') : undefined;
 
-        if (cell)
-        {
-            switch (name.split('_')[0])
-            {
-                case 'color':
-                    colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
-                    cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
-                    break;
-
-                case 'status':
-                    cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
-                    break;
-
-                default:
-
-                    if (cell.dataset.type == 'number')
-                    {
-                        var input = row.querySelector('td.control input');
-
-                        if (name == 'level')
-                            value = Math.round(value * 100 / 255);
-
-                        if (cell.dataset.value == value)
-                            break;
-
-                        if (input)
-                            input.value = value;
-                    }
-
-                    cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
-                    break;
-            }
-
-            cell.dataset.value = value;
+        if (!cell)
             return;
+
+        switch (name.split('_')[0])
+        {
+            case 'color':
+                colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
+                cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+                break;
+
+            case 'status':
+                cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
+                break;
+
+            default:
+
+                if (cell.dataset.type == 'number')
+                {
+                    var input = row.querySelector('td.control input');
+
+                    if (name == 'level')
+                        value = Math.round(value * 100 / 255);
+
+                    if (cell.dataset.value == value)
+                        break;
+
+                    if (input)
+                        input.value = value;
+                }
+
+                cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
+                break;
         }
+
+        cell.dataset.value = value;
+        return;
     });
 }
