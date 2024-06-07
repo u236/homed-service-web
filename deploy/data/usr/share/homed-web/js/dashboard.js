@@ -60,7 +60,7 @@ class Dashboard
         var list = item.endpoint.split('/');
         var part = item.expose.split('_');
 
-        row.dataset.expose = list[0] + '/' + list[1] + '/' + (list[2] ?? 'common') + '/';
+        row.dataset.endpoint = list[0] + '/' + list[1] + '/' + (list[2] ?? 'common');
 
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
@@ -73,22 +73,22 @@ class Dashboard
             case 'light':
             case 'switch':
                 var name = part[1] ? 'status_' + part[1] : 'status';
-                row.dataset.expose += name;
                 valueCell.addEventListener('click', function() { this.controller.socket.publish('td/' + item.endpoint, {[name]: 'toggle'}); }.bind(this));
+                valueCell.dataset.property = name;
                 break;
 
             case 'cover':
-                row.dataset.expose += 'position';
+                valueCell.dataset.property = 'position';
                 valueCell.dataset.unit = '%';
                 break;
 
             case 'thermostat':
-                row.dataset.expose += 'temperature';
+                valueCell.dataset.property = 'temperature';
                 valueCell.dataset.unit = '°C';
                 break;
 
             default:
-                row.dataset.expose += item.expose;
+                valueCell.dataset.property = item.expose;
                 break;
         }
 

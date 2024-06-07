@@ -126,9 +126,12 @@ function addExpose(table, device, endpoint, expose)
         var controlCell = row.insertCell();
         var item = name.split('_')[0];
 
-        row.dataset.expose = device.service + '/' + device.id + '/' + endpoint + '/' + name;
+        row.dataset.endpoint = device.service + '/' + device.id + '/' + endpoint;
+        valueCell.dataset.property = name;
+
         titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
         valueCell.innerHTML = empty;
+
         valueCell.classList.add('value');
         controlCell.classList.add('control');
 
@@ -244,70 +247,73 @@ function addExpose(table, device, endpoint, expose)
 
 function updateExpose(device, endpoint, name, value)
 {
-    if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
+    document.querySelectorAll('tr[data-endpoint="' + device.service + '/' + device.id + '/' + endpoint + '"]').forEach(row =>
     {
-        var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
-        var row = document.querySelector('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + item + '"]');
-        var cell = row ? row.querySelector('td.value') : undefined;
+        var cell;
 
-        if (cell && (name.endsWith('Hour') || name.endsWith('Minute')))
+        if ((name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6')) && (name.endsWith('Hour') || name.endsWith('Minute')))
         {
-            var input = row.querySelector('td.control input[type="time"]');
-            var time;
+            var item = name.replace('Hour', 'Time').replace('Minute', 'Time');
 
-            if (!input)
-                return;
+            cell = row.querySelector('td.value[data-property="' + item + '"]');
 
-            if (value < 10)
-                value = '0' + value;
+            if (cell)
+            {
+                var input = row.querySelector('td.control input[type="time"]');
+                var time;
 
-            time = input.value.split(':');
-            input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
+                if (!input)
+                    return;
 
-            cell.dataset.value = input.value;
-            cell.innerHTML = input.value;
-        }
-    }
+                if (value < 10)
+                    value = '0' + value;
 
-    document.querySelectorAll('tr[data-expose="' + device.service + '/' + device.id + '/' + endpoint + '/' + name + '"]').forEach(row =>
-    {
-        var cell = row ? row.querySelector('td.value') : undefined;
+                time = input.value.split(':');
+                input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
 
-        if (!cell)
+                cell.dataset.value = input.value;
+                cell.innerHTML = input.value;
+            }
+
             return;
-
-        switch (name.split('_')[0])
-        {
-            case 'color':
-                colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
-                cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
-                break;
-
-            case 'status':
-                cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
-                break;
-
-            default:
-
-                if (cell.dataset.type == 'number')
-                {
-                    var input = row.querySelector('td.control input');
-
-                    if (name == 'level')
-                        value = Math.round(value * 100 / 255);
-
-                    if (cell.dataset.value == value)
-                        break;
-
-                    if (input)
-                        input.value = value;
-                }
-
-                cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
-                break;
         }
 
-        cell.dataset.value = value;
-        return;
+        cell = row.querySelector('td.value[data-property="' + name + '"]');
+
+        if (cell)
+        {
+            switch (name.split('_')[0])
+            {
+                case 'color':
+                    colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
+                    cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+                    break;
+
+                case 'status':
+                    cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
+                    break;
+
+                default:
+
+                    if (cell.dataset.type == 'number')
+                    {
+                        var input = row.querySelector('td.control input');
+
+                        if (name == 'level')
+                            value = Math.round(value * 100 / 255);
+
+                        if (cell.dataset.value == value)
+                            break;
+
+                        if (input)
+                            input.value = value;
+                    }
+
+                    cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
+                    break;
+            }
+
+            cell.dataset.value = value;
+        }
     });
 }
