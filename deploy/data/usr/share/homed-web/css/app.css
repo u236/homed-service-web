@@ -148,10 +148,6 @@ body[theme="dark"] {
     background: linear-gradient(to right, var(--range-dark), var(--range-light));
 }
 
-.homed input.colorTemperature {
-    background: linear-gradient(to right, #afd0fb, #f5f3f2, #f2a43a);
-}
-
 .homed label {
     display: flex;
     align-items: center;

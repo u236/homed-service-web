@@ -1,5 +1,17 @@
 var colorPicker;
 
+function temperatureToColor(value)
+{
+    var color = new Array();
+    var k = 10000 / value;
+
+    color.push(parseInt((k > 66 ? 1.292936 * Math.pow(k - 60, -0.133205) : 1) * 255));
+    color.push(parseInt((k > 66 ? 1.129891 * Math.pow(k - 60, -0.075515) : 0.390082 * Math.log(k) - 0.631841) * 255));
+    color.push(parseInt((k < 66 ? 0.543207 * Math.log(k - 10) -1.1962540 : 1) * 255));
+
+    return color;
+}
+
 function exposeTitle(name, endpoint = 'common')
 {
     var title = name.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
@@ -143,11 +155,16 @@ function addExpose(table, device, endpoint, expose)
                 break;
 
             case 'colorTemperature':
+
                 var option = options.colorTemperature ?? {};
+                var min = option.min ?? 150;
+                var max = option.max ?? 500;
+
                 valueCell.dataset.type = 'number';
-                controlCell.innerHTML = '<input type="range" min="' + (option.min ?? 150) + '" max="' + (option.max ?? 500) + '" class="colorTemperature">';
+                controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {colorTemperature: parseInt(this.value)}); });
+                controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
                 break;
 
             case 'cover':
