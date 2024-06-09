@@ -57,7 +57,7 @@ class Socket
 
 class Controller
 {
-    services = {'dashboard': 'offline', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'modbus': 'offline', 'custom': 'offline'};
+    services = {'dashboard': 'online', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'modbus': 'offline', 'custom': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
 
     dashboard = new Dashboard(this);
@@ -71,7 +71,7 @@ class Controller
     onopen()
     {
         console.log('socket successfully connected');
-        Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + (service != 'dashboard' ? service : 'web')); });
+        Object.keys(this.services).forEach(service => { this.socket.subscribe(service != 'dashboard' ? 'service/' + service : 'status/web'); });
 
         this.zigbee.devices = new Object();
         this.modbus.devices = new Object();
