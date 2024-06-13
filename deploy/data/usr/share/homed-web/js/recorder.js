@@ -174,7 +174,17 @@ class Recorder
             if (numeric)
             {
                 var data = new Array();
-                message.timestamp.forEach((timestamp, index) => { data.push({x: timestamp, y: Number(parseFloat(message.value[index]).toFixed(2)) }); });
+
+                message.timestamp.forEach((timestamp, index) =>
+                {
+                    var value = message.value[index];
+
+                    if (!value && index)
+                        data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2)) });
+
+                    data.push({x: timestamp, y: Number(parseFloat(value).toFixed(2)) });
+                });
+
                 data.push({x: options.scales.x.max, y: data[data.length - 1].y});
                 datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true});
             }
