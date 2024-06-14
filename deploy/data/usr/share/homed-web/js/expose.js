@@ -131,12 +131,12 @@ function addExpose(table, device, endpoint, expose)
     var list = exposeList(expose, options);
 
     list.forEach(name =>
-    {
+        {
+        var item = name.split('_')[0];
         var row = table.insertRow();
         var titleCell = row.insertCell();
         var valueCell = row.insertCell();
-        var controlCell = row.insertCell();
-        var item = name.split('_')[0];
+        var controlCell;
 
         row.dataset.endpoint = device.service + '/' + device.id + '/' + endpoint;
         valueCell.dataset.property = name;
@@ -145,7 +145,12 @@ function addExpose(table, device, endpoint, expose)
         valueCell.innerHTML = empty;
 
         valueCell.classList.add('value');
-        controlCell.classList.add('control');
+
+        if (name != 'irCode')
+        {
+            controlCell = row.insertCell();
+            controlCell.classList.add('control');
+        }
 
         switch (item)
         {
@@ -170,6 +175,13 @@ function addExpose(table, device, endpoint, expose)
             case 'cover':
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {cover: item.innerHTML}); }) );
+                break;
+
+            case 'irCode':
+                valueCell.innerHTML = '<textarea></textarea><div class "buttons"><button class="learn">Learn</button><button class="send">Send</button></div>'
+                valueCell.colSpan = 2;
+                valueCell.querySelector(".learn").addEventListener('click', function() { valueCell.querySelector('textarea').value = null; valueCell.dataset.mode = 'learn'; deviceCommand(device, endpoint, {learn: true}); });
+                valueCell.querySelector(".send").addEventListener('click', function() { valueCell.dataset.mode = 'send'; deviceCommand(device, endpoint, {irCode: valueCell.querySelector('textarea').value}); });
                 break;
 
             case 'level':
@@ -215,7 +227,7 @@ function addExpose(table, device, endpoint, expose)
                         }
                         else
                         {
-                            controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button class="inline">Set</button>';
+                            controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button>Set</button>';
                             controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + (option.unit ? ' ' + option.unit : '') + '</span>'; deviceCommand(device, endpoint, {[name]: parseFloat(value)}); } });
                         }
 
@@ -248,7 +260,7 @@ function addExpose(table, device, endpoint, expose)
 
                         if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
                         {
-                            controlCell.innerHTML = '<input type="time" value="00:00"><button class="inline">Set</button>';
+                            controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
                             controlCell.querySelector('button').addEventListener('click', function() { var value = controlCell.querySelector('input[type="time"]').value; var data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
                         }
 
@@ -304,6 +316,16 @@ function updateExpose(device, endpoint, name, value)
                 case 'color':
                     colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
                     cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+                    break;
+
+                case 'irCode':
+
+                    if (cell.dataset.mode == 'learn')
+                    {
+                        cell.querySelector('textarea').value = value;
+                        cell.dataset.mode == 'send';
+                    }
+
                     break;
 
                 case 'status':

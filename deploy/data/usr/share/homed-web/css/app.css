@@ -683,10 +683,36 @@ body[theme="dark"] {
     padding: 0 5px;
 }
 
+.homed .exposes button {
+    height: 18px;
+    margin-right: 5px;
+    font-size: 0.8125rem;
+}
+
+.homed .exposes input[type="number"] {
+    width: 100px;
+    height: 18px;
+    margin-right: 5px;
+    margin-bottom: 0;
+    padding-right: 0;
+}
+
+.homed .exposes input[type="time"] {
+    margin-right: 5px;
+}
+
+.homed .exposes textarea {
+    margin-bottom: 0;
+}
+
 .homed .exposes .value {
     width: 1%;
     min-width: 40px;
     padding-right: 20px;
+}
+
+.homed .exposes .value:last-child {
+    padding-right: 5px;
 }
 
 .homed .exposes .value .color {
@@ -705,20 +731,6 @@ body[theme="dark"] {
 
 .homed .exposes .control span:hover {
     color: var(--color-highlight);
-}
-
-.homed .exposes .control button {
-    height: 18px;
-    margin: 0 5px;
-}
-
-.homed .exposes .control input[type="number"] {
-    position: relative;
-    top: -1px;
-    width: 100px;
-    height: 18px;
-    margin-bottom: 0;
-    padding-right: 0;
 }
 
 .homed .log {
