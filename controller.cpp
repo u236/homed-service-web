@@ -118,7 +118,7 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
     }
 
     if (m_retained.contains(subTopic.split('/').value(0)))
-        m_messages.insert(subTopic, json);
+        m_messages.insert(subTopic, message);
 
     for (auto it = m_clients.begin(); it != m_clients.end(); it++)
     {
@@ -280,10 +280,7 @@ void Controller::textMessageReceived(const QString &message)
             it.value().push_back(subTopic);
 
         if (m_messages.contains(subTopic))
-        {
-            QJsonObject json = m_messages.value(subTopic);
-            it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
-        }
+            it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", QJsonDocument::fromJson(m_messages.value(subTopic)).object()}}).toJson(QJsonDocument::Compact));
 
         mqttSubscribe(mqttTopic(subTopic));
     }

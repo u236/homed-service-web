@@ -28,7 +28,7 @@ private:
     bool m_auth;
 
     QList <QString> m_retained, m_types;
-    QMap <QString, QJsonObject> m_messages;
+    QMap <QString, QByteArray> m_messages;
 
     QList <QTcpSocket*> m_sockets;
     QMap <QWebSocket*, QStringList> m_clients;
