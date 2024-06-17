@@ -156,7 +156,7 @@ function addExpose(table, device, endpoint, expose)
         {
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-                colorPicker.on('input:end', function() { deviceCommand(device, endpoint, {color: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                colorPicker.on('input:end', function() { deviceCommand(device, endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
 
             case 'colorTemperature':
@@ -168,13 +168,13 @@ function addExpose(table, device, endpoint, expose)
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {colorTemperature: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseInt(this.value)}); });
                 controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
                 break;
 
             case 'cover':
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {cover: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
             case 'irCode':
@@ -190,12 +190,12 @@ function addExpose(table, device, endpoint, expose)
                 valueCell.dataset.unit = '%';
                 controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + name + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: item == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
                 break;
 
             case 'status':
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpoint, {status: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
                 break;
 
             default:

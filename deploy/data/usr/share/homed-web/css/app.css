@@ -683,7 +683,7 @@ body[theme="dark"] {
     padding: 0 5px;
 }
 
-.homed .exposes button {
+.homed .exposes td button {
     height: 18px;
     margin-right: 5px;
     font-size: 0.8125rem;

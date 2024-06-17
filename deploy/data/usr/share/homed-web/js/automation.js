@@ -1131,6 +1131,7 @@ class Automation
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="name"]').value = action.name ?? '';
             modal.querySelector('input[name="value"]').value = action.value ?? '';
+            modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
             {
