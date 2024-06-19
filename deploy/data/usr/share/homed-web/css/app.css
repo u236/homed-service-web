@@ -395,7 +395,6 @@ body[theme="dark"] {
 
 .homed .container {
     overflow: auto;
-    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -941,12 +940,12 @@ body[theme="dark"] {
     padding: 0 5px;
 }
 
-.homed #toggleTheme, .homed #logout {
+.homed #toggleTheme, .homed #toggleWide, .homed #logout {
     cursor: pointer;
     padding: 0 5px;
 }
 
-.homed #toggleTheme:hover, .homed #logout:hover {
+.homed #toggleTheme:hover, .homed #toggleWide:hover, .homed #logout:hover {
     color: var(--color-main);
 }
 

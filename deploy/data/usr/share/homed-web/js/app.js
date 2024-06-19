@@ -1,4 +1,4 @@
-var modal, controller, theme = localStorage.getItem('theme') ?? 'dark', empty = '<span class="shade">&bull;</span>';
+var modal, controller, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -535,10 +535,11 @@ window.onload = function()
     window.addEventListener('hashchange', function() { controller.showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
 
-    document.querySelector('body').setAttribute('theme', theme);
-    document.querySelector('.homed').setAttribute('theme', theme);
-    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
-    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; localStorage.setItem('theme', theme); location.reload(); });
+    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('theme', theme); });
+    document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('wide', wide); });
+
+    setTheme();
+    setWide();
 
     controller.showPage(localStorage.getItem('page') ?? 'dashboard');
 
@@ -564,6 +565,18 @@ document.onkeydown = function(event)
     if (event.key == 'Esc' || event.key == 'Escape')
         showModal(false);
 };
+
+function setTheme()
+{
+    document.querySelectorAll('body, .homed').forEach(item => item.setAttribute('theme', theme));
+    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
+}
+
+function setWide()
+{
+    document.querySelectorAll('.container').forEach(item => item.style.maxWidth = wide != 'off' ? 'none' : '1000px');
+    document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' WIDE MODE';
+}
 
 function sortTable(table, index, first = true)
 {
