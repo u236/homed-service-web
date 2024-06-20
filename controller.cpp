@@ -108,7 +108,6 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
 {
     QString subTopic = topic.name().replace(mqttTopic(), QString());
     QJsonObject json = QJsonDocument::fromJson(message).object();
-    bool check = false;
 
     if (subTopic == "command/web" && json.value("action").toString() == "updateDashboards")
     {
@@ -126,13 +125,7 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
             continue;
 
         it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
-        check = true;
     }
-
-    if (check)
-        return;
-
-    mqttUnsubscribe(topic.name());
 }
 
 void Controller::statusUpdated(const QJsonObject &json)
