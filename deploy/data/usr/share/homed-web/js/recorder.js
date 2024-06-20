@@ -72,6 +72,14 @@ class Recorder
         return Object.values(devices).find(device => device.info.name == list[1]) ?? new Object();
     }
 
+    findItem(endpoint, property)
+    {
+        if (!this.status.items || !this.status.items.length)
+            return new Object();
+
+        return this.status.items.find(item => item.endpoint == endpoint && item.property == property);
+    }
+
     devicePromise(item, cell)
     {
         var list = item.endpoint.split('/');
@@ -162,11 +170,11 @@ class Recorder
                 {
                     type: 'time',
                     time: {unit: 'hour', displayFormats: {hour: 'HH:mm'}},
-                    ticks: {maxRotation: 0, major: {enabled: true}, font: (context) => context.tick && context.tick.major ? {weight: 'bold'} : new Object()},
+                    ticks: {maxRotation: 0, major: {enabled: true}, font: function(context) { return context.tick && context.tick.major ? {weight: 'bold'} : new Object(); }},
                     min: new Date(parseInt(canvas.dataset.start)),
                     max: new Date(),
                     border: {display: false},
-                    grid: {color: (context) => context.tick && context.tick.major ? this.color.major() : this.color.grid()},
+                    grid: {color: function(context) { return context.tick && context.tick.major ? this.color.major() : this.color.grid(); }.bind(this)},
                 }
             }
         };
@@ -275,13 +283,13 @@ class Recorder
                 displayColors: false,
                 xAlign: 'center',
                 yAlign: 'bottom',
-                callbacks: {title: (context) => this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true)}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this)}
             };
             options.scales.y =
             {
                 grace: '50%',
                 border: {display: false},
-                grid: {color: this.color.grid()}
+                grid: {color: function() { return this.color.grid(); }.bind(this)}
             };
 
             if (average)
@@ -302,7 +310,7 @@ class Recorder
                 xAlign: 'center',
                 yAlign: 'top',
                 position: 'custom',
-                callbacks: {title: (context) => this.timestampString(context[0].dataset.timestamp), label: (context) => context.dataset.label}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label; }}
             }
             options.scales.y =
             {

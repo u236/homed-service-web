@@ -647,6 +647,21 @@ class Dashboard
             }.bind(this)));
 
             modal.querySelectorAll('#data').forEach(item => { item.id = id; });
+
+            modal.querySelector('.item').addEventListener('click', function()
+            {
+                var recorder = this.controller.recorder;
+                var data = recorder.findItem(item.endpoint, item.property);
+
+                if (!data)
+                    return;
+
+                recorder.data = data;
+                recorder.showItemInfo();
+                showModal(false);
+
+            }.bind(this));
+
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.controller.recorder.chartQuery(item, chart);
