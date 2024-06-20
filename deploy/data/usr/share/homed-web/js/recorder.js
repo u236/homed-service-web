@@ -6,18 +6,16 @@ class Recorder
 
     constructor(controller)
     {
-        var dark = theme == 'dark';
-
         this.controller = controller;
         this.color =
         {
+            grid:  function() { return theme == 'dark' ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)'; },
+            major: function() { return theme == 'dark' ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)'; },
             error: 'rgba(255, 0, 0, 0.5)',
             line:  'rgba(54, 162, 235, 1.0)',
             area:  'rgba(54, 162, 235, 0.4)',
             on:    'rgba(243, 168, 59, 1.0)',
-            off:   dark ? 'rgba(68, 68, 68, 0.5)' : 'rgba(204, 204, 204, 0.5)',
-            grid:  dark ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)',
-            major: dark ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)',
+            off:   'rgba(127, 127, 127, 0.2)',
             bar:
             [
                 'rgba(54, 162, 235, 0.5)',
@@ -34,6 +32,19 @@ class Recorder
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
 
         setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { this.dataRequest(canvas); }); }.bind(this), 5000);
+    }
+
+    updateCharts()
+    {
+        document.querySelectorAll('canvas').forEach(canvas =>
+        {
+            var chart = Chart.getChart(canvas);
+
+            if (!chart)
+                return;
+
+            chart.update();
+        });
     }
 
     timestampString(timestamp, seconds = true, interval = false)
@@ -155,7 +166,7 @@ class Recorder
                     min: new Date(parseInt(canvas.dataset.start)),
                     max: new Date(),
                     border: {display: false},
-                    grid: {color: (context) => context.tick && context.tick.major ? this.color.major : this.color.grid},
+                    grid: {color: (context) => context.tick && context.tick.major ? this.color.major() : this.color.grid()},
                 }
             }
         };
@@ -270,7 +281,7 @@ class Recorder
             {
                 grace: '50%',
                 border: {display: false},
-                grid: {color: this.color.grid}
+                grid: {color: this.color.grid()}
             };
 
             if (average)
