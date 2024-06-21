@@ -120,10 +120,14 @@ class Automation
 
     updateLastTriggered(row, lastTriggered)
     {
-        if (!lastTriggered)
+        var cell = row.querySelector('.lastTriggered');
+        var value = timeInterval((Date.now() - lastTriggered) / 1000);
+
+        if (!lastTriggered || cell.innerHTML == value)
             return;
 
-        row.querySelector('.lastTriggered').innerHTML = timeInterval((Date.now() - lastTriggered) / 1000);
+        cell.dataset.value = lastTriggered;
+        cell.innerHTML = value;
     }
 
     triggerInfo(trigger)
@@ -487,7 +491,7 @@ class Automation
                 this.updateLastTriggered(row, item.lastTriggered);
             });
 
-            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('automationSort', this.dataset.index); }) );
+            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { var once = cell.classList.contains('once'); sortTable(table, this.dataset.index, true, once); if (!once) localStorage.setItem('automationSort', this.dataset.index); }));
             sortTable(table, localStorage.getItem('automationSort') ?? 0);
         });
     }

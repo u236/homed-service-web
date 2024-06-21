@@ -584,7 +584,7 @@ function setWide()
     document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' WIDE MODE';
 }
 
-function sortTable(table, index, first = true)
+function sortTable(table, index, first = true, once = false)
 {
     var check = true;
 
@@ -596,16 +596,39 @@ function sortTable(table, index, first = true)
 
         for (var i = first ? 1 : 2; i < rows.length - 1; i++)
         {
-            if (rows[i].querySelectorAll('td')[index].innerHTML.toLowerCase() <= rows[i + 1].querySelectorAll('td')[index].innerHTML.toLowerCase())
-                continue;
+            var current = rows[i].querySelectorAll('td')[index];
+            var next = rows[i + 1].querySelectorAll('td')[index];
+            var sort;
 
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            check = true;
-            break;
+            switch (true)
+            {
+                case current.classList.contains('lastSeen') || current.classList.contains('lastTriggered'):
+                    sort = parseInt(current.dataset.value) > parseInt(next.dataset.value);
+                    break;
+
+                case current.classList.contains('linkQuality'):
+                    sort = parseInt(current.innerHTML) > parseInt(next.innerHTML);
+                    break;
+
+                default:
+                    sort = current.innerHTML.toLowerCase() > next.innerHTML.toLowerCase();
+                    break;
+            }
+
+            if (sort)
+            {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                check = true;
+                break;
+            }
         }
     }
 
     table.querySelectorAll('th.sort').forEach(cell => cell.classList.remove('warning') );
+
+    if (once)
+        return;
+
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
 }
 
@@ -703,7 +726,7 @@ function formData(form)
         {
             case 'checkbox': data[input.name] = input.checked; break;
             case 'number':   data[input.name] = parseFloat(input.value); break;
-            default:         data[input.name] = input.value;
+            default:         data[input.name] = input.value; break;
         }
     });
 

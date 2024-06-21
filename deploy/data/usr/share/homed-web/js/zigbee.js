@@ -18,6 +18,7 @@ class ZigBee extends DeviceService
             if (!cell || cell.innerHTML == value)
                 return;
 
+            cell.dataset.value = this.devices[id].lastSeen;
             cell.innerHTML = value;
         });
     }
@@ -234,7 +235,7 @@ class ZigBee extends DeviceService
                 }
             });
 
-            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index, false); localStorage.setItem('zigbeeSort', this.dataset.index); }) );
+            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { var once = cell.classList.contains('once'); sortTable(table, this.dataset.index, false, once); if (!once) localStorage.setItem('zigbeeSort', this.dataset.index); }) );
             sortTable(table, localStorage.getItem('zigbeeSort') ?? 0, false);
         });
     }
