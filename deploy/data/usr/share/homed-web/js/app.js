@@ -362,14 +362,19 @@ class DeviceService
             document.querySelectorAll('tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
             {
                 var cell = row.querySelector('.availability');
+                var className = device.info.active ? device.availability : 'shade';
+                var value = device.info.active ? '<i class="' + (device.availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>' : '<i class="icon-false shade"></i>';
 
-                row.classList.remove('online', 'offline', 'shade');
-                row.classList.add(device.info.active ? device.availability : 'shade');
+                if (!row.classList.contains(className))
+                {
+                    row.classList.remove('online', 'offline', 'shade');
+                    row.classList.add(className);
+                }
 
-                if (!cell)
+                if (!cell || cell.innerHTML == value)
                     return;
 
-                cell.innerHTML = device.info.active ? '<i class="' + (device.availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>' : '<i class="icon-false shade"></i>';
+                cell.innerHTML = value;
             });
         });
     }

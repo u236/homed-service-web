@@ -13,11 +13,12 @@ class ZigBee extends DeviceService
         Object.keys(this.devices).forEach(id =>
         {
             var cell = document.querySelector('tr[data-device="zigbee/' + id + '"] .lastSeen');
+            var value = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
 
-            if (!cell)
+            if (!cell || cell.innerHTML == value)
                 return;
 
-            cell.innerHTML = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
+            cell.innerHTML = value;
         });
     }
 
