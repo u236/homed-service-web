@@ -10,6 +10,9 @@ class ZigBee extends DeviceService
 
     updateLastSeen()
     {
+        if (this.controller.service != 'zigbee')
+            return;
+
         Object.keys(this.devices).forEach(id =>
         {
             var cell = document.querySelector('tr[data-device="zigbee/' + id + '"] .lastSeen');

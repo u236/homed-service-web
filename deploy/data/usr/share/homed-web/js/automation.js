@@ -15,6 +15,25 @@ class Automation
     constructor(controller)
     {
         this.controller = controller;
+        setInterval(function() { this.updateLastTriggered(); }.bind(this), 100);
+    }
+
+    updateLastTriggered()
+    {
+        if (this.controller.page != 'automation' || !this.status.automations)
+            return;
+
+        this.status.automations.forEach((item, index) =>
+        {
+            var cell = document.querySelector('tr[data-index="' + index + '"] .lastTriggered');
+            var value = timeInterval((Date.now() - item.lastTriggered) / 1000);
+
+            if (!item.lastTriggered || cell.innerHTML == value)
+                return;
+
+            cell.dataset.value = item.lastTriggered;
+            cell.innerHTML = value;
+        });
     }
 
     parseMessage(list, message)
@@ -85,7 +104,6 @@ class Automation
 
     handleCopy(item, list, append)
     {
-        console.log(item, list, append);
         var element = modal.querySelector('.copy');
 
         if (append)
@@ -116,18 +134,6 @@ class Automation
                 form.querySelector('.other').style.display = 'block';
                 break;
         }
-    }
-
-    updateLastTriggered(row, lastTriggered)
-    {
-        var cell = row.querySelector('.lastTriggered');
-        var value = timeInterval((Date.now() - lastTriggered) / 1000);
-
-        if (!lastTriggered || cell.innerHTML == value)
-            return;
-
-        cell.dataset.value = lastTriggered;
-        cell.innerHTML = value;
     }
 
     triggerInfo(trigger)
@@ -427,7 +433,7 @@ class Automation
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showAutomationList(); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(true); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(false, true); }.bind(this));
 
         if (!this.status)
             return;
@@ -453,14 +459,15 @@ class Automation
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
 
-            this.status.automations.forEach(item =>
+            this.status.automations.forEach((item, index) =>
             {
                 var row = table.querySelector('tbody').insertRow();
 
                 if (!item.conditions)
                     item.conditions = new Array();
 
-                row.addEventListener('click', function() { this.data = item; this.name = item.name; this.showAutomationInfo(); }.bind(this));
+                row.addEventListener('click', function() { this.data = item; this.name = item.name; this.showAutomationInfo(false); }.bind(this));
+                row.dataset.index = index;
 
                 for (var i = 0; i < 6; i++)
                 {
@@ -487,8 +494,6 @@ class Automation
                         case 5: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
                     }
                 }
-
-                this.updateLastTriggered(row, item.lastTriggered);
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { var once = cell.classList.contains('once'); sortTable(table, this.dataset.index, true, once); if (!once) localStorage.setItem('automationSort', this.dataset.index); }));
@@ -496,7 +501,7 @@ class Automation
         });
     }
 
-    showAutomationInfo(add = false)
+    showAutomationInfo(updated = true, add = false)
     {
         this.controller.setService('automation');
         this.controller.setPage('automationInfo');
@@ -508,6 +513,9 @@ class Automation
             var actions;
 
             this.content.innerHTML = html;
+
+            if (updated)
+                this.content.querySelector('.save').classList.add('warning');
 
             if (add)
             {
