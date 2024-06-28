@@ -48,6 +48,7 @@ function exposeList(expose, options)
             list = ['status'].concat(options[part[1] ? 'light_' + part[1] : 'light'] ?? new Array());
             break;
 
+        case 'lock':
         case 'switch':
             list = ['status'];
             break;
