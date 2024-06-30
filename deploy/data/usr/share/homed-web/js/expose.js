@@ -132,7 +132,7 @@ function addExpose(table, device, endpoint, expose)
     var list = exposeList(expose, options);
 
     list.forEach(name =>
-        {
+    {
         var item = name.split('_')[0];
         var row = table.insertRow();
         var titleCell = row.insertCell();
@@ -201,7 +201,7 @@ function addExpose(table, device, endpoint, expose)
 
             default:
 
-                var option = options[item] ?? new Object();
+                var option = options[name] ?? new Object();
 
                 switch (option.type)
                 {
