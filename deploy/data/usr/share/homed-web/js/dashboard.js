@@ -29,14 +29,14 @@ class Dashboard
 
     findDevice(item)
     {
-        var list = item.endpoint.split('/');
-        var devices = this.controller[list[0]].devices ?? new Object();
+        let list = item.endpoint.split('/');
+        let devices = this.controller[list[0]].devices ?? new Object();
         return devices[list[1]] ?? new Object();
     }
 
     itemString(item, edit = true)
     {
-        var device = this.findDevice(item);
+        let device = this.findDevice(item);
         return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' &rarr; ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
     }
 
@@ -54,11 +54,11 @@ class Dashboard
 
     addBlockExpose(table, item)
     {
-        var row = table.insertRow();
-        var titleCell = row.insertCell();
-        var valueCell = row.insertCell();
-        var list = item.endpoint.split('/');
-        var part = item.expose.split('_');
+        let row = table.insertRow();
+        let titleCell = row.insertCell();
+        let valueCell = row.insertCell();
+        let list = item.endpoint.split('/');
+        let part = item.expose.split('_');
 
         row.dataset.endpoint = list[0] + '/' + list[1] + '/' + (list[2] ?? 'common');
 
@@ -72,7 +72,7 @@ class Dashboard
         {
             case 'light':
             case 'switch':
-                var name = part[1] ? 'status_' + part[1] : 'status';
+                let name = part[1] ? 'status_' + part[1] : 'status';
                 valueCell.addEventListener('click', function() { this.controller.socket.publish('td/' + item.endpoint, {[name]: 'toggle'}); }.bind(this));
                 valueCell.dataset.property = name;
                 break;
@@ -97,7 +97,7 @@ class Dashboard
 
     showMenu()
     {
-        var menu = document.querySelector('.menu');
+        let menu = document.querySelector('.menu');
 
         menu.innerHTML = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span><span id="add"><i class="icon-plus"></i> Add</span>';
 
@@ -128,8 +128,8 @@ class Dashboard
 
         fetch('html/dashboard/dashboard.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var list;
-            var dashboard;
+            let list;
+            let dashboard;
 
             this.content.innerHTML = html;
             list = this.content.querySelector('.dashboardList');
@@ -140,7 +140,7 @@ class Dashboard
 
             this.status.dashboards.forEach((dashboard, index) =>
             {
-                var element = document.createElement('span');
+                let element = document.createElement('span');
 
                 if (list.innerHTML)
                     list.append('|');
@@ -156,7 +156,7 @@ class Dashboard
 
             if (!dashboard.blocks.length)
             {
-                var element = this.content.querySelector('.dashboardData');
+                let element = this.content.querySelector('.dashboardData');
                 element.innerHTML = '<div class="emptyList">dashboard "' + dashboard.name + '" data is empty</div>';
                 element.style.display = 'block';
                 return;
@@ -164,8 +164,8 @@ class Dashboard
 
             dashboard.blocks.forEach((block, index) =>
             {
-                var element = document.createElement('div');
-                var table = document.createElement('table');
+                let element = document.createElement('div');
+                let table = document.createElement('table');
 
                 element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span><span class="edit"><i class="icon-edit"></i></span></div>';
                 element.append(table);
@@ -176,10 +176,10 @@ class Dashboard
                 {
                     if (item.hasOwnProperty('expose'))
                     {
-                        var row = this.addBlockExpose(table, item);
-                        var list = item.endpoint.split('/');
-                        var endpoint = list[2] ?? 'common';
-                        var device;
+                        let row = this.addBlockExpose(table, item);
+                        let list = item.endpoint.split('/');
+                        let endpoint = list[2] ?? 'common';
+                        let device;
 
                         row.classList.add('shade');
 
@@ -198,8 +198,8 @@ class Dashboard
 
                         new Promise(wait.bind(this)).then(function()
                         {
-                            var option = device.options(endpoint)[item.expose] ?? new Object();
-                            var properties = device.properties(endpoint);
+                            let option = device.options(endpoint)[item.expose] ?? new Object();
+                            let properties = device.properties(endpoint);
 
                             row.dataset.device = device.service + '/' + device.id;
 
@@ -215,8 +215,8 @@ class Dashboard
                     }
                     else
                     {
-                        var row = table.insertRow();
-                        var cell = row.insertCell();
+                        let row = table.insertRow();
+                        let cell = row.insertCell();
 
                         cell.innerHTML = item.name + '<div><canvas id="chart-' + randomString(8) + '"></canvas></div>';
                         cell.classList.add('chart');
@@ -234,17 +234,17 @@ class Dashboard
 
     showDashboardSort()
     {
-        var showTable = function(table)
+        let showTable = function(table)
         {
             table.innerHTML = null;
 
             this.status.dashboards.forEach((dashboard, index) =>
             {
-                var row = table.insertRow();
+                let row = table.insertRow();
 
-                for (var i = 0; i < 3; i++)
+                for (let i = 0; i < 3; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -290,18 +290,18 @@ class Dashboard
 
     showDashboardEdit(dashboard)
     {
-        var showTable = function(table, dashboard)
+        let showTable = function(table, dashboard)
         {
             table.style.display = dashboard.blocks.length ? 'table' : 'none';
             table.innerHTML = null;
 
             dashboard.blocks.forEach((block, index) =>
             {
-                var row = table.insertRow();
+                let row = table.insertRow();
 
-                for (var i = 0; i < 4; i++)
+                for (let i = 0; i < 4; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -393,18 +393,18 @@ class Dashboard
 
     showBlockEdit(dashboard, block, callback)
     {
-        var showTable = function(table, dashboard, block)
+        let showTable = function(table, dashboard, block)
         {
             table.style.display = block.items.length ? 'table' : 'none';
             table.innerHTML = null;
 
             block.items.forEach((item, index) =>
             {
-                var row = table.insertRow();
+                let row = table.insertRow();
 
-                for (var i = 0; i < 4; i++)
+                for (let i = 0; i < 4; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -488,29 +488,29 @@ class Dashboard
 
     showItemEdit(dashboard, block, item, callback)
     {
-        var services = ['custom', 'modbus', 'zigbee'];
-        var recorder = this.controller.recorder;
-        var items = new Object();
+        let services = ['custom', 'modbus', 'zigbee'];
+        let recorder = this.controller.recorder;
+        let items = new Object();
 
         if (!item)
             item = {name: 'New item', add: true};
 
         services.forEach(service =>
         {
-            var devices = this.controller[service].devices ?? new Object();
+            let devices = this.controller[service].devices ?? new Object();
 
             if (!Object.keys(devices))
                 return;
 
             Object.keys(devices).forEach(id =>
             {
-                var device = devices[id];
+                let device = devices[id];
 
                 Object.keys(device.endpoints).forEach(endpoint =>
                 {
                     device.items(endpoint).forEach(expose =>
                     {
-                        var value = {endpoint: service + '/' + id, expose: expose};
+                        let value = {endpoint: service + '/' + id, expose: expose};
 
                         if (endpoint != 'common')
                             value.endpoint += '/' + endpoint;
@@ -525,7 +525,7 @@ class Dashboard
         {
             recorder.status.items.forEach(item =>
             {
-                var device = this.findDevice(item);
+                let device = this.findDevice(item);
 
                 if (!device.info)
                     return;
@@ -536,7 +536,7 @@ class Dashboard
 
         fetch('html/dashboard/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var data;
+            let data;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name + ' &rarr; ' + item.name;
@@ -607,7 +607,7 @@ class Dashboard
     {
         fetch('html/dashboard/exposeInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = item.name;
@@ -630,8 +630,8 @@ class Dashboard
     {
         fetch('html/dashboard/recorderInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var id = 'chart-' + randomString(8);
-            var chart;
+            let id = 'chart-' + randomString(8);
+            let chart;
 
             modal.querySelector('.data').innerHTML = html;
             chart = modal.querySelector('.chart');
@@ -650,8 +650,8 @@ class Dashboard
 
             modal.querySelector('.item').addEventListener('click', function()
             {
-                var recorder = this.controller.recorder;
-                var data = recorder.findItem(item.endpoint, item.property);
+                let recorder = this.controller.recorder;
+                let data = recorder.findItem(item.endpoint, item.property);
 
                 if (!data)
                     return;

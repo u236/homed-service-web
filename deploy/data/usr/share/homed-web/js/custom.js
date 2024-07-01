@@ -9,7 +9,7 @@ class Custom extends DeviceService
     {
         if (list[0] == 'status')
         {
-            var check = false;
+            let check = false;
 
             this.names = message.names;
             this.version = message.version;
@@ -21,7 +21,7 @@ class Custom extends DeviceService
 
                 if (!this.devices[device.id])
                 {
-                    var item = this.names ? device.name : device.id;
+                    let item = this.names ? device.name : device.id;
 
                     this.devices[device.id] = new Device('custom', device.id);
                     this.controller.socket.subscribe('expose/custom/' + item);
@@ -58,7 +58,7 @@ class Custom extends DeviceService
 
     showMenu()
     {
-        var menu = document.querySelector('.menu');
+        let menu = document.querySelector('.menu');
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
@@ -82,22 +82,22 @@ class Custom extends DeviceService
 
         fetch('html/custom/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.deviceList table');
 
             Object.keys(this.devices).forEach(id =>
             {
-                var device = this.devices[id];
-                var row = table.querySelector('tbody').insertRow();
+                let device = this.devices[id];
+                let row = table.querySelector('tbody').insertRow();
 
                 row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
                 row.dataset.device = 'custom/' + device.id;
 
-                for (var i = 0; i < 7; i++)
+                for (let i = 0; i < 7; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -131,11 +131,11 @@ class Custom extends DeviceService
 
     showDeviceEdit(device = undefined)
     {
-        var add = false;
+        let add = false;
 
         if (!device)
         {
-            var random = randomString(4);
+            let random = randomString(4);
             device = {info: {name: 'Device ' + random, id: 'device_' + random, exposes: ['switch'], active: true}};
             add = true;
         }
@@ -156,7 +156,7 @@ class Custom extends DeviceService
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 if (form.exposes)
                     form.exposes = form.exposes.split(',').map(item =>item.trim());

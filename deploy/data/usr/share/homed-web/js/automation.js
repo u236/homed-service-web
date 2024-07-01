@@ -25,8 +25,8 @@ class Automation
 
         this.status.automations.forEach((item, index) =>
         {
-            var cell = document.querySelector('tr[data-index="' + index + '"] .lastTriggered');
-            var value = timeInterval((Date.now() - item.lastTriggered) / 1000);
+            let cell = document.querySelector('tr[data-index="' + index + '"] .lastTriggered');
+            let value = timeInterval((Date.now() - item.lastTriggered) / 1000);
 
             if (!item.lastTriggered || !cell || cell.innerHTML == value)
                 return;
@@ -42,7 +42,7 @@ class Automation
         {
             case 'status':
 
-                var check = this.status.automations ? this.status.automations.map(automation => automation.name) : null;
+                let check = this.status.automations ? this.status.automations.map(automation => automation.name) : null;
 
                 this.status = message;
 
@@ -58,7 +58,7 @@ class Automation
 
             case 'event':
 
-                var html = 'Automation <b>' + message.automation + '</b> ';
+                let html = 'Automation <b>' + message.automation + '</b> ';
 
                 if (message.event == 'added' || message.event == 'updated')
                     this.controller.clearPage('automation');
@@ -83,8 +83,8 @@ class Automation
 
     findDevice(item)
     {
-        var list = item.endpoint.split('/');
-        var devices = this.controller[list[0]].devices ?? new Object();
+        let list = item.endpoint.split('/');
+        let devices = this.controller[list[0]].devices ?? new Object();
 
         if (devices.hasOwnProperty(list[1]))
             return devices[list[1]];
@@ -94,7 +94,7 @@ class Automation
 
     itemProperty(item, form = false)
     {
-        var device = this.findDevice(item);
+        let device = this.findDevice(item);
 
         if (form)
             return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
@@ -104,7 +104,7 @@ class Automation
 
     handleCopy(item, list, append)
     {
-        var element = modal.querySelector('.copy');
+        let element = modal.querySelector('.copy');
 
         if (append)
         {
@@ -138,16 +138,16 @@ class Automation
 
     triggerInfo(trigger)
     {
-        var data;
+        let data;
 
         switch (trigger.type)
         {
             case 'property':
             case 'mqtt':
 
-                for (var i = 0; i < this.triggerStatement.length; i++)
+                for (let i = 0; i < this.triggerStatement.length; i++)
                 {
-                    var statement = this.triggerStatement[i];
+                    let statement = this.triggerStatement[i];
 
                     if (!trigger.hasOwnProperty(statement))
                         continue;
@@ -186,10 +186,10 @@ class Automation
         if (condition.type == 'week')
             return '<span class="value">' + condition.days.join(', ') + '</span>';
 
-        for (var i = 0; i < this.conditionStatement.length; i++)
+        for (let i = 0; i < this.conditionStatement.length; i++)
         {
-            var statement = this.conditionStatement[i];
-            var value;
+            let statement = this.conditionStatement[i];
+            let value;
 
             if (!condition.hasOwnProperty(statement))
                 continue;
@@ -216,15 +216,15 @@ class Automation
 
     actionInfo(action)
     {
-        var data;
+        let data;
 
         switch (action.type)
         {
             case 'property':
 
-                for (var i = 0; i < this.actionStatement.length; i++)
+                for (let i = 0; i < this.actionStatement.length; i++)
                 {
-                    var statement = this.actionStatement[i];
+                    let statement = this.actionStatement[i];
 
                     if (!action.hasOwnProperty(statement))
                         continue;
@@ -277,16 +277,16 @@ class Automation
     {
         list.forEach((condition, index) =>
         {
-            var row = table.insertRow();
+            let row = table.insertRow();
 
-            for (var i = 0; i < 3; i++)
+            for (let i = 0; i < 3; i++)
             {
-                var cell = row.insertCell();
+                let cell = row.insertCell();
 
                 switch (i)
                 {
                     case 0:
-                        for (var j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
                         cell.innerHTML += condition.type == 'AND' || condition.type == 'OR' || condition.type == 'NOT' ? '<span class="value">' + condition.type + '</span>' : condition.type;
                         break;
 
@@ -335,16 +335,16 @@ class Automation
     {
         list.forEach((action, index) =>
         {
-            var row = table.insertRow();
+            let row = table.insertRow();
 
-            for (var i = 0; i < 5; i++)
+            for (let i = 0; i < 5; i++)
             {
-                var cell = row.insertCell();
+                let cell = row.insertCell();
 
                 switch (i)
                 {
                     case 0:
-                        for (var j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
                         cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type;
                         break;
 
@@ -358,13 +358,13 @@ class Automation
                             break;
                         }
 
-                        for (var j = 0; j < 3; j++)
+                        for (let j = 0; j < 3; j++)
                         {
-                            var actionRow = table.insertRow();
-                            var nameCell = actionRow.insertCell();
-                            var actionCell = actionRow.insertCell();
+                            let actionRow = table.insertRow();
+                            let nameCell = actionRow.insertCell();
+                            let actionCell = actionRow.insertCell();
 
-                            for (var k = 0; k <= level; k++)
+                            for (let k = 0; k <= level; k++)
                                 nameCell.innerHTML += '<span class="' + (k < level ? 'shade' : 'warning') + '">&#8618;</span> ';
 
                             nameCell.colSpan = 4;
@@ -427,7 +427,7 @@ class Automation
 
     showMenu()
     {
-        var menu = document.querySelector('.menu');
+        let menu = document.querySelector('.menu');
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
@@ -438,11 +438,11 @@ class Automation
 
         menu.querySelector('#import').addEventListener('click', function()
         {
-            var input = document.createElement('input');
+            let input = document.createElement('input');
 
             input.addEventListener('change', function ()
             {
-                var reader = new FileReader();
+                let reader = new FileReader();
 
                 reader.onload = function ()
                 {
@@ -489,14 +489,14 @@ class Automation
 
         fetch('html/automation/automationList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
 
             this.status.automations.forEach((item, index) =>
             {
-                var row = table.querySelector('tbody').insertRow();
+                let row = table.querySelector('tbody').insertRow();
 
                 if (!item.conditions)
                     item.conditions = new Array();
@@ -504,9 +504,9 @@ class Automation
                 row.addEventListener('click', function() { this.data = item; this.name = item.name; this.showAutomationInfo(false); }.bind(this));
                 row.dataset.index = index;
 
-                for (var i = 0; i < 6; i++)
+                for (let i = 0; i < 6; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -531,7 +531,7 @@ class Automation
                 }
             });
 
-            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { var once = cell.classList.contains('once'); sortTable(table, this.dataset.index, true, once); if (!once) localStorage.setItem('automationSort', this.dataset.index); }));
+            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, true, once); if (!once) localStorage.setItem('automationSort', this.dataset.index); }));
             sortTable(table, localStorage.getItem('automationSort') ?? 0);
         });
     }
@@ -543,9 +543,9 @@ class Automation
 
         fetch('html/automation/automationInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var triggers;
-            var conditions;
-            var actions;
+            let triggers;
+            let conditions;
+            let actions;
 
             this.content.innerHTML = html;
 
@@ -575,8 +575,8 @@ class Automation
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
-                var data = {...this.data};
-                var item = document.createElement("a");
+                let data = {...this.data};
+                let item = document.createElement("a");
 
                 delete data.active;
                 delete data.lastTriggered;
@@ -604,11 +604,11 @@ class Automation
 
             this.data.triggers.forEach((trigger, index) =>
             {
-                var row = triggers.insertRow();
+                let row = triggers.insertRow();
 
-                for (var i = 0; i < 3; i++)
+                for (let i = 0; i < 3; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -650,7 +650,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 this.data.name = form.name;
                 this.data.note = form.note;
@@ -727,8 +727,8 @@ class Automation
     {
         fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var properties = this.controller.propertiesList();
-            var data;
+            let properties = this.controller.propertiesList();
+            let data;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = 'property ' + type;
@@ -744,7 +744,7 @@ class Automation
 
             statements.forEach(statement =>
             {
-                var option = document.createElement('option');
+                let option = document.createElement('option');
 
                 option.innerHTML = statement;
                 modal.querySelector('select[name="statement"]').append(option);
@@ -770,7 +770,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 if (data)
                 {
@@ -821,7 +821,7 @@ class Automation
 
             statements.forEach(statement =>
             {
-                var option = document.createElement('option');
+                let option = document.createElement('option');
 
                 option.innerHTML = statement;
                 modal.querySelector('select[name="statement"]').append(option);
@@ -847,7 +847,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 statements.forEach(statement => delete item[statement]);
 
@@ -891,8 +891,8 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
-                var chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                let form = formData(modal.querySelector('form'));
+                let chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 trigger.message = form.message.trim();
                 trigger.chats = chats.length ? chats : null;
@@ -931,7 +931,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 trigger.time = form.time;
 
@@ -969,7 +969,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 trigger.interval = form.interval;
 
@@ -1006,7 +1006,7 @@ class Automation
 
             this.conditionStatement.forEach(statement =>
             {
-                var option = document.createElement('option');
+                let option = document.createElement('option');
 
                 option.innerHTML = statement;
                 modal.querySelector('select[name="statement"]').append(option);
@@ -1029,7 +1029,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
@@ -1064,7 +1064,7 @@ class Automation
 
             this.conditionStatement.forEach(statement =>
             {
-                var option = document.createElement('option');
+                let option = document.createElement('option');
 
                 option.innerHTML = statement;
                 modal.querySelector('select[name="statement"]').append(option);
@@ -1087,7 +1087,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
                 condition[form.statement] = form.statement == 'between' ? [form.start, form.end] : form.value;
@@ -1121,8 +1121,8 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
-                var days = form.days ? form.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                let form = formData(modal.querySelector('form'));
+                let days = form.days ? form.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 condition.days = days.length ? days : null;
 
@@ -1157,7 +1157,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 action.topic = form.topic;
                 action.message = form.message.trim();
@@ -1198,7 +1198,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 action.name = form.name;
                 action.value = this.parseValue(form.value);
@@ -1239,8 +1239,8 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
-                var chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                let form = formData(modal.querySelector('form'));
+                let chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 action.message = form.message.trim();
                 action.chats = chats.length ? chats : null;
@@ -1280,7 +1280,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 action.command = form.command.trim();
 
@@ -1318,7 +1318,7 @@ class Automation
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 action.delay = form.delay;
 

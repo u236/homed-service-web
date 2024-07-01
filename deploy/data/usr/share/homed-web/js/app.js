@@ -18,7 +18,7 @@ class Socket
         this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host + location.pathname);
 
         this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
-        this.ws.onmessage = function(event) { var data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
+        this.ws.onmessage = function(event) { let data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
         this.ws.onerror = function() { this.ws.close(); }.bind(this);
 
         this.ws.onclose = function()
@@ -85,14 +85,14 @@ class Controller
 
     onmessage(topic, message)
     {
-        var list = topic.split('/');
-        var service = list[1] != 'web' ? list[1] : 'dashboard';
+        let list = topic.split('/');
+        let service = list[1] != 'web' ? list[1] : 'dashboard';
 
         if (list[0] == 'service')
         {
             if (message.status != 'online')
             {
-                var item = list[1];
+                let item = list[1];
 
                 if (this.service == service)
                     this.clearPage(this.page, service + ' service is offline');
@@ -100,7 +100,7 @@ class Controller
                 if (service == 'recorder')
                     this.socket.unsubscribe('recorder');
 
-                this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == item; }).forEach(topic => { this.socket.unsubscribe(topic); });
+                this.socket.subscriptions.filter(topic => { let list = topic.split('/'); return list[0] != 'service' && list[1] == item; }).forEach(topic => { this.socket.unsubscribe(topic); });
             }
             else
             {
@@ -135,13 +135,13 @@ class Controller
 
     updateMenu()
     {
-        var services = document.querySelector('.header .services');
+        let services = document.querySelector('.header .services');
 
         services.innerHTML = '';
 
         Object.keys(this.services).forEach(service =>
         {
-            var element = document.createElement('span');
+            let element = document.createElement('span');
 
             if (this.services[service] != 'online')
                 return;
@@ -203,7 +203,7 @@ class Controller
 
     clearPage(name, warning = null)
     {
-        var content = document.querySelector('.content .container');
+        let content = document.querySelector('.content .container');
 
         content.innerHTML = '<div class="pageLoader"></div><div class="center warning"></div>';
 
@@ -229,7 +229,7 @@ class Controller
 
     showToast(message, style = 'success')
     {
-        var element = document.createElement('div');
+        let element = document.createElement('div');
 
         element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
         element.innerHTML = '<div class="message">' + message + '</div>';
@@ -241,7 +241,7 @@ class Controller
 
     clearToast(item)
     {
-        var toast = document.querySelector('#toast');
+        let toast = document.querySelector('#toast');
 
         if (!toast.contains(item))
             return;
@@ -252,19 +252,19 @@ class Controller
 
     propertiesList()
     {
-        var services = ['zigbee', 'modbus', 'custom'];
-        var list = new Object();
+        let services = ['zigbee', 'modbus', 'custom'];
+        let list = new Object();
 
         services.forEach(service =>
         {
-            var devices = this[service].devices ?? new Object();
+            let devices = this[service].devices ?? new Object();
 
             if (!Object.keys(devices))
                 return;
 
             Object.keys(devices).forEach(id =>
             {
-                var device = devices[id];
+                let device = devices[id];
 
                 Object.keys(device.endpoints).forEach(endpoint =>
                 {
@@ -272,7 +272,7 @@ class Controller
                     {
                         exposeList(expose, device.options(endpoint)).forEach(property =>
                         {
-                            var value = {endpoint: service + '/' + id, property: property}
+                            let value = {endpoint: service + '/' + id, property: property}
 
                             if (endpoint != 'common')
                                 value.endpoint += '/' + endpoint;
@@ -354,16 +354,16 @@ class DeviceService
     {
         Object.keys(this.devices).forEach(id =>
         {
-            var device = this.devices[id];
+            let device = this.devices[id];
 
             if (this.service == 'zigbee' && !device.info.logicalType)
                 return;
 
             document.querySelectorAll('tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
             {
-                var cell = row.querySelector('.availability');
-                var className = device.info.active ? device.availability : 'shade';
-                var value = device.info.active ? '<i class="' + (device.availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>' : '<i class="icon-false shade"></i>';
+                let cell = row.querySelector('.availability');
+                let className = device.info.active ? device.availability : 'shade';
+                let value = device.info.active ? '<i class="' + (device.availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>' : '<i class="icon-false shade"></i>';
 
                 if (!row.classList.contains(className))
                 {
@@ -384,8 +384,8 @@ class DeviceService
         switch (list[0])
         {
             case 'event':
-
-                var html = 'Device <b>' + message.device + '</b> ';
+            {
+                let html = 'Device <b>' + message.device + '</b> ';
 
                 if (message.event == 'added' || message.event == 'updated')
                     this.controller.clearPage('custom');
@@ -401,10 +401,11 @@ class DeviceService
                 }
 
                 break;
+            }
 
             case 'device':
-
-                var device = this.findDevice(list[2]);
+            {
+                let device = this.findDevice(list[2]);
 
                 if (device && message)
                 {
@@ -415,14 +416,15 @@ class DeviceService
                 }
 
                 break;
+            }
 
             case 'expose':
-
-                var device = this.findDevice(list[2]);
+            {
+                let device = this.findDevice(list[2]);
 
                 if (device && message)
                 {
-                    var item = this.names ? device.info.name : device.id;
+                    let item = this.names ? device.info.name : device.id;
 
                     Object.keys(message).forEach(endpoint =>
                     {
@@ -437,19 +439,21 @@ class DeviceService
                 }
 
                 break;
+            }
 
             case 'fd':
-
-                var device = this.findDevice(list[2]);
+            {
+                let device = this.findDevice(list[2]);
 
                 if (device && message)
                 {
-                    var endpoint = list[3] ?? 'common';
+                    let endpoint = list[3] ?? 'common';
                     device.setProperties(endpoint, message);
                     Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
                 }
 
                 break;
+            }
         }
     }
 
@@ -481,7 +485,7 @@ class DeviceService
 
         fetch('html/' + this.service + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('table.exposes');
@@ -491,8 +495,8 @@ class DeviceService
 
             Object.keys(device.info).forEach(key =>
             {
-                var cell = document.querySelector('.' + key);
-                var row = cell ? cell.closest('tr') : undefined;
+                let cell = document.querySelector('.' + key);
+                let row = cell ? cell.closest('tr') : undefined;
 
                 if (key == 'exposes')
                     return;
@@ -532,7 +536,7 @@ class DeviceService
 
 window.onload = function()
 {
-    var logout = document.querySelector('#logout');
+    let logout = document.querySelector('#logout');
 
     modal = document.querySelector('#modal');
     controller = new Controller();
@@ -586,19 +590,19 @@ function setWide()
 
 function sortTable(table, index, first = true, once = false)
 {
-    var check = true;
+    let check = true;
 
     while (check)
     {
-        var rows = table.rows;
+        let rows = table.rows;
 
         check = false;
 
-        for (var i = first ? 1 : 2; i < rows.length - 1; i++)
+        for (let i = first ? 1 : 2; i < rows.length - 1; i++)
         {
-            var current = rows[i].querySelectorAll('td')[index];
-            var next = rows[i + 1].querySelectorAll('td')[index];
-            var sort;
+            let current = rows[i].querySelectorAll('td')[index];
+            let next = rows[i + 1].querySelectorAll('td')[index];
+            let sort;
 
             switch (true)
             {
@@ -634,8 +638,8 @@ function sortTable(table, index, first = true, once = false)
 
 function addDropdown(dropdown, options, callback, separator = 0)
 {
-    var list = document.createElement('div');
-    var search = undefined;
+    let list = document.createElement('div');
+    let search = undefined;
 
     list.classList.add('list');
     dropdown.append(list);
@@ -651,7 +655,7 @@ function addDropdown(dropdown, options, callback, separator = 0)
 
     options.forEach((option, index) =>
     {
-        var element = document.createElement('div');
+        let element = document.createElement('div');
         element.addEventListener('click', function() { callback(option); });
         element.innerHTML = option;
         element.classList.add('item');
@@ -718,7 +722,7 @@ function randomString(length)
 
 function formData(form)
 {
-    var data = new Object();
+    let data = new Object();
 
     Array.from(form).forEach(input =>
     {
@@ -747,6 +751,6 @@ function timeInterval(interval)
 
 function deviceCommand(device, endpoint, data)
 {
-    var item = controller[device.service].names ? device.info.name : device.id;
+    let item = controller[device.service].names ? device.info.name : device.id;
     controller.socket.publish('td/' + device.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
 }

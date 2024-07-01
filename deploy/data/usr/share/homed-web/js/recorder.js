@@ -38,7 +38,7 @@ class Recorder
     {
         document.querySelectorAll('canvas').forEach(canvas =>
         {
-            var chart = Chart.getChart(canvas);
+            let chart = Chart.getChart(canvas);
 
             if (!chart)
                 return;
@@ -49,8 +49,8 @@ class Recorder
 
     timestampString(timestamp, seconds = true, interval = false)
     {
-        var date = new Date(timestamp);
-        var data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+        let date = new Date(timestamp);
+        let data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
 
         if (seconds)
             data += ':' + ('0' + date.getSeconds()).slice(-2);
@@ -63,8 +63,8 @@ class Recorder
 
     findDevice(item)
     {
-        var list = item.endpoint.split('/');
-        var devices = this.controller[list[0]].devices ?? new Object();
+        let list = item.endpoint.split('/');
+        let devices = this.controller[list[0]].devices ?? new Object();
 
         if (devices.hasOwnProperty(list[1]))
             return devices[list[1]];
@@ -82,9 +82,9 @@ class Recorder
 
     devicePromise(item, cell)
     {
-        var list = item.endpoint.split('/');
-        var endpoint = list[2] ?? 'common';
-        var device;
+        let list = item.endpoint.split('/');
+        let endpoint = list[2] ?? 'common';
+        let device;
 
         function wait(resolve)
         {
@@ -104,7 +104,7 @@ class Recorder
 
     dataRequest(canvas)
     {
-        var date = new Date();
+        let date = new Date();
 
         switch (canvas.dataset.interval)
         {
@@ -121,7 +121,7 @@ class Recorder
 
     chartQuery(item, element, interval)
     {
-        var canvas = element.querySelector('canvas');
+        let canvas = element.querySelector('canvas');
 
         if (interval)
             canvas.dataset.interval = interval;
@@ -135,14 +135,14 @@ class Recorder
 
     parseData(message)
     {
-        var canvas = document.querySelector('canvas#' + message.id);
-        var status = document.querySelector('.status#' + message.id);
-        var table = document.querySelector('.log#' + message.id);
-        var chart = Chart.getChart(canvas);
-        var datasets = new Array();
-        var numeric = true;
-        var average = false;
-        var options;
+        let canvas = document.querySelector('canvas#' + message.id);
+        let status = document.querySelector('.status#' + message.id);
+        let table = document.querySelector('.log#' + message.id);
+        let chart = Chart.getChart(canvas);
+        let datasets = new Array();
+        let numeric = true;
+        let average = false;
+        let options;
 
         if (!canvas)
             return;
@@ -181,7 +181,7 @@ class Recorder
 
         if (message.hasOwnProperty('value'))
         {
-            for (var i = 0; i < message.value.length; i++)
+            for (let i = 0; i < message.value.length; i++)
             {
                 if (message.value[i] && isNaN(message.value[i]))
                 {
@@ -192,11 +192,11 @@ class Recorder
 
             if (numeric)
             {
-                var data = new Array();
+                let data = new Array();
 
                 message.timestamp.forEach((timestamp, index) =>
                 {
-                    var value = message.value[index];
+                    let value = message.value[index];
 
                     if (!value && index)
                         data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2)) });
@@ -209,12 +209,12 @@ class Recorder
             }
             else
             {
-                var count = 0;
+                let count = 0;
 
                 message.timestamp.forEach((timestamp, index) =>
                 {
-                    var value = message.value[index];
-                    var data =
+                    let value = message.value[index];
+                    let data =
                     {
                         data: [[index ? timestamp : options.scales.x.min, message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max]],
                         timestamp: timestamp,
@@ -239,19 +239,19 @@ class Recorder
         }
         else
         {
-            var avg = new Array();
-            var min = new Array();
-            var max = new Array();
+            let avg = new Array();
+            let min = new Array();
+            let max = new Array();
 
             message.timestamp.forEach((timestamp, index) => // TODO: check for empty hours?
             {
-                var avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2));
-                var minTooltip = 'min: ' + Number(message.min[index].toFixed(2));
-                var maxTooltip = 'max: ' + Number(message.max[index].toFixed(2));
+                let avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2));
+                let minTooltip = 'min: ' + Number(message.min[index].toFixed(2));
+                let maxTooltip = 'max: ' + Number(message.max[index].toFixed(2));
 
                 if (message.min[index] != message.max[index])
                 {
-                    var tooltip = new Array(avgTooltip, minTooltip, maxTooltip);
+                    let tooltip = new Array(avgTooltip, minTooltip, maxTooltip);
                     avgTooltip = tooltip;
                     minTooltip = tooltip;
                     maxTooltip = tooltip;
@@ -330,14 +330,14 @@ class Recorder
         {
             datasets.forEach(record =>
             {
-                var row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
-                var timestamp = this.timestampString(record.timestamp, true, true);
+                let row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
+                let timestamp = this.timestampString(record.timestamp, true, true);
 
                 if (!row)
                 {
-                    var row = table.insertRow(0);
-                    var circleCell = row.insertCell();
-                    var recordCell = row.insertCell();
+                    let row = table.insertRow(0);
+                    let circleCell = row.insertCell();
+                    let recordCell = row.insertCell();
 
                     row.dataset.timestamp = record.timestamp;
                     circleCell.innerHTML = '<div class="circle"></div>';
@@ -346,7 +346,7 @@ class Recorder
 
                     row.addEventListener('mouseover', function()
                     {
-                        var index = chart.data.datasets.length - this.rowIndex - 1;
+                        let index = chart.data.datasets.length - this.rowIndex - 1;
 
                         if (index < 0)
                             return;
@@ -391,7 +391,7 @@ class Recorder
 
     showMenu()
     {
-        var menu = document.querySelector('.menu');
+        let menu = document.querySelector('.menu');
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
@@ -418,20 +418,20 @@ class Recorder
 
         fetch('html/recorder/itemList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
 
             this.status.items.forEach(item =>
             {
-                var row = table.querySelector('tbody').insertRow();
+                let row = table.querySelector('tbody').insertRow();
 
                 row.addEventListener('click', function() { this.data = item; this.showItemInfo(); }.bind(this));
 
-                for (var i = 0; i < 3; i++)
+                for (let i = 0; i < 3; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -455,9 +455,9 @@ class Recorder
 
         fetch('html/recorder/itemInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var id = 'chart-' + randomString(8);
-            var name;
-            var chart;
+            let id = 'chart-' + randomString(8);
+            let name;
+            let chart;
 
             this.content.innerHTML = html;
             name = this.content.querySelector('.name');
@@ -487,15 +487,15 @@ class Recorder
     {
         fetch('html/recorder/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var name;
-            var data;
+            let name;
+            let data;
 
             modal.querySelector('.data').innerHTML = html;
             name = modal.querySelector('.name');
 
             if (add)
             {
-                var properties = this.controller.propertiesList();
+                let properties = this.controller.propertiesList();
 
                 this.data = new Object();
                 name.innerHTML = 'New item';
@@ -521,7 +521,7 @@ class Recorder
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 if (add)
                 {
@@ -559,7 +559,7 @@ class Recorder
     {
         fetch('html/recorder/itemRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var name;
+            let name;
 
             modal.querySelector('.data').innerHTML = html;
             name = modal.querySelector('.name');
