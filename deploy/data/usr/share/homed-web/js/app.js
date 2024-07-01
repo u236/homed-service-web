@@ -385,71 +385,71 @@ class DeviceService
         {
             case 'event':
 
-            var html = 'Device <b>' + message.device + '</b> ';
+                var html = 'Device <b>' + message.device + '</b> ';
 
-            if (message.event == 'added' || message.event == 'updated')
-                this.controller.clearPage('custom');
+                if (message.event == 'added' || message.event == 'updated')
+                    this.controller.clearPage('custom');
 
-            switch (message.event)
-            {
-                case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); return;
-                case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
-                case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
-                case 'added':          this.controller.showToast(html + 'successfully added'); return;
-                case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
-                case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
-            }
-
-            break;
-
-        case 'device':
-
-            var device = this.findDevice(list[2]);
-
-            if (device && message)
-            {
-                if (message.lastSeen)
-                    device.lastSeen = message.lastSeen;
-
-                device.availability = message.status;
-            }
-
-            break;
-
-        case 'expose':
-
-            var device = this.findDevice(list[2]);
-
-            if (device && message)
-            {
-                var item = this.names ? device.info.name : device.id;
-
-                Object.keys(message).forEach(endpoint =>
+                switch (message.event)
                 {
-                    this.controller.socket.subscribe('fd/' + this.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item));
-                    device.setExposes(endpoint, message[endpoint]);
-                });
+                    case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); return;
+                    case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
+                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
+                    case 'added':          this.controller.showToast(html + 'successfully added'); return;
+                    case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
+                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
+                }
 
-                if (device.service == 'zigbee' && !device.endpoints.common)
-                    this.controller.socket.subscribe('fd/' + this.service + '/' + item);
+                break;
 
-                this.controller.socket.publish('command/' + this.service, {action: 'getProperties', device: item, service: 'web'});
-            }
+            case 'device':
 
-            break;
+                var device = this.findDevice(list[2]);
 
-        case 'fd':
+                if (device && message)
+                {
+                    if (message.lastSeen)
+                        device.lastSeen = message.lastSeen;
 
-            var device = this.findDevice(list[2]);
+                    device.availability = message.status;
+                }
 
-            if (device && message)
-            {
-                var endpoint = list[3] ?? 'common';
-                device.setProperties(endpoint, message);
-                Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
-            }
+                break;
 
-            break;
+            case 'expose':
+
+                var device = this.findDevice(list[2]);
+
+                if (device && message)
+                {
+                    var item = this.names ? device.info.name : device.id;
+
+                    Object.keys(message).forEach(endpoint =>
+                    {
+                        this.controller.socket.subscribe('fd/' + this.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item));
+                        device.setExposes(endpoint, message[endpoint]);
+                    });
+
+                    if (device.service == 'zigbee' && !device.endpoints.common)
+                        this.controller.socket.subscribe('fd/' + this.service + '/' + item);
+
+                    this.controller.socket.publish('command/' + this.service, {action: 'getProperties', device: item, service: 'web'});
+                }
+
+                break;
+
+            case 'fd':
+
+                var device = this.findDevice(list[2]);
+
+                if (device && message)
+                {
+                    var endpoint = list[3] ?? 'common';
+                    device.setProperties(endpoint, message);
+                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+                }
+
+                break;
         }
     }
 
