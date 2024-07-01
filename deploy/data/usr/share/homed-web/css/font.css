@@ -48,4 +48,5 @@
 .icon-plus:before     { content: '\e80f'; }
 .icon-download:before { content: '\e810'; }
 .icon-upload:before   { content: '\e811'; }
-.icon-goto:before     { content: '\e812'; }
+.icon-copy:before     { content: '\e812'; }
+.icon-goto:before     { content: '\e813'; }
