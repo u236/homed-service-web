@@ -431,9 +431,44 @@ class Automation
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showAutomationList(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(false, true); }.bind(this));
+
+        menu.querySelector('#import').addEventListener('click', function()
+        {
+            var input = document.createElement('input');
+
+            input.addEventListener('change', function ()
+            {
+                var reader = new FileReader();
+
+                reader.onload = function ()
+                {
+                    try
+                    {
+                        this.data = JSON.parse(reader.result);
+                        this.name = undefined;
+                        this.showAutomationInfo();
+
+                    }
+                    catch
+                    {
+                        this.controller.showToast('File <b>' + input.files[0].name + '</b> is not valid json file', 'error');
+                    }
+
+                }.bind(this);
+
+                reader.readAsText(input.files[0]);
+
+            }.bind(this));
+
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'application/json');
+            input.click();
+
+        }.bind(this));
 
         if (!this.status)
             return;
@@ -520,7 +555,7 @@ class Automation
             if (add)
             {
                 this.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
-                this.name = null;
+                this.name = undefined;
             }
 
             if (!this.data.name)
@@ -528,14 +563,30 @@ class Automation
 
             if (!this.name)
             {
-                this.content.querySelector('.copy').style.display = 'none';
                 this.content.querySelector('.remove').style.display = 'none';
+                this.content.querySelector('.copy').style.display = 'none';
+                this.content.querySelector('.export').style.display = 'none';
             }
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
-            this.content.querySelector('.copy').addEventListener('click', function() { this.data.name += ' (copy)'; this.data.active = false; this.name = null; this.showAutomationInfo(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
             this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
+            this.content.querySelector('.copy').addEventListener('click', function() { this.data = {...this.data}; delete this.data.active; this.data.name += ' (copy)'; this.name = undefined; this.showAutomationInfo(); }.bind(this));
+
+            this.content.querySelector('.export').addEventListener('click', function()
+            {
+                var data = {...this.data};
+                var item = document.createElement("a");
+
+                delete data.active;
+                delete data.lastTriggered;
+                delete data.name;
+
+                item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+                item.download = this.data.name + '.json';
+                item.click();
+
+            }.bind(this));
 
             this.content.querySelector('.name').innerHTML = this.data.name + (this.name ? '' : ' <span class="warning value">NEW</span>');
             this.content.querySelector('.note').innerHTML = this.data.note ?? '';
