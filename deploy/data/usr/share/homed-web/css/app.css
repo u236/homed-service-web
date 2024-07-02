@@ -476,8 +476,11 @@ body[theme="dark"] {
 }
 
 .homed .itemList td {
+    overflow: hidden;
     min-width: 25px;
+    max-width: 100px;
     padding: 10px;
+    text-overflow: ellipsis;
 }
 
 .homed .itemList .tiny {
