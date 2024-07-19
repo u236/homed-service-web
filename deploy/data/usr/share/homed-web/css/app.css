@@ -48,9 +48,9 @@ body[theme="dark"] {
 }
 
 .homed {
-    --color-success:    green;
-    --color-warning:    orange;
-    --color-error:      red;
+    --color-success:    #008000;
+    --color-warning:    #fbb040;
+    --color-error:      #ff4000;
     --border-radius:    5px;
     --box-shadow:       0 5px 10px rgba(0, 0, 0, 0.25);
     --header-height:    50px;
@@ -928,15 +928,15 @@ body[theme="dark"] {
 }
 
 .homed #toast .success {
-    border-left: 5px solid green;
+    border-left: 5px solid var(--color-success);
 }
 
 .homed #toast .warning {
-    border-left: 5px solid orange;
+    border-left: 5px solid var(--color-warning);
 }
 
 .homed #toast .error {
-    border-left: 5px solid red;
+    border-left: 5px solid var(--color-error);
 }
 
 .homed #footerData {

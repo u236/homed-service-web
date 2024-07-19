@@ -173,11 +173,17 @@ class ZigBee extends DeviceService
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
-        menu.innerHTML += '<span id="permitJoin"><i class="icon-false"></i> Permit Join</span>';
+        menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
         menu.querySelector('#map').addEventListener('click', function() { this.showDeviceMap(); }.bind(this));
-        menu.querySelector('#permitJoin').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'}); }.bind(this));
+
+        menu.querySelector('#permitJoin').addEventListener('click', function()
+        {
+            menu.querySelector('#permitJoin i').className = 'icon-enable';
+            this.controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'});
+
+        }.bind(this));
 
         document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
         document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : '<i>unknow</i>';
