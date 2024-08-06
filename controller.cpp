@@ -121,10 +121,16 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
 
     for (auto it = m_clients.begin(); it != m_clients.end(); it++)
     {
-        if (!it.value().contains(subTopic))
-            continue;
+        for (int i = 0; i < it.value().count(); i++)
+        {
+            const QString item = it.value().at(i);
 
-        it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
+            if (item.endsWith('#') ? !subTopic.startsWith(item.mid(0, item.indexOf("#"))) : subTopic != item)
+                continue;
+
+            it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", json.isEmpty() ? QJsonValue::Null : QJsonValue(json)}}).toJson(QJsonDocument::Compact));
+            break;
+        }
     }
 }
 
@@ -269,11 +275,18 @@ void Controller::textMessageReceived(const QString &message)
 
     if (action == "subscribe")
     {
-        if (!it.value().contains(subTopic))
-            it.value().push_back(subTopic);
+        QWebSocket* client = it.key();
 
-        if (m_messages.contains(subTopic))
-            it.key()->sendTextMessage(QJsonDocument({{"topic", subTopic}, {"message", QJsonDocument::fromJson(m_messages.value(subTopic)).object()}}).toJson(QJsonDocument::Compact));
+        if (!it.value().contains(subTopic))
+            it.value().append(subTopic);
+
+        for (auto it = m_messages.begin(); it != m_messages.end(); it++)
+        {
+            if (subTopic.endsWith('#') ? !it.key().startsWith(subTopic.mid(0, subTopic.indexOf("#"))) : it.key() != subTopic)
+                continue;
+
+            client->sendTextMessage(QJsonDocument({{"topic", it.key()}, {"message", QJsonDocument::fromJson(it.value()).object()}}).toJson(QJsonDocument::Compact));
+        }
 
         mqttSubscribe(mqttTopic(subTopic));
     }
