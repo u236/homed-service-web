@@ -8,16 +8,21 @@ class Modbus extends DeviceService
         wbMap12h:              'Wiren Board WB-MAP12H'
     };
 
-    constructor(controller)
+    constructor(controller, instance)
     {
-        super(controller, 'modbus');
+        super(controller, 'modbus', instance);
+    }
+
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Modbus ' + this.version : '<i>unknown</i>';
     }
 
     parseMessage(list, message)
     {
         if (list[0] == 'status')
         {
-            let check = false;
+            let check = Object.keys(this.devices).length ? false : true;
 
             this.names = message.names;
             this.version = message.version;
@@ -33,9 +38,9 @@ class Modbus extends DeviceService
                 {
                     let item = this.names ? device.name : device.id;
 
-                    this.devices[device.id] = new Device('modbus', device.id);
-                    this.controller.socket.subscribe('expose/modbus/' + item);
-                    this.controller.socket.subscribe('device/modbus/' + item);
+                    this.devices[device.id] = new Device(this.service, device.id);
+                    this.controller.socket.subscribe('expose/' + this.service + '/' + item);
+                    this.controller.socket.subscribe('device/' + this.service + '/' + item);
 
                     check = true;
                 }
@@ -58,12 +63,12 @@ class Modbus extends DeviceService
                 check = true;
             });
 
-            if (this.controller.service == 'modbus')
+            if (this.controller.service == this.service)
             {
                 if (check)
-                    this.showDeviceList();
+                    this.controller.showPage(this.service);
 
-                document.querySelector('#serviceVersion').innerHTML = 'Modbus ' + this.version;
+                this.updatePage();
             }
 
             return;
@@ -77,27 +82,42 @@ class Modbus extends DeviceService
         return key != 'type' ? super.parseValue(key, value) : this.deviceType[value] ?? '<span class="shade">' + value + '</span>';
     }
 
-    showMenu()
+    showPage(data)
     {
+        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+
+        switch (list[0])
+        {
+            case 'device':
+
+                let device = this.devices[list[1]];
+
+                if (device)
+                    this.showDeviceInfo(device)
+                else
+                    this.showDeviceList();
+
+                break;
+
+            case 'add': this.showDeviceEdit(); break;
+            default: this.showDeviceList(); break;
+        }
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
-        menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage(this.service + '?add'); }.bind(this));
 
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Modbus ' + this.version : '<i>unknown</i>';
+        this.updatePage();
     }
 
     showDeviceList()
     {
-        this.controller.setService('modbus');
-        this.controller.setPage('modbus');
-
         if (!Object.keys(this.devices).length)
         {
-            this.content.innerHTML = '<div class="emptyList">modbus devices list is empty</div>';
+            this.content.innerHTML = '<div class="emptyList">' + this.service + ' devices list is empty</div>';
             return;
         }
 
@@ -113,8 +133,8 @@ class Modbus extends DeviceService
                 let device = this.devices[id];
                 let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
-                row.dataset.device = 'modbus/' + device.id;
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
+                row.dataset.device = this.service + '/' + device.id;
 
                 for (let i = 0; i < 7; i++)
                 {
@@ -190,7 +210,7 @@ class Modbus extends DeviceService
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/modbus', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             modal.removeEventListener('keypress', handleSave);

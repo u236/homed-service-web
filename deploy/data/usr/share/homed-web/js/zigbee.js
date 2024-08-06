@@ -2,20 +2,20 @@ class ZigBee extends DeviceService
 {
     logicalType = ['coordinator', 'router', 'end device'];
 
-    constructor(controller)
+    constructor(controller, instance)
     {
-        super(controller, 'zigbee');
+        super(controller, 'zigbee', instance);
         setInterval(function() { this.updateLastSeen(); }.bind(this), 100);
     }
 
     updateLastSeen()
     {
-        if (this.controller.service != 'zigbee')
+        if (this.controller.service != this.service)
             return;
 
         Object.keys(this.devices).forEach(id =>
         {
-            let cell = document.querySelector('tr[data-device="zigbee/' + id + '"] .lastSeen');
+            let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .lastSeen');
             let value = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
 
             if (!cell || cell.innerHTML == value)
@@ -24,6 +24,12 @@ class ZigBee extends DeviceService
             cell.dataset.value = this.devices[id].lastSeen;
             cell.innerHTML = value;
         });
+    }
+
+    updatePage()
+    {
+        document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : '<i>unknown</i>';
     }
 
     parseMessage(list, message)
@@ -48,11 +54,14 @@ class ZigBee extends DeviceService
 
                     if (!this.devices[device.ieeeAddress])
                     {
-                        let item = this.names ? device.name : device.ieeeAddress;
+                        this.devices[device.ieeeAddress] = new Device(this.service, device.ieeeAddress);
 
-                        this.devices[device.ieeeAddress] = new Device('zigbee', device.ieeeAddress);
-                        this.controller.socket.subscribe('expose/zigbee/' + item);
-                        this.controller.socket.subscribe('device/zigbee/' + item);
+                        if (device.logicalType)
+                        {
+                            let item = this.names ? device.name : device.ieeeAddress;
+                            this.controller.socket.subscribe('expose/' + this.service + '/' + item);
+                            this.controller.socket.subscribe('device/' + this.service + '/' + item);
+                        }
 
                         check = true;
                     }
@@ -62,20 +71,21 @@ class ZigBee extends DeviceService
 
                 Object.keys(this.devices).forEach(id =>
                 {
-                    if (message.devices.filter(device => device.ieeeAddress == id).length)
+                    let device = message.devices.filter(device => device.ieeeAddress == id)[0];
+
+                    if (device && !device.removed)
                         return;
 
                     delete this.devices[id];
                     check = true;
                 });
 
-                if (this.controller.service == 'zigbee')
+                if (this.controller.service == this.service)
                 {
                     if (check)
-                        this.showDeviceList();
+                        this.controller.showPage(this.service);
 
-                    document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
-                    document.querySelector('#serviceVersion').innerHTML = 'ZigBee ' + this.version;
+                    this.updatePage();
                 }
 
                 break;
@@ -84,14 +94,17 @@ class ZigBee extends DeviceService
 
                 let html = 'Device <b>' + message.device + '</b> ';
 
-                if (message.event == 'deviceUpdated')
-                    this.controller.clearPage('zigbee');
+                if (this.controller.service == this.service && message.event == 'deviceUpdated')
+                {
+                    this.controller.clearPage();
+                    this.devices = new Object();
+                }
 
                 switch (message.event)
                 {
                     case 'deviceJoined':        this.controller.showToast(html + 'joined network'); return;
                     case 'deviceLeft':          this.controller.showToast(html + 'left network', 'warning');  return;
-                    case 'deviceNameDuplicate': this.controller.showToast(html + 'name is already in use', 'error'); return;
+                    case 'deviceNameDuplicate': this.controller.showToast(html + 'new name is already in use', 'error'); return;
                     case 'deviceUpdated':       this.controller.showToast(html + 'successfully updated'); return;
                     case 'interviewError':      this.controller.showToast(html + 'interview error', 'error'); return;
                     case 'interviewTimeout':    this.controller.showToast(html + 'interview timed out', 'error'); return;
@@ -126,16 +139,16 @@ class ZigBee extends DeviceService
 
             case 'fd':
 
-                let device = this.findDevice(list[2]);
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
 
                 if (device)
                 {
-                    let endpoint = list[3] ?? 'common';
-                    let row = document.querySelector('tr[data-device="zigbee/' + device.id + '"]');
+                    let endpoint = (this.instance ? list[4] : list[3]) ?? 'common';
+                    let row = document.querySelector('tr[data-device="' + this.service + '/' + device.id + '"]');
 
                     device.setProperties(endpoint, message);
 
-                    if (this.controller.page == 'zigbee' && message.linkQuality != undefined && row)
+                    if (this.controller.page == this.service && message.linkQuality != undefined && row)
                     {
                         row.querySelector('.linkQuality').innerHTML = message.linkQuality;
                         break;
@@ -167,39 +180,47 @@ class ZigBee extends DeviceService
         }
     }
 
-    showMenu()
+    showPage(data)
     {
+        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+
+        switch (list[0])
+        {
+            case 'device':
+
+                let device = this.devices[list[1]];
+
+                if (device)
+                    this.showDeviceInfo(device)
+                else
+                    this.showDeviceList();
+
+                break;
+
+            case 'map': this.showDeviceMap(); break;
+            default: this.showDeviceList(); break;
+        }
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
         menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
 
-        menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
-        menu.querySelector('#map').addEventListener('click', function() { this.showDeviceMap(); }.bind(this));
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
+        menu.querySelector('#map').addEventListener('click', function() { this.controller.showPage(this.service + '?map') }.bind(this));
 
         menu.querySelector('#permitJoin').addEventListener('click', function()
         {
             menu.querySelector('#permitJoin i').className = 'icon-enable';
-            this.controller.socket.publish('command/zigbee', {'action': 'togglePermitJoin'});
+            this.serviceCommand({'action': 'togglePermitJoin'});
 
         }.bind(this));
 
-        document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : '<i>unknow</i>';
+        this.updatePage();
     }
 
     showDeviceList()
     {
-        this.controller.setService('zigbee');
-        this.controller.setPage('zigbee');
-
-        if (!Object.keys(this.devices).length)
-        {
-            this.content.innerHTML = '<div class="emptyList">zigbee devices list is empty</div>';
-            return;
-        }
-
         fetch('html/zigbee/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
@@ -212,8 +233,8 @@ class ZigBee extends DeviceService
                 let device = this.devices[ieeeAddress];
                 let row = table.querySelector('tbody').insertRow(device.info.logicalType ? -1 : 0);
 
-                row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
-                row.dataset.device = 'zigbee/' + device.id;
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
+                row.dataset.device = this.service + '/' + device.id;
 
                 for (let i = 0; i < 10; i++)
                 {
@@ -253,15 +274,6 @@ class ZigBee extends DeviceService
 
     showDeviceMap()
     {
-        this.controller.setService('zigbee');
-        this.controller.setPage('zigbeeMap');
-
-        if (!Object.keys(this.devices).length)
-        {
-            this.controller.clearPage('zigbee', 'zigbee service devices list is empty');
-            return;
-        }
-
         fetch('html/zigbee/deviceMap.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let map, width, height, link, text, node, routerLinks = false;
@@ -281,7 +293,7 @@ class ZigBee extends DeviceService
             {
                 let device = this.devices[ieeeAddress];
 
-                if (device.info.hasOwnProperty('removed') || (device.info.hasOwnProperty('active') && !device.info.active))
+                if (device.info.hasOwnProperty('active') && !device.info.active)
                     return;
 
                 data.nodes.push({id: device.info.networkAddress, name: device.info.name, type: device.info.logicalType});
@@ -291,7 +303,7 @@ class ZigBee extends DeviceService
 
                 device.info.neighbors.forEach(neighbor =>
                 {
-                    if (!Object.values(this.devices).find(item => item.info.networkAddress == neighbor.networkAddress && !item.info.removed && (!item.info.hasOwnProperty('active') || item.info.active)))
+                    if (!Object.values(this.devices).find(item => item.info.networkAddress == neighbor.networkAddress && (!item.info.hasOwnProperty('active') || item.info.active)))
                         return;
 
                     data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.info.networkAddress});
@@ -313,7 +325,7 @@ class ZigBee extends DeviceService
             });
 
             node.select('path').on('mouseleave', function() { text.attr('display', 'block'); link.attr('display', 'block').classed('highlight', false); });
-            node.select('text').on('click', function(d) { this.showDeviceInfo(Object.values(this.devices).filter(i => i.info.networkAddress == d.id)[0]); }.bind(this));
+            node.select('text').on('click', function(d) { this.controller.showPage(this.service + '?device=' + Object.values(this.devices).filter(i => i.info.networkAddress == d.id)[0].id); }.bind(this));
 
             drag.on('start', function(d) { if (!d3.event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; });
             drag.on('drag', function(d) { d.fx = d3.event.x; d.fy = d3.event.y; });
@@ -337,9 +349,6 @@ class ZigBee extends DeviceService
 
     showDeviceInfo(device)
     {
-        this.controller.setService('zigbee');
-        this.controller.setPage('zigbeeDevice');
-
         fetch('html/zigbee/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
@@ -364,7 +373,7 @@ class ZigBee extends DeviceService
                     return;
 
                 if (key == 'lastSeen')
-                    row.dataset.device = 'zigbee/' + device.id;
+                    row.dataset.device = this.service + '/' + device.id;
 
                 row.style.display = 'table-row';
             });
@@ -399,7 +408,7 @@ class ZigBee extends DeviceService
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {...{action: 'updateDevice', device: this.names ? device.info.name : device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({...{action: 'updateDevice', device: this.names ? device.info.name : device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             modal.removeEventListener('keypress', handleSave);
@@ -418,8 +427,8 @@ class ZigBee extends DeviceService
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.graceful').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: item}); this.controller.clearPage('zigbee'); }.bind(this));
-            modal.querySelector('.force').addEventListener('click', function() { this.controller.socket.publish('command/zigbee', {action: 'removeDevice', device: item, force: true}); this.controller.clearPage('zigbee'); }.bind(this));
+            modal.querySelector('.graceful').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: item}, true); }.bind(this));
+            modal.querySelector('.force').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: item, force: true}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
@@ -470,7 +479,7 @@ class ZigBee extends DeviceService
                     request.manufacturerCode = parseInt(form.manufacturerCode);
 
                 modal.querySelector('.debugStatus').innerHTML = 'status: pending';
-                this.controller.socket.publish('command/zigbee', request);
+                this.serviceCommand(request);
 
             }.bind(this));
 

@@ -1,15 +1,20 @@
 class Custom extends DeviceService
 {
-    constructor(controller)
+    constructor(controller, instance)
     {
-        super(controller, 'custom');
+        super(controller, 'custom', instance);
+    }
+
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Custom ' + this.version : '<i>unknown</i>';
     }
 
     parseMessage(list, message)
     {
         if (list[0] == 'status')
         {
-            let check = false;
+            let check = Object.keys(this.devices).length ? false : true;
 
             this.names = message.names;
             this.version = message.version;
@@ -23,9 +28,9 @@ class Custom extends DeviceService
                 {
                     let item = this.names ? device.name : device.id;
 
-                    this.devices[device.id] = new Device('custom', device.id);
-                    this.controller.socket.subscribe('expose/custom/' + item);
-                    this.controller.socket.subscribe('device/custom/' + item);
+                    this.devices[device.id] = new Device(this.service, device.id);
+                    this.controller.socket.subscribe('expose/' + this.service + '/' + item);
+                    this.controller.socket.subscribe('device/' + this.service + '/' + item);
 
                     check = true;
                 }
@@ -42,12 +47,12 @@ class Custom extends DeviceService
                 check = true;
             });
 
-            if (this.controller.service == 'custom')
+            if (this.controller.service == this.service)
             {
                 if (check)
-                    this.showDeviceList();
+                    this.controller.showPage(this.service);
 
-                document.querySelector('#serviceVersion').innerHTML = 'Custom ' + this.version;
+                this.updatePage();
             }
 
             return;
@@ -56,27 +61,42 @@ class Custom extends DeviceService
         super.parseMessage(list, message);
     }
 
-    showMenu()
+    showPage(data)
     {
+        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+
+        switch (list[0])
+        {
+            case 'device':
+
+                let device = this.devices[list[1]];
+
+                if (device)
+                    this.showDeviceInfo(device)
+                else
+                    this.showDeviceList();
+
+                break;
+
+            case 'add': this.showDeviceEdit(); break;
+            default: this.showDeviceList(); break;
+        }
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
-        menu.querySelector('#list').addEventListener('click', function() { this.showDeviceList(); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage(this.service + '?add'); }.bind(this));
 
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Custom ' + this.version : '<i>unknown</i>';
+        this.updatePage();
     }
 
     showDeviceList()
     {
-        this.controller.setService('custom');
-        this.controller.setPage('custom');
-
         if (!Object.keys(this.devices).length)
         {
-            this.content.innerHTML = '<div class="emptyList">custom devices list is empty</div>';
+            this.content.innerHTML = '<div class="emptyList">' + this.service + ' devices list is empty</div>';
             return;
         }
 
@@ -92,8 +112,8 @@ class Custom extends DeviceService
                 let device = this.devices[id];
                 let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.showDeviceInfo(device); }.bind(this));
-                row.dataset.device = 'custom/' + device.id;
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
+                row.dataset.device = this.service + '/' + device.id;
 
                 for (let i = 0; i < 7; i++)
                 {
@@ -168,7 +188,7 @@ class Custom extends DeviceService
                 else
                     delete form.options;
 
-                this.controller.socket.publish('command/custom', {action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
+                this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
 
             }.bind(this));
 

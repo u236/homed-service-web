@@ -57,80 +57,85 @@ class Socket
 
 class Controller
 {
-    services = {'dashboard': 'online', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'modbus': 'offline', 'custom': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
+    services = new Object(); //{dashboard: new Dashboard(this)};
 
-    dashboard = new Dashboard(this);
-    recorder = new Recorder(this);
-    automation = new Automation(this);
-
-    zigbee = new ZigBee(this);
-    modbus = new Modbus(this);
-    custom = new Custom(this);
+    constructor()
+    {
+        this.showPage(localStorage.getItem('page'));
+    }
 
     onopen()
     {
         console.log('socket successfully connected');
-        Object.keys(this.services).forEach(service => { this.socket.subscribe(service != 'dashboard' ? 'service/' + service : 'status/web'); });
-
-        this.zigbee.devices = new Object();
-        this.modbus.devices = new Object();
-        this.custom.devices = new Object();
+        this.socket.subscribe('service/#')
+        this.socket.subscribe('status/web');
     }
 
     onclose()
     {
-        this.clearPage(this.service, 'socket closed, reconnecting');
+        this.clearPage('socket closed, reconnecting');
+        this.socket.subscriptions = new Array();
+        this.services = new Object();
     }
 
     onmessage(topic, message)
     {
         let list = topic.split('/');
-        let service = list[1] != 'web' ? list[1] : 'dashboard';
+        let service;
 
         if (list[0] == 'service')
         {
-            if (message.status != 'online')
+            let item = list[2] ? list[1] + '/' + list[2] : list[1];
+
+            if (message.status == 'online')
             {
-                let item = list[1];
+                let object;
 
-                if (this.service == service)
-                    this.clearPage(this.page, service + ' service is offline');
+                switch (list[1])
+                {
+                    case 'automation': object = new Automation(this); break;
+                    case 'recorder':   object = new Recorder(this); this.socket.subscribe('recorder'); break;
+                    case 'custom':     object = new Custom(this, list[2]); break;
+                    case 'modbus':     object = new Modbus(this, list[2]); break;
+                    case 'zigbee':     object = new ZigBee(this, list[2]); break;
+                }
 
-                if (service == 'recorder')
-                    this.socket.unsubscribe('recorder');
-
-                this.socket.subscriptions.filter(topic => { let list = topic.split('/'); return list[0] != 'service' && list[1] == item; }).forEach(topic => { this.socket.unsubscribe(topic); });
+                if (!this.services[item])
+                {
+                    this.services[item] = object;
+                    this.socket.subscribe('status/' + item);
+                    this.socket.subscribe('event/' + item);
+                }
             }
             else
             {
-                if (service == 'recorder')
-                    this.socket.subscribe('recorder');
+                if (this.service == item)
+                    this.clearPage(item + ' service is offline');
 
-                this.socket.subscribe('status/' + list[1]);
-                this.socket.subscribe('event/' + list[1]);
+                // if (item == 'recorder')
+                //     this.socket.unsubscribe('recorder');
+
+                this.socket.subscriptions.filter(topic => { return !topic.startsWith('service') && topic.includes(item); }).forEach(topic => { this.socket.unsubscribe(topic); });
+                delete this.services[item];
             }
 
-            this.services[service] = message.status;
             this.updateMenu();
             return;
         }
 
-        if (list[0] == 'recorder')
-        {
-            this.recorder.parseData(message);
-            return;
-        }
+        service = this.services[list[1] + '/' + list[2]] ?? this.services[list[1]];
 
-        switch (service)
-        {
-            case 'dashboard': this.dashboard.parseMessage(list, message); break;
-            case 'recorder': this.recorder.parseMessage(list, message); break;
-            case 'automation': this.automation.parseMessage(list, message); break;
-            case 'zigbee': this.zigbee.parseMessage(list, message); break;
-            case 'modbus': this.modbus.parseMessage(list, message); break;
-            case 'custom': this.custom.parseMessage(list, message); break;
-        }
+        if (!service)
+            return;
+
+        // if (service == 'recorder')
+        // {
+        //     this.services.recorder.parseData(message);
+        //     return;
+        // }
+
+        service.parseMessage(list, message);
     }
 
     updateMenu()
@@ -143,65 +148,40 @@ class Controller
         {
             let element = document.createElement('span');
 
-            if (this.services[service] != 'online')
-                return;
-
             if (services.innerHTML)
                 services.append('|');
 
-            if (this.service == service)
-                element.classList.add('highlight');
+            // if (this.service == service)
+            //     element.classList.add('highlight');
 
-            element.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
+            element.addEventListener('click', function() { this.showPage(service); }.bind(this));
             element.innerHTML = service;
 
             services.appendChild(element);
         });
     }
 
-    setService(service)
+    showPage(page)
     {
-        if (this.service == service)
-            return;
+        let list = page.split('?');
+        let service = list[0];
 
-        document.querySelectorAll('.header .services span').forEach(item => { item.classList.toggle('highlight', item.innerHTML == service); });
-
-        switch (service)
-        {
-            case 'dashboard': this.dashboard.showMenu(); break;
-            case 'recorder': this.recorder.showMenu(); break;
-            case 'automation': this.automation.showMenu(); break;
-            case 'zigbee': this.zigbee.showMenu(); break;
-            case 'modbus': this.modbus.showMenu(); break;
-            case 'custom': this.custom.showMenu(); break;
-        }
+        localStorage.setItem('page', page);
+        location.hash = page;
 
         this.service = service;
-    }
-
-    setPage(page)
-    {
-        location.hash = page;
         this.page = page;
-    }
 
-    showPage(page, force = false)
-    {
-        if (this.page == page && !force)
-            return;
-
-        switch (page)
+        if (!this.services[service])
         {
-            case 'recorder':       this.recorder.showItemList(); break;
-            case 'automation':     this.automation.showAutomationList(); break;
-            case 'zigbee':         this.zigbee.showDeviceList(); break;
-            case 'modbus':         this.modbus.showDeviceList(); break;
-            case 'custom':         this.custom.showDeviceList(); break;
-            default:               this.dashboard.showDashboard(); break;
+            this.clearPage(service + ' service is offline');
+            return;
         }
+
+        this.services[service].showPage(list[1]);
     }
 
-    clearPage(name, warning = null)
+    clearPage(warning = undefined)
     {
         let content = document.querySelector('.content .container');
 
@@ -213,17 +193,6 @@ class Controller
             console.log(warning);
         }
 
-        switch (this.service)
-        {
-            case 'dashboard': this.dashboard.status = new Object(); break;
-            case 'recorder': this.recorder.status = new Object(); break;
-            case 'automation': this.automation.status = new Object(); break;
-            case 'zigbee': this.zigbee.devices = new Object(); break;
-            case 'modbus': this.modbus.devices = new Object(); break;
-            case 'custom': this.custom.devices = new Object(); break;
-        }
-
-        this.setPage(name);
         showModal(false);
     }
 
@@ -255,34 +224,34 @@ class Controller
         let services = ['zigbee', 'modbus', 'custom'];
         let list = new Object();
 
-        services.forEach(service =>
-        {
-            let devices = this[service].devices ?? new Object();
+        // services.forEach(service =>
+        // {
+        //     let devices = this[service].devices ?? new Object();
 
-            if (!Object.keys(devices))
-                return;
+        //     if (!Object.keys(devices))
+        //         return;
 
-            Object.keys(devices).forEach(id =>
-            {
-                let device = devices[id];
+        //     Object.keys(devices).forEach(id =>
+        //     {
+        //         let device = devices[id];
 
-                Object.keys(device.endpoints).forEach(endpoint =>
-                {
-                    device.items(endpoint).forEach( expose =>
-                    {
-                        exposeList(expose, device.options(endpoint)).forEach(property =>
-                        {
-                            let value = {endpoint: service + '/' + id, property: property}
+        //         Object.keys(device.endpoints).forEach(endpoint =>
+        //         {
+        //             device.items(endpoint).forEach( expose =>
+        //             {
+        //                 exposeList(expose, device.options(endpoint)).forEach(property =>
+        //                 {
+        //                     let value = {endpoint: service + '/' + id, property: property}
 
-                            if (endpoint != 'common')
-                                value.endpoint += '/' + endpoint;
+        //                     if (endpoint != 'common')
+        //                         value.endpoint += '/' + endpoint;
 
-                            list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
-                        });
-                    });
-                });
-            });
-        });
+        //                     list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
+        //                 });
+        //             });
+        //         });
+        //     });
+        // });
 
         return list;
     }
@@ -342,10 +311,16 @@ class DeviceService
     content = document.querySelector('.content .container');
     devices = new Object();
 
-    constructor(controller, service)
+    constructor(controller, service, instance)
     {
         this.controller = controller;
         this.service = service;
+
+        if (instance)
+        {
+            this.service += '/' + instance;
+            this.instance = true;
+        }
 
         setInterval(function() { this.updateAvailability(); }.bind(this), 100);
     }
@@ -356,7 +331,7 @@ class DeviceService
         {
             let device = this.devices[id];
 
-            if (this.service == 'zigbee' && !device.info.logicalType)
+            if (this.service.startsWith('zigbee') && !device.info.logicalType)
                 return;
 
             document.querySelectorAll('tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
@@ -387,13 +362,16 @@ class DeviceService
             {
                 let html = 'Device <b>' + message.device + '</b> ';
 
-                if (message.event == 'added' || message.event == 'updated')
-                    this.controller.clearPage('custom');
+                if (this.controller.service == this.service && (message.event == 'added' || message.event == 'updated'))
+                {
+                    this.controller.clearPage();
+                    this.devices = new Object();
+                }
 
                 switch (message.event)
                 {
                     case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); return;
-                    case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
+                    case 'nameDuplicate':  this.controller.showToast(html + 'new name is already in use', 'error'); return;
                     case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
                     case 'added':          this.controller.showToast(html + 'successfully added'); return;
                     case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
@@ -405,7 +383,7 @@ class DeviceService
 
             case 'device':
             {
-                let device = this.findDevice(list[2]);
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
 
                 if (device && message)
                 {
@@ -420,7 +398,7 @@ class DeviceService
 
             case 'expose':
             {
-                let device = this.findDevice(list[2]);
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
 
                 if (device && message)
                 {
@@ -435,7 +413,7 @@ class DeviceService
                     if (device.service == 'zigbee' && !device.endpoints.common)
                         this.controller.socket.subscribe('fd/' + this.service + '/' + item);
 
-                    this.controller.socket.publish('command/' + this.service, {action: 'getProperties', device: item, service: 'web'});
+                    this.serviceCommand({action: 'getProperties', device: item, service: 'web'});
                 }
 
                 break;
@@ -443,7 +421,7 @@ class DeviceService
 
             case 'fd':
             {
-                let device = this.findDevice(list[2]);
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
 
                 if (device && message)
                 {
@@ -478,11 +456,16 @@ class DeviceService
         return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
     }
 
+    serviceCommand(data, clear = false)
+    {
+        if (clear)
+            this.controller.clearPage();
+
+        this.controller.socket.publish('command/' + this.service, data);
+    }
+
     showDeviceInfo(device)
     {
-        this.controller.setService(this.service);
-        this.controller.setPage(this.service + 'Device');
-
         fetch('html/' + this.service + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
@@ -526,7 +509,7 @@ class DeviceService
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'removeDevice', device: this.names ? device.info.name : device.id}); this.controller.clearPage(this.service); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: this.names ? device.info.name : device.id}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
@@ -541,16 +524,23 @@ window.onload = function()
     modal = document.querySelector('#modal');
     controller = new Controller();
 
-    window.addEventListener('hashchange', function() { controller.showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
+
+    window.addEventListener('hashchange', function()
+    {
+        let page = decodeURI(location.hash).slice(1);
+
+        if (controller.page == page)
+            return;
+
+        controller.showPage(page);
+    });
 
     document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('theme', theme); });
     document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('wide', wide); });
 
     setTheme();
     setWide();
-
-    controller.showPage(localStorage.getItem('page') ?? 'dashboard');
 
     if (!logout)
         return;
@@ -579,7 +569,7 @@ function setTheme()
 {
     document.querySelectorAll('body, .homed').forEach(item => item.setAttribute('theme', theme));
     document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
-    controller.recorder.updateCharts();
+    // controller.recorder.updateCharts();
 }
 
 function setWide()
@@ -751,6 +741,12 @@ function timeInterval(interval)
 
 function deviceCommand(device, endpoint, data)
 {
-    let item = controller[device.service].names ? device.info.name : device.id;
+    let service = controller.services[device.service];
+    let item;
+
+    if (!service)
+        return;
+
+    item = service.names ? device.info.name : device.id;
     controller.socket.publish('td/' + device.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
 }
