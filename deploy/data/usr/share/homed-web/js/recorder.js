@@ -47,6 +47,11 @@ class Recorder
         });
     }
 
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
+    }
+
     timestampString(timestamp, seconds = true, interval = false)
     {
         let date = new Date(timestamp);
@@ -59,17 +64,6 @@ class Recorder
             data += ' (' + timeInterval((Date.now() - timestamp) / 1000) + ')';
 
         return data;
-    }
-
-    findDevice(item)
-    {
-        let list = item.endpoint.split('/');
-        let devices = this.controller[list[0]].devices ?? new Object();
-
-        if (devices.hasOwnProperty(list[1]))
-            return devices[list[1]];
-
-        return Object.values(devices).find(device => device.info.name == list[1]) ?? new Object();
     }
 
     findItem(endpoint, property)
@@ -88,7 +82,7 @@ class Recorder
 
         function wait(resolve)
         {
-            device = this.findDevice(item);
+            device = this.controller.findDevice(item);
 
             if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes)
             {
@@ -381,35 +375,53 @@ class Recorder
 
                 if (this.controller.service == 'recorder')
                 {
-                    document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
-                    this.showItemList();
+                    this.controller.showPage('recorder');
+                    this.updatePage();
                 }
 
                 break;
         }
     }
 
-    showMenu()
+    showPage(data)
     {
+        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+
+        switch (list[0])
+        {
+            case 'index':
+
+                let item = this.status.items ? this.status.items[list[1]] : undefined;
+
+                if (item)
+                {
+                    this.data = item;
+                    this.showItemInfo();
+                }
+                else
+                    this.showItemList();
+
+                break;
+
+            case 'add': this.showItemEdit(true); return;
+            default: this.showItemList(); break;
+        }
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
-        menu.querySelector('#list').addEventListener('click', function() { this.showItemList(); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showItemEdit(true); }.bind(this));
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage('recorder?add'); }.bind(this));
 
         if (!this.status)
             return;
 
-        document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
+        this.updatePage();
     }
 
     showItemList()
     {
-        this.controller.setService('recorder');
-        this.controller.setPage('recorder');
-
         if (!this.status.items || !this.status.items.length)
         {
             this.content.innerHTML = '<div class="emptyList">recorder items list is empty</div>';
@@ -423,11 +435,11 @@ class Recorder
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
 
-            this.status.items.forEach(item =>
+            this.status.items.forEach((item, index) =>
             {
                 let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.data = item; this.showItemInfo(); }.bind(this));
+                row.addEventListener('click', function() { this.controller.showPage('recorder?index=' + index); }.bind(this));
 
                 for (let i = 0; i < 3; i++)
                 {
@@ -450,9 +462,6 @@ class Recorder
 
     showItemInfo()
     {
-        this.controller.setService('recorder');
-        this.controller.setPage('recorderItem');
-
         fetch('html/recorder/itemInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let id = 'chart-' + randomString(8);

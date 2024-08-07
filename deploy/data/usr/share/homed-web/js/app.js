@@ -104,6 +104,10 @@ class Controller
                 if (!this.services[item])
                 {
                     this.services[item] = object;
+
+                    if (item == 'recorder')
+                        this.socket.subscribe('recorder');
+
                     this.socket.subscribe('status/' + item);
                     this.socket.subscribe('event/' + item);
                 }
@@ -113,8 +117,8 @@ class Controller
                 if (this.service == item)
                     this.clearPage(item + ' service is offline');
 
-                // if (item == 'recorder')
-                //     this.socket.unsubscribe('recorder');
+                if (item == 'recorder')
+                    this.socket.unsubscribe('recorder');
 
                 this.socket.subscriptions.filter(topic => { return !topic.startsWith('service') && topic.includes(item); }).forEach(topic => { this.socket.unsubscribe(topic); });
                 delete this.services[item];
@@ -124,16 +128,16 @@ class Controller
             return;
         }
 
+        if (topic == 'recorder' && this.services.recorder)
+        {
+            this.services.recorder.parseData(message);
+            return;
+        }
+
         service = this.services[list[1] + '/' + list[2]] ?? this.services[list[1]];
 
         if (!service)
             return;
-
-        // if (service == 'recorder')
-        // {
-        //     this.services.recorder.parseData(message);
-        //     return;
-        // }
 
         service.parseMessage(list, message);
     }
