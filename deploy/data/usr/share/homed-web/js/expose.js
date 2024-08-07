@@ -142,13 +142,14 @@ function addExpose(table, device, endpoint, expose)
         let valueCell = row.insertCell();
         let controlCell;
 
-        row.dataset.endpoint = device.service + '/' + device.id + '/' + endpoint;
+        row.dataset.device = device.service + '/' + device.id;
+        row.dataset.endpoint = endpoint;
+
         valueCell.dataset.property = name;
+        valueCell.innerHTML = empty;
+        valueCell.classList.add('value');
 
         titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
-        valueCell.innerHTML = empty;
-
-        valueCell.classList.add('value');
 
         if (name != 'irCode')
         {
@@ -292,7 +293,7 @@ function addExpose(table, device, endpoint, expose)
 
 function updateExpose(device, endpoint, name, value)
 {
-    document.querySelectorAll('tr[data-endpoint="' + device.service + '/' + device.id + '/' + endpoint + '"]').forEach(row =>
+    document.querySelectorAll('tr[data-device="' + device.service + '/' + device.id + '"][data-endpoint="' + endpoint + '"]').forEach(row =>
     {
         let cell;
 

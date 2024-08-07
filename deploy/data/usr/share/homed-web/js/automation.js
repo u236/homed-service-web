@@ -1,5 +1,7 @@
 class Automation
 {
+    intervals = [setInterval(function() { this.updateLastTriggered(); }.bind(this), 100)];
+
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
 
@@ -11,11 +13,11 @@ class Automation
 
     content = document.querySelector('.content .container');
     status = new Object();
+    data = new Object();
 
     constructor(controller)
     {
         this.controller = controller;
-        setInterval(function() { this.updateLastTriggered(); }.bind(this), 100);
     }
 
     updateLastTriggered()
@@ -260,7 +262,7 @@ class Automation
 
     conditionDropdown(automation, list, type)
     {
-        if (type == 'AND' || type == 'OR' || type == 'NOT')
+        if (['AND', 'OR', 'NOT'].includes(type))
         {
             list.push({'type': type, 'conditions': new Array()});
             automation.showAutomationInfo();
@@ -284,7 +286,7 @@ class Automation
                 {
                     case 0:
                         for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
-                        cell.innerHTML += condition.type == 'AND' || condition.type == 'OR' || condition.type == 'NOT' ? '<span class="value">' + condition.type + '</span>' : condition.type;
+                        cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type;
                         break;
 
                     case 1:
@@ -292,7 +294,7 @@ class Automation
                         if (colSpan)
                             cell.colSpan = colSpan;
 
-                        if (condition.type == 'AND' || condition.type == 'OR' || condition.type == 'NOT')
+                        if (['AND', 'OR', 'NOT'].includes(condition.type))
                         {
                             cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
                             cell.classList.add('right');
@@ -424,29 +426,8 @@ class Automation
 
     showPage(data)
     {
-        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
-
-        switch (list[0])
-        {
-            case 'index':
-
-                let automation = this.status.automations ? this.status.automations[list[1]] : undefined;
-
-                if (automation)
-                {
-                    this.data = automation;
-                    this.name = automation.name;
-                    this.showAutomationInfo(false);
-                }
-                else
-                    this.showAutomationList();
-
-                break;
-
-            case 'add': this.showAutomationInfo(false, true); return;
-            default: this.showAutomationList(); break;
-        }
+        let list = data ? data.split('=') : new Array();
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
@@ -488,15 +469,36 @@ class Automation
 
         }.bind(this));
 
-        if (!this.status)
+        if (!this.status.version)
             return;
+
+        switch (list[0])
+        {
+            case 'index':
+
+                let automation = this.status.automations ? this.status.automations[list[1]] : undefined;
+
+                if (automation)
+                {
+                    this.data = automation;
+                    this.name = automation.name;
+                    this.showAutomationInfo(false);
+                }
+                else
+                    this.showAutomationList();
+
+                break;
+
+            case 'add': this.showAutomationInfo(false, true); return;
+            default: this.showAutomationList(); break;
+        }
 
         this.updatePage();
     }
 
     showAutomationList()
     {
-        if (!this.status.automations || !this.status.automations.length)
+        if (!this.status.automations?.length)
         {
             this.content.innerHTML = '<div class="emptyList">automations list is empty</div>';
             return;

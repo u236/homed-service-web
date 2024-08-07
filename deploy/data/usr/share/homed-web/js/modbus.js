@@ -84,8 +84,14 @@ class Modbus extends DeviceService
 
     showPage(data)
     {
-        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+        let list = data ? data.split('=') : new Array();
+
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage(this.service + '?add'); }.bind(this));
 
         switch (list[0])
         {
@@ -103,12 +109,6 @@ class Modbus extends DeviceService
             case 'add': this.showDeviceEdit(); break;
             default: this.showDeviceList(); break;
         }
-
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
-        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-
-        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage(this.service + '?add'); }.bind(this));
 
         this.updatePage();
     }

@@ -7,9 +7,9 @@ class Socket
 
     constructor(onopen, onclose, onmessage)
     {
-        this.onopen = onopen ?? function() {};
-        this.onclose = onclose ?? function() {};
-        this.onmessage = onmessage ?? function() {};
+        this.onopen = onopen;
+        this.onclose = onclose;
+        this.onmessage = onmessage;
         this.connect();
     }
 
@@ -62,7 +62,7 @@ class Controller
 
     constructor()
     {
-        this.showPage(localStorage.getItem('page'));
+        this.showPage(localStorage.getItem('page') ?? 'dashboard');
     }
 
     onopen()
@@ -92,30 +92,33 @@ class Controller
             {
                 let object;
 
+                if (this.services[item])
+                    return;
+
                 switch (list[1])
                 {
                     case 'automation': object = new Automation(this); break;
-                    case 'recorder':   object = new Recorder(this); this.socket.subscribe('recorder'); break;
+                    case 'recorder':   object = new Recorder(this); break;
                     case 'custom':     object = new Custom(this, list[2]); break;
                     case 'modbus':     object = new Modbus(this, list[2]); break;
                     case 'zigbee':     object = new ZigBee(this, list[2]); break;
+                    default:           return;
                 }
 
-                if (!this.services[item])
-                {
-                    this.services[item] = object;
+                this.services[item] = object;
 
-                    if (item == 'recorder')
-                        this.socket.subscribe('recorder');
+                if (item == 'recorder')
+                    this.socket.subscribe('recorder');
 
-                    this.socket.subscribe('status/' + item);
-                    this.socket.subscribe('event/' + item);
-                }
+                this.socket.subscribe('status/' + item);
+                this.socket.subscribe('event/' + item);
             }
             else
             {
+                this.services[item]?.intervals?.forEach(interval => { clearInterval(interval); });
+
                 if (this.service == item)
-                    this.clearPage(item + ' service is offline');
+                    this.clearPage(item + ' service is unavailable');
 
                 if (item == 'recorder')
                     this.socket.unsubscribe('recorder');
@@ -178,7 +181,7 @@ class Controller
 
         if (!this.services[service])
         {
-            this.clearPage(service + ' service is offline');
+            this.clearPage(service + ' service is unavailable');
             return;
         }
 
@@ -251,7 +254,7 @@ class Controller
         {
             let service = this.services[item];
 
-            if (!service || !service.devices || !Object.keys(service.devices).length)
+            if (!service.devices || !Object.keys(service.devices).length)
                 return;
 
             Object.keys(service.devices).forEach(id =>
@@ -332,6 +335,7 @@ class Device
 class DeviceService
 {
     content = document.querySelector('.content .container');
+    intervals = new Array();
     devices = new Object();
 
     constructor(controller, service, instance)
@@ -345,7 +349,7 @@ class DeviceService
             this.instance = true;
         }
 
-        setInterval(function() { this.updateAvailability(); }.bind(this), 100);
+        this.intervals.push(setInterval(function() { this.updateAvailability(); }.bind(this), 100));
     }
 
     updateAvailability()
@@ -433,7 +437,7 @@ class DeviceService
                         device.setExposes(endpoint, message[endpoint]);
                     });
 
-                    if (device.service == 'zigbee' && !device.endpoints.common)
+                    if (device.service.startsWith('zigbee') && !device.endpoints.common)
                         this.controller.socket.subscribe('fd/' + this.service + '/' + item);
 
                     this.serviceCommand({action: 'getProperties', device: item, service: 'web'});

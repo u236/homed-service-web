@@ -5,7 +5,7 @@ class ZigBee extends DeviceService
     constructor(controller, instance)
     {
         super(controller, 'zigbee', instance);
-        setInterval(function() { this.updateLastSeen(); }.bind(this), 100);
+        this.intervals.push(setInterval(function() { this.updateLastSeen(); }.bind(this), 100));
     }
 
     updateLastSeen()
@@ -182,8 +182,16 @@ class ZigBee extends DeviceService
 
     showPage(data)
     {
-        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+        let list = data ? data.split('=') : new Array();
+
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
+        menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
+
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
+        menu.querySelector('#map').addEventListener('click', function() { this.controller.showPage(this.service + '?map') }.bind(this));
+        menu.querySelector('#permitJoin').addEventListener('click', function() { menu.querySelector('#permitJoin i').className = 'icon-enable'; this.serviceCommand({'action': 'togglePermitJoin'}); }.bind(this));
 
         switch (list[0])
         {
@@ -201,20 +209,6 @@ class ZigBee extends DeviceService
             case 'map': this.showDeviceMap(); break;
             default: this.showDeviceList(); break;
         }
-
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
-        menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
-        menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
-
-        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
-        menu.querySelector('#map').addEventListener('click', function() { this.controller.showPage(this.service + '?map') }.bind(this));
-
-        menu.querySelector('#permitJoin').addEventListener('click', function()
-        {
-            menu.querySelector('#permitJoin i').className = 'icon-enable';
-            this.serviceCommand({'action': 'togglePermitJoin'});
-
-        }.bind(this));
 
         this.updatePage();
     }

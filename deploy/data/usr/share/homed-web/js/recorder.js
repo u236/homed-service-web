@@ -66,14 +66,6 @@ class Recorder
         return data;
     }
 
-    findItem(endpoint, property)
-    {
-        if (!this.status.items || !this.status.items.length)
-            return new Object();
-
-        return this.status.items.find(item => item.endpoint == endpoint && item.property == property);
-    }
-
     devicePromise(item, cell)
     {
         let list = item.endpoint.split('/');
@@ -84,7 +76,7 @@ class Recorder
         {
             device = this.controller.findDevice(item);
 
-            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes)
+            if (!device.endpoints?.[endpoint]?.exposes)
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -164,11 +156,11 @@ class Recorder
                 {
                     type: 'time',
                     time: {unit: 'hour', displayFormats: {hour: 'HH:mm'}},
-                    ticks: {maxRotation: 0, major: {enabled: true}, font: function(context) { return context.tick && context.tick.major ? {weight: 'bold'} : new Object(); }},
+                    ticks: {maxRotation: 0, major: {enabled: true}, font: function(context) { return context.tick?.major ? {weight: 'bold'} : new Object(); }},
                     min: new Date(parseInt(canvas.dataset.start)),
                     max: new Date(),
                     border: {display: false},
-                    grid: {color: function(context) { return context.tick && context.tick.major ? this.color.major() : this.color.grid(); }.bind(this)},
+                    grid: {color: function(context) { return context.tick?.major ? this.color.major() : this.color.grid(); }.bind(this)},
                 }
             }
         };
@@ -385,8 +377,17 @@ class Recorder
 
     showPage(data)
     {
-        let list = data ? data.split('=') : new Array();
         let menu = document.querySelector('.menu');
+        let list = data ? data.split('=') : new Array();
+
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
+        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage('recorder?add'); }.bind(this));
+
+        if (!this.status.version)
+            return;
 
         switch (list[0])
         {
@@ -408,21 +409,12 @@ class Recorder
             default: this.showItemList(); break;
         }
 
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
-        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-
-        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage('recorder?add'); }.bind(this));
-
-        if (!this.status)
-            return;
-
         this.updatePage();
     }
 
     showItemList()
     {
-        if (!this.status.items || !this.status.items.length)
+        if (!this.status.items?.length)
         {
             this.content.innerHTML = '<div class="emptyList">recorder items list is empty</div>';
             return;

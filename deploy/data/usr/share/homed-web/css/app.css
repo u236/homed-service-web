@@ -60,6 +60,8 @@ body[theme="dark"] {
     font-family: 'Open Sans';
     font-weight: 400;
     color: var(--color-main);
+    scrollbar-width: thin;
+    scrollbar-color: var(--background-main) var(--border-main);
 }
 
 .homed button {
