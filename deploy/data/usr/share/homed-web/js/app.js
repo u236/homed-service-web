@@ -219,39 +219,58 @@ class Controller
         item.classList.add('fade-out');
     }
 
+    findDevice(item)
+    {
+        let list = item.endpoint.split('/');
+        let device;
+
+        Object.keys(this.services).forEach(item =>
+        {
+            if (device)
+                return;
+
+            if (item.startsWith(list[0]))
+            {
+                let devices = this.services[item].devices ?? new Object();
+                device = devices.hasOwnProperty(list[1]) ? devices[list[1]] : Object.values(devices).find(device => device.info.name == list[1]);
+            }
+        });
+
+        return device ?? new Object();
+    }
+
     propertiesList()
     {
-        let services = ['zigbee', 'modbus', 'custom'];
         let list = new Object();
 
-        // services.forEach(service =>
-        // {
-        //     let devices = this[service].devices ?? new Object();
+        Object.keys(this.services).forEach(item =>
+        {
+            let service = this.services[item];
 
-        //     if (!Object.keys(devices))
-        //         return;
+            if (!service || !service.devices || !Object.keys(service.devices).length)
+                return;
 
-        //     Object.keys(devices).forEach(id =>
-        //     {
-        //         let device = devices[id];
+            Object.keys(service.devices).forEach(id =>
+            {
+                let device = service.devices[id];
 
-        //         Object.keys(device.endpoints).forEach(endpoint =>
-        //         {
-        //             device.items(endpoint).forEach( expose =>
-        //             {
-        //                 exposeList(expose, device.options(endpoint)).forEach(property =>
-        //                 {
-        //                     let value = {endpoint: service + '/' + id, property: property}
+                Object.keys(device.endpoints).forEach(endpoint =>
+                {
+                    device.items(endpoint).forEach(expose =>
+                    {
+                        exposeList(expose, device.options(endpoint)).forEach(property =>
+                        {
+                            let value = {endpoint: item.split('/')[0] + '/' + id, property: property}
 
-        //                     if (endpoint != 'common')
-        //                         value.endpoint += '/' + endpoint;
+                            if (endpoint != 'common')
+                                value.endpoint += '/' + endpoint;
 
-        //                     list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
-        //                 });
-        //             });
-        //         });
-        //     });
-        // });
+                            list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
+                        });
+                    });
+                });
+            });
+        });
 
         return list;
     }
@@ -646,6 +665,7 @@ function addDropdown(dropdown, options, callback, separator = 0)
     options.forEach((option, index) =>
     {
         let element = document.createElement('div');
+
         element.addEventListener('click', function() { callback(option); });
         element.innerHTML = option;
         element.classList.add('item');
