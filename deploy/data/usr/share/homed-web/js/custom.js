@@ -149,7 +149,7 @@ class Custom extends DeviceService
         });
     }
 
-    showDeviceEdit(device = undefined)
+    showDeviceEdit(device)
     {
         let add = false;
 

@@ -76,7 +76,7 @@ class Controller
     {
         this.clearPage('socket closed, reconnecting');
         this.socket.subscriptions = new Array();
-        this.services = new Object();
+        this.services = {dashboard: new Dashboard(this)};
     }
 
     onmessage(topic, message)
@@ -148,23 +148,36 @@ class Controller
     updateMenu()
     {
         let services = document.querySelector('.header .services');
+        let keys = Object.keys(this.services);
+        let items = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
 
         services.innerHTML = '';
+        keys.sort();
 
-        Object.keys(this.services).forEach(service =>
+        items.forEach(item =>
         {
-            let element = document.createElement('span');
+            keys.filter(key => { return key.startsWith(item); }).forEach(service =>
+            {
+                let element = document.createElement('span');
+                let list = service.split('/');
 
-            if (services.innerHTML)
-                services.append('|');
+                if (services.innerHTML)
+                    services.append('|');
 
-            // if (this.service == service)
-            //     element.classList.add('highlight');
+                if (this.service == service)
+                    element.classList.add('highlight');
 
-            element.addEventListener('click', function() { this.showPage(service); }.bind(this));
-            element.innerHTML = service;
+                element.addEventListener('click', function()
+                {
+                    services.querySelectorAll('span').forEach(item => { item.classList.remove('highlight'); });
+                    element.classList.add('highlight');
+                    this.showPage(service);
 
-            services.appendChild(element);
+                }.bind(this));
+
+                element.innerHTML = service;
+                services.appendChild(element);
+            })
         });
     }
 
@@ -188,7 +201,7 @@ class Controller
         this.services[service].showPage(list[1]);
     }
 
-    clearPage(warning = undefined)
+    clearPage(warning)
     {
         let content = document.querySelector('.content .container');
 
@@ -660,7 +673,7 @@ function sortTable(table, index, first = true, once = false)
 function addDropdown(dropdown, options, callback, separator = 0)
 {
     let list = document.createElement('div');
-    let search = undefined;
+    let search;
 
     list.classList.add('list');
     dropdown.append(list);
