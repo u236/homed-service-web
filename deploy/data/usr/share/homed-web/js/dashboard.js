@@ -9,6 +9,11 @@ class Dashboard
         this.controller = controller;
     }
 
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+    }
+
     parseMessage(list, message)
     {
         switch (list[0])
@@ -19,24 +24,17 @@ class Dashboard
 
                 if (this.controller.service == 'dashboard')
                 {
-                    this.showDashboard();
-                    document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+                    this.controller.showPage('dashboard');
+                    this.updatePage();
                 }
 
                 break;
         }
     }
 
-    findDevice(item)
-    {
-        let list = item.endpoint.split('/');
-        let devices = this.controller[list[0]].devices ?? new Object();
-        return devices[list[1]] ?? new Object();
-    }
-
     itemString(item, edit = true)
     {
-        let device = this.findDevice(item);
+        let device = this.controller.findDevice(item);
         return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' &rarr; ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
     }
 
@@ -49,7 +47,7 @@ class Dashboard
     storeData()
     {
         this.controller.socket.publish('command/web', {action: 'updateDashboards', data: this.status.dashboards});
-        this.controller.clearPage('dashboard');
+        this.controller.clearPage();
     }
 
     addBlockExpose(table, item)
@@ -57,10 +55,7 @@ class Dashboard
         let row = table.insertRow();
         let titleCell = row.insertCell();
         let valueCell = row.insertCell();
-        let list = item.endpoint.split('/');
         let part = item.expose.split('_');
-
-        row.dataset.endpoint = list[0] + '/' + list[1] + '/' + (list[2] ?? 'common');
 
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
@@ -73,7 +68,7 @@ class Dashboard
             case 'light':
             case 'switch':
                 let name = part[1] ? 'status_' + part[1] : 'status';
-                valueCell.addEventListener('click', function() { this.controller.socket.publish('td/' + item.endpoint, {[name]: 'toggle'}); }.bind(this));
+                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                 valueCell.dataset.property = name;
                 break;
 
@@ -95,27 +90,26 @@ class Dashboard
         return row;
     }
 
-    showMenu()
+    showPage()
     {
         let menu = document.querySelector('.menu');
 
-        menu.innerHTML = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span><span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
+        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
 
-        if (!this.status)
+        if (!this.status.version)
             return;
 
-        document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+        this.showDashboard();
+        this.updatePage();
     }
 
     showDashboard()
     {
-        this.controller.setService('dashboard');
-        this.controller.setPage('dashboard');
-
-        if (!this.status.dashboards || !this.status.dashboards.length)
+        if (!this.status.dashboards?.length)
         {
             this.content.innerHTML = '<div class="emptyList">dashboards list is empty</div>';
             return;
@@ -185,9 +179,9 @@ class Dashboard
 
                         function wait(resolve)
                         {
-                            device = this.findDevice(item);
+                            device = this.controller.findDevice(item);
 
-                            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes)
+                            if (!device.endpoints?.[endpoint]?.exposes)
                             {
                                 setTimeout(wait.bind(this, resolve), 10);
                                 return;
@@ -202,6 +196,7 @@ class Dashboard
                             let properties = device.properties(endpoint);
 
                             row.dataset.device = device.service + '/' + device.id;
+                            row.dataset.endpoint = endpoint;
 
                             if (device.items(endpoint).includes(item.expose))
                                 row.querySelector('td.name').addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this));
@@ -222,8 +217,23 @@ class Dashboard
                         cell.classList.add('chart');
                         cell.colSpan = 2;
 
-                        row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
-                        this.controller.recorder.chartQuery(item, cell);
+                        function wait(resolve)
+                        {
+                            if (!this.controller.services.recorder)
+                            {
+                                setTimeout(wait.bind(this, resolve), 10);
+                                return;
+                            }
+
+                            resolve();
+                        }
+
+                        new Promise(wait.bind(this)).then(function()
+                        {
+                            row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
+                            this.controller.services.recorder.chartQuery(item, cell);
+
+                        }.bind(this));
                     }
                 });
 
@@ -488,49 +498,48 @@ class Dashboard
 
     showItemEdit(dashboard, block, item, callback)
     {
-        let services = ['custom', 'modbus', 'zigbee'];
-        let recorder = this.controller.recorder;
-        let items = new Object();
+        let recorder = this.controller.services.recorder;
+        let list = new Object();
 
         if (!item)
             item = {name: 'New item', add: true};
 
-        services.forEach(service =>
+        Object.keys(this.controller.services).forEach(item =>
         {
-            let devices = this.controller[service].devices ?? new Object();
+            let service = this.controller.services[item];
 
-            if (!Object.keys(devices))
+            if (!service.devices || !Object.keys(service.devices).length)
                 return;
 
-            Object.keys(devices).forEach(id =>
+            Object.keys(service.devices).forEach(id =>
             {
-                let device = devices[id];
+                let device = service.devices[id];
 
                 Object.keys(device.endpoints).forEach(endpoint =>
                 {
                     device.items(endpoint).forEach(expose =>
                     {
-                        let value = {endpoint: service + '/' + id, expose: expose};
+                        let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
 
                         if (endpoint != 'common')
                             value.endpoint += '/' + endpoint;
 
-                        items['Device &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(expose, endpoint)] = value;
+                        list['Device &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(expose, endpoint)] = value;
                     });
                 });
             });
         });
 
-        if (recorder.status.items && recorder.status.items.length)
+        if (recorder?.status?.items?.length)
         {
             recorder.status.items.forEach(item =>
             {
-                let device = this.findDevice(item);
+                let device = this.controller.findDevice(item);
 
                 if (!device.info)
                     return;
 
-                items['Recorder &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
+                list['Recorder &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
             });
         }
 
@@ -543,9 +552,9 @@ class Dashboard
             modal.querySelector('input[name="name"]').value = item.name;
             modal.querySelector('.item').innerHTML = item.add ? '<i>Select item there &rarr;</i>' : this.itemString(item);
 
-            addDropdown(modal.querySelector('.dropdown'), Object.keys(items), function(key)
+            addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {
-                data = items[key];
+                data = list[key];
                 modal.querySelector('.item').innerHTML = this.itemString(data);
                 modal.querySelector('.item').classList.remove('error');
 
@@ -619,7 +628,7 @@ class Dashboard
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);
 
-            modal.querySelector('.device').addEventListener('click', function() { this.controller[device.service].showDeviceInfo(device); showModal(false); }.bind(this));
+            modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
@@ -642,29 +651,33 @@ class Dashboard
             modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
             {
                 modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                this.controller.recorder.chartQuery(item, chart, element.innerHTML);
+
+                if (!this.controller.services.recorder)
+                    return;
+
+                this.controller.services.recorder.chartQuery(item, chart, element.innerHTML);
 
             }.bind(this)));
 
-            modal.querySelectorAll('#data').forEach(item => { item.id = id; });
-
             modal.querySelector('.item').addEventListener('click', function()
             {
-                let recorder = this.controller.recorder;
-                let data = recorder.findItem(item.endpoint, item.property);
+                this.controller.services.recorder?.status.items?.forEach((data, index) =>
+                {
+                    if (data.endpoint != item.endpoint || data.property != item.property)
+                        return;
 
-                if (!data)
-                    return;
-
-                recorder.data = data;
-                recorder.showItemInfo();
-                showModal(false);
+                    this.controller.showPage('recorder?index=' + index);
+                    showModal(false);
+                });
 
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelectorAll('#data').forEach(item => { item.id = id; });
 
-            this.controller.recorder.chartQuery(item, chart);
+            if (this.controller.services.recorder)
+                this.controller.services.recorder.chartQuery(item, chart);
+
             showModal(true);
         });
     }

@@ -58,7 +58,7 @@ class Socket
 class Controller
 {
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
-    services = new Object(); //{dashboard: new Dashboard(this)};
+    services = {dashboard: new Dashboard(this)};
 
     constructor()
     {
@@ -137,7 +137,7 @@ class Controller
             return;
         }
 
-        service = this.services[list[1] + '/' + list[2]] ?? this.services[list[1]];
+        service = list[1] != 'web' ? (this.services[list[1] + '/' + list[2]] ?? this.services[list[1]]) : this.services.dashboard;
 
         if (!service)
             return;
@@ -596,7 +596,11 @@ function setTheme()
 {
     document.querySelectorAll('body, .homed').forEach(item => item.setAttribute('theme', theme));
     document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
-    // controller.recorder.updateCharts();
+
+    if (!controller.services.recorder)
+        return;
+
+    controller.services.recorder.updateCharts();
 }
 
 function setWide()
