@@ -213,7 +213,7 @@ class Dashboard
                         let row = table.insertRow();
                         let cell = row.insertCell();
 
-                        cell.innerHTML = item.name + '<div><canvas id="chart-' + randomString(8) + '"></canvas></div>';
+                        cell.innerHTML = item.name + '<div class="placeholder"></div>';
                         cell.classList.add('chart');
                         cell.colSpan = 2;
 
@@ -231,6 +231,8 @@ class Dashboard
                         new Promise(wait.bind(this)).then(function()
                         {
                             row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
+                            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+                            cell.querySelector('div').classList.remove('placeholder');
                             this.controller.services.recorder.chartQuery(item, cell);
 
                         }.bind(this));

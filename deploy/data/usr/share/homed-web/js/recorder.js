@@ -142,8 +142,16 @@ class Recorder
             table.innerHTML = null;
         }
 
-        if (!message.timestamp.length) // TODO: use canvas placeholder here?
+        if (!message.timestamp.length)
+        {
+            if (table)
+            {
+                canvas.closest('div').style.height = 0;
+                table.innerHTML = '<tr><td><div class="placeholder"></div><div class="center shade">no data available for selected period</div></td></tr>';
+            }
+
             return;
+        }
 
         options =
         {
