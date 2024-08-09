@@ -52,16 +52,13 @@ class Recorder
         document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
     }
 
-    timestampString(timestamp, seconds = true, interval = false)
+    timestampString(timestamp, seconds = true)
     {
         let date = new Date(timestamp);
         let data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
 
         if (seconds)
             data += ':' + ('0' + date.getSeconds()).slice(-2);
-
-        if (interval)
-            data += ' (' + timeInterval((Date.now() - timestamp) / 1000) + ')';
 
         return data;
     }
@@ -322,10 +319,14 @@ class Recorder
 
         if (!numeric && table)
         {
-            datasets.forEach(record =>
+            datasets.forEach((record, index) =>
             {
                 let row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
-                let timestamp = this.timestampString(record.timestamp, true, true);
+                let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + timeInterval((Date.now() - record.timestamp) / 1000) + ' ago';
+                let next = datasets[index + 1];
+
+                if (next)
+                    timestamp += ', ' + timeInterval((next.timestamp - record.timestamp) / 1000, false) + ' long';
 
                 if (!row)
                 {

@@ -766,16 +766,19 @@ function formData(form)
     return data;
 }
 
-function timeInterval(interval)
+function timeInterval(interval, round = true)
 {
     switch (true)
     {
-        case interval >= 86400: return parseInt(interval / 86400) + ' day';
-        case interval >= 3600:  return parseInt(interval / 3600)  + ' hrs';
-        case interval >= 60:    return parseInt(interval / 60)    + ' min';
-        case interval >= 5:     return parseInt(interval / 5) * 5 + ' sec';
-        default:                return                               'now';
+        case interval >= 86400: return parseInt(Math.round(interval / 86400)) + ' day';
+        case interval >= 3600:  return parseInt(Math.round(interval / 3600))  + ' hrs';
+        case interval >= 60:    return parseInt(Math.round(interval / 60))    + ' min';
     }
+
+    if (!round)
+        return Math.ceil(interval) + ' sec';
+
+    return interval >= 5 ? parseInt(interval / 5) * 5 + ' sec' : 'now';
 }
 
 function deviceCommand(device, endpoint, data)
