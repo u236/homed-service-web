@@ -214,8 +214,8 @@ class Recorder
                         timestamp: timestamp,
                         label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
-                        minBarLength: 2,
-                    }
+                        minBarLength: 2
+                    };
 
                     if (!value)
                         data.backgroundColor = this.color.error;
@@ -287,7 +287,7 @@ class Recorder
             };
 
             if (average)
-                options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; }
+                options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
 
             if (!chart)
                 chart = new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
@@ -305,7 +305,7 @@ class Recorder
                 yAlign: 'top',
                 position: 'custom',
                 callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label; }}
-            }
+            };
             options.scales.y =
             {
                 stacked: true,
@@ -551,7 +551,7 @@ class Recorder
                 this.data.threshold = form.threshold;
 
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
-                this.controller.clearPage('recorder'); // TODO: handle events
+                this.controller.clearPage(); // TODO: handle events
 
             }.bind(this));
 
@@ -574,7 +574,7 @@ class Recorder
             name = modal.querySelector('.name');
             name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
 
-            modal.querySelector('.remove').addEventListener('click', function(){ this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage('recorder'); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.devicePromise(this.data, name);

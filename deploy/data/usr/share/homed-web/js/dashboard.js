@@ -320,7 +320,7 @@ class Dashboard
                         case 0:
                             cell.innerHTML = block.name;
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showBlockEdit(dashboard, block, function() { this.showDashboardEdit(dashboard); }.bind(this)) }.bind(this));
+                            cell.addEventListener('click', function() { this.showBlockEdit(dashboard, block, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:
@@ -423,7 +423,7 @@ class Dashboard
                         case 0:
                             cell.innerHTML = item.name + '<div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)) }.bind(this));
+                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:

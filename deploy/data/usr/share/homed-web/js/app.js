@@ -68,7 +68,7 @@ class Controller
     onopen()
     {
         console.log('socket successfully connected');
-        this.socket.subscribe('service/#')
+        this.socket.subscribe('service/#');
         this.socket.subscribe('status/web');
     }
 
@@ -76,108 +76,102 @@ class Controller
     {
         this.clearPage('socket closed, reconnecting');
         this.socket.subscriptions = new Array();
-        this.services = {dashboard: new Dashboard(this)};
+        Object.keys(this.services).forEach(service => { if (service != 'dashboard') this.removeService(service); });
     }
 
     onmessage(topic, message)
     {
         let list = topic.split('/');
-        let service;
 
         if (list[0] == 'service')
         {
-            let item = list[2] ? list[1] + '/' + list[2] : list[1];
+            let service = list[2] ? list[1] + '/' + list[2] : list[1];
 
             if (message.status == 'online')
             {
-                let object;
-
-                if (this.services[item])
+                if (this.services[service])
                     return;
 
                 switch (list[1])
                 {
-                    case 'automation': object = new Automation(this); break;
-                    case 'recorder':   object = new Recorder(this); break;
-                    case 'custom':     object = new Custom(this, list[2]); break;
-                    case 'modbus':     object = new Modbus(this, list[2]); break;
-                    case 'zigbee':     object = new ZigBee(this, list[2]); break;
+                    case 'automation': this.services[service] = new Automation(this); break;
+                    case 'recorder':   this.services[service] = new Recorder(this); break;
+                    case 'custom':     this.services[service] = new Custom(this, list[2]); break;
+                    case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
+                    case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
                     default:           return;
                 }
 
-                this.services[item] = object;
-
-                if (item == 'recorder')
+                if (service == 'recorder')
                     this.socket.subscribe('recorder');
 
-                this.socket.subscribe('status/' + item);
-                this.socket.subscribe('event/' + item);
+                this.socket.subscribe('status/' + service);
+                this.socket.subscribe('event/' + service);
             }
             else
             {
-                this.services[item]?.intervals?.forEach(interval => { clearInterval(interval); });
+                if (this.service == service)
+                    this.clearPage(service + ' service is unavailable');
 
-                if (this.service == item)
-                    this.clearPage(item + ' service is unavailable');
-
-                if (item == 'recorder')
+                if (service == 'recorder')
                     this.socket.unsubscribe('recorder');
 
-                this.socket.subscriptions.filter(topic => { return !topic.startsWith('service') && topic.includes(item); }).forEach(topic => { this.socket.unsubscribe(topic); });
-                delete this.services[item];
+                this.socket.subscriptions.filter(topic => { return !topic.startsWith('service') && topic.includes(service); }).forEach(topic => { this.socket.unsubscribe(topic); });
+                this.removeService(service);
             }
 
             this.updateMenu();
             return;
         }
 
-        if (topic == 'recorder' && this.services.recorder)
+        if (topic != 'recorder' || !this.services.recorder)
         {
-            this.services.recorder.parseData(message);
+            let service = list[1] != 'web' ? this.services[list[1] + '/' + list[2]] ?? this.services[list[1]] : this.services.dashboard;
+            service?.parseMessage(list, message);
             return;
         }
 
-        service = list[1] != 'web' ? (this.services[list[1] + '/' + list[2]] ?? this.services[list[1]]) : this.services.dashboard;
+        this.services.recorder.parseData(message);
+    }
 
-        if (!service)
-            return;
-
-        service.parseMessage(list, message);
+    removeService(item)
+    {
+        this.services[item]?.intervals?.forEach(interval => { clearInterval(interval); });
+        delete this.services[item];
     }
 
     updateMenu()
     {
-        let services = document.querySelector('.header .services');
-        let keys = Object.keys(this.services);
-        let items = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
+        let menu = document.querySelector('.header .services');
+        let services = Object.keys(this.services);
+        let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
 
-        services.innerHTML = '';
-        keys.sort();
+        menu.innerHTML = '';
+        services.sort();
 
-        items.forEach(item =>
+        names.forEach(name =>
         {
-            keys.filter(key => { return key.startsWith(item); }).forEach(service =>
+            services.filter(service => { return service.startsWith(name); }).forEach(service =>
             {
-                let element = document.createElement('span');
-                let list = service.split('/');
+                let item = document.createElement('span');
 
-                if (services.innerHTML)
-                    services.append('|');
+                if (menu.innerHTML)
+                    menu.append('|');
 
                 if (this.service == service)
-                    element.classList.add('highlight');
+                    item.classList.add('highlight');
 
-                element.addEventListener('click', function()
+                item.addEventListener('click', function()
                 {
-                    services.querySelectorAll('span').forEach(item => { item.classList.remove('highlight'); });
-                    element.classList.add('highlight');
+                    menu.querySelectorAll('span').forEach(item => { item.classList.remove('highlight'); });
+                    item.classList.add('highlight');
                     this.showPage(service);
 
                 }.bind(this));
 
-                element.innerHTML = service;
-                services.appendChild(element);
-            })
+                item.innerHTML = service;
+                menu.appendChild(item);
+            });
         });
     }
 
@@ -280,7 +274,7 @@ class Controller
                     {
                         exposeList(expose, device.options(endpoint)).forEach(property =>
                         {
-                            let value = {endpoint: item.split('/')[0] + '/' + id, property: property}
+                            let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
 
                             if (endpoint != 'common')
                                 value.endpoint += '/' + endpoint;
@@ -682,7 +676,7 @@ function addDropdown(dropdown, options, callback, separator = 0)
     {
         search = document.createElement('input');
         search.type = 'text';
-        search.placeholder = 'Type to search'
+        search.placeholder = 'Type to search';
         list.append(search);
         search.addEventListener('input', function() { list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
     }

@@ -79,7 +79,7 @@ class Custom extends DeviceService
                 let device = this.devices[list[1]];
 
                 if (device)
-                    this.showDeviceInfo(device)
+                    this.showDeviceInfo(device);
                 else
                     this.showDeviceList();
 

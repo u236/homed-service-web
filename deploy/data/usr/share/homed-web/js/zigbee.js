@@ -190,7 +190,7 @@ class ZigBee extends DeviceService
         menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
-        menu.querySelector('#map').addEventListener('click', function() { this.controller.showPage(this.service + '?map') }.bind(this));
+        menu.querySelector('#map').addEventListener('click', function() { this.controller.showPage(this.service + '?map'); }.bind(this));
         menu.querySelector('#permitJoin').addEventListener('click', function() { menu.querySelector('#permitJoin i').className = 'icon-enable'; this.serviceCommand({'action': 'togglePermitJoin'}); }.bind(this));
 
         switch (list[0])
@@ -200,7 +200,7 @@ class ZigBee extends DeviceService
                 let device = this.devices[list[1]];
 
                 if (device)
-                    this.showDeviceInfo(device)
+                    this.showDeviceInfo(device);
                 else
                     this.showDeviceList();
 
@@ -255,7 +255,7 @@ class ZigBee extends DeviceService
                         case 5: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
                         case 6: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center'); break;
                         case 7: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
-                        case 8: cell.innerHTML = device.info.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
+                        case 8: cell.innerHTML = device.properties('common').linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
                         case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                     }
                 }

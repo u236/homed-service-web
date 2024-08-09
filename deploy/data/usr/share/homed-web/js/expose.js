@@ -189,7 +189,7 @@ function addExpose(table, device, endpoint, expose)
 
             case 'irCode':
             {
-                valueCell.innerHTML = '<textarea></textarea><div class "buttons"><button class="learn">Learn</button><button class="send">Send</button></div>'
+                valueCell.innerHTML = '<textarea></textarea><div class "buttons"><button class="learn">Learn</button><button class="send">Send</button></div>';
                 valueCell.colSpan = 2;
                 valueCell.querySelector(".learn").addEventListener('click', function() { valueCell.querySelector('textarea').value = null; valueCell.dataset.mode = 'learn'; deviceCommand(device, endpoint, {learn: true}); });
                 valueCell.querySelector(".send").addEventListener('click', function() { valueCell.dataset.mode = 'send'; deviceCommand(device, endpoint, {irCode: valueCell.querySelector('textarea').value}); });
@@ -222,7 +222,7 @@ function addExpose(table, device, endpoint, expose)
                 {
                     case 'button':
                         controlCell.innerHTML = '<span>trigger</span>';
-                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpoint, {[name]: true}) });
+                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpoint, {[name]: true}); });
                         break;
 
                     case 'number':
