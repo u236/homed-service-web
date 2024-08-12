@@ -133,12 +133,6 @@ class Recorder
         if (status)
             status.innerHTML = message.timestamp.length + ' records, ' + message.time + ' ms';
 
-        if (table && table.dataset.interval != canvas.dataset.interval)
-        {
-            table.dataset.interval = canvas.dataset.interval;
-            table.innerHTML = null;
-        }
-
         if (!message.timestamp.length)
         {
             if (table)
@@ -148,6 +142,12 @@ class Recorder
             }
 
             return;
+        }
+
+        if (table && (table.dataset.interval != canvas.dataset.interval || table.rows[0]?.querySelector('.placeholder')))
+        {
+            table.dataset.interval = canvas.dataset.interval;
+            table.innerHTML = null;
         }
 
         options =
@@ -322,8 +322,12 @@ class Recorder
             datasets.forEach((record, index) =>
             {
                 let row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
-                let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + timeInterval((Date.now() - record.timestamp) / 1000) + ' ago';
+                let interval = timeInterval((Date.now() - record.timestamp) / 1000);
+                let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + interval;
                 let next = datasets[index + 1];
+
+                if (interval != 'now')
+                    timestamp += ' ago';
 
                 if (next)
                     timestamp += ', ' + timeInterval((next.timestamp - record.timestamp) / 1000, false) + ' long';

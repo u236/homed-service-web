@@ -145,11 +145,11 @@ function addExpose(table, device, endpoint, expose)
         row.dataset.device = device.service + '/' + device.id;
         row.dataset.endpoint = endpoint;
 
+        titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
+
         valueCell.dataset.property = name;
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
-
-        titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
 
         if (name != 'irCode')
         {

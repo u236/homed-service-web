@@ -74,7 +74,9 @@ class Controller
 
     onclose()
     {
-        this.clearPage('socket closed, reconnecting');
+        document.querySelector('.services').innerHTML = null;
+        document.querySelector('.menu').innerHTML = '<i class="icon-false"></i> DISCONNECTED';
+        this.clearPage('socket closed, reconnecting...');
         this.socket.subscriptions = new Array();
         Object.keys(this.services).forEach(service => { if (service != 'dashboard') this.removeService(service); });
     }
