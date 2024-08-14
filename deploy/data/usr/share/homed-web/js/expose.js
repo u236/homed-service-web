@@ -138,18 +138,33 @@ function addExpose(table, device, endpoint, expose)
     {
         let item = name.split('_')[0];
         let row = table.insertRow();
-        let titleCell = row.insertCell();
+        let labelCell = row.insertCell();
         let valueCell = row.insertCell();
         let controlCell;
 
         row.dataset.device = device.service + '/' + device.id;
         row.dataset.endpoint = endpoint;
 
-        titleCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
+        labelCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
+        labelCell.classList.add('label');
 
         valueCell.dataset.property = name;
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
+
+        controller.services.recorder?.status.items?.forEach((data, index) =>
+        {
+            var item = device.service.split('/')[0] + '/' + device.id;
+
+            if (endpoint != 'common')
+                item += '/' + endpoint;
+
+            if (data.endpoint != item || data.property != name)
+                return;
+
+            labelCell.innerHTML += ' <i class="icon-chart shade"></i>';
+            labelCell.querySelector('i').addEventListener('click', function() { controller.showPage('recorder?index=' + index); showModal(false); });
+        });
 
         if (name != 'irCode')
         {
