@@ -507,6 +507,7 @@ class Automation
         fetch('html/automation/automationList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
+            let count = 0;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
@@ -546,10 +547,14 @@ class Automation
                         case 5: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
                     }
                 }
+
+                count++;
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, true, once); if (!once) localStorage.setItem('automationSort', this.dataset.index); }));
             sortTable(table, localStorage.getItem('automationSort') ?? 0);
+
+            table.querySelector('tfoot').innerHTML='<tr><th colspan="6">' + count + (count > 1 ? ' automations ' : ' automation ') + 'total</th></tr>';
         });
     }
 

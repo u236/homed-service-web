@@ -203,6 +203,12 @@ body[theme="dark"] {
     color: var(--color-shade);
 }
 
+.homed tfoot th {
+    padding-bottom: 15px;
+    border: none;
+    border-top: 1px solid var(--border-shade);
+}
+
 .homed td {
     padding: 5px;
     border-top: 1px solid var(--border-shade);

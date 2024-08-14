@@ -646,15 +646,15 @@ function sortTable(table, index, first = true, once = false)
             switch (true)
             {
                 case current.classList.contains('lastSeen') || current.classList.contains('lastTriggered'):
-                    sort = parseInt(current.dataset.value) > parseInt(next.dataset.value);
+                    sort = parseInt(current.dataset.value) > parseInt(next?.dataset.value);
                     break;
 
                 case current.classList.contains('linkQuality'):
-                    sort = parseInt(current.innerHTML) > parseInt(next.innerHTML);
+                    sort = parseInt(current.innerHTML) > parseInt(next?.innerHTML);
                     break;
 
                 default:
-                    sort = current.innerHTML.toLowerCase() > next.innerHTML.toLowerCase();
+                    sort = current.innerHTML.toLowerCase() > next?.innerHTML.toLowerCase();
                     break;
             }
 

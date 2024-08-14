@@ -436,6 +436,7 @@ class Recorder
         fetch('html/recorder/itemList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
+            let count = 0;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
@@ -461,7 +462,11 @@ class Recorder
                         case 2: cell.innerHTML = '<span class="value">' + item.threshold + '</span>'; cell.classList.add('center'); break;
                     }
                 }
+
+                count++;
             });
+
+            table.querySelector('tfoot').innerHTML='<tr><th colspan="3">' + count + (count > 1 ? ' items ' : ' item ') + 'total</th></tr>';
         });
     }
 
