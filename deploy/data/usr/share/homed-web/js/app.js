@@ -122,7 +122,7 @@ class Controller
                 this.removeService(service);
             }
 
-            this.updateMenu();
+            this.updateMenu(true);
             return;
         }
 
@@ -142,38 +142,45 @@ class Controller
         delete this.services[item];
     }
 
-    updateMenu()
+    updateMenu(redraw)
     {
         let menu = document.querySelector('.header .services');
-        let services = Object.keys(this.services);
-        let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
 
-        menu.innerHTML = '';
-        services.sort();
-
-        names.forEach(name =>
+        if (redraw)
         {
-            services.filter(service => { return service.startsWith(name); }).forEach(service =>
+            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
+            let services = Object.keys(this.services);
+
+            menu.innerHTML = '';
+            services.sort();
+
+            names.forEach(name =>
             {
-                let item = document.createElement('span');
-
-                if (menu.innerHTML)
-                    menu.append('|');
-
-                if (this.service == service)
-                    item.classList.add('highlight');
-
-                item.addEventListener('click', function()
+                services.filter(service => { return service.startsWith(name); }).forEach(service =>
                 {
-                    menu.querySelectorAll('span').forEach(item => { item.classList.remove('highlight'); });
-                    item.classList.add('highlight');
-                    this.showPage(service);
+                    let item = document.createElement('span');
 
-                }.bind(this));
+                    if (menu.innerHTML)
+                        menu.append('|');
 
-                item.innerHTML = service;
-                menu.appendChild(item);
+                    item.innerHTML = service;
+                    item.dataset.service = service;
+                    item.addEventListener('click', function() { this.showPage(service); }.bind(this));
+
+                    menu.appendChild(item);
+                });
             });
+        }
+
+        menu.querySelectorAll('span').forEach(item =>
+        {
+            if (item.dataset.service != this.service)
+            {
+                item.classList.remove('highlight');
+                return;
+            }
+
+            item.classList.add('highlight');
         });
     }
 
@@ -187,6 +194,8 @@ class Controller
 
         this.service = service;
         this.page = page;
+
+        this.updateMenu(false);
 
         if (!this.services[service])
         {
