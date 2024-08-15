@@ -150,6 +150,7 @@ class Controller
         {
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
             let services = Object.keys(this.services);
+            let list = new Array();
 
             menu.innerHTML = '';
             services.sort();
@@ -168,8 +169,23 @@ class Controller
                     item.addEventListener('click', function() { this.showPage(service); }.bind(this));
 
                     menu.appendChild(item);
+                    list.push(service);
                 });
             });
+
+            if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 275)
+            {
+                let item = document.createElement('span');
+                let dropdown = document.createElement('div');
+
+                item.innerHTML = '<i class="icon-list"></i> ' + this.service;
+                dropdown.classList.add('dropdown');
+
+                addDropdown(dropdown, list, function(service) { item.innerHTML = '<i class="icon-list"></i> ' + service; this.showPage(service); }.bind(this), 0, item);
+
+                menu.innerHTML = '';
+                menu.append(item, dropdown);
+            }
         }
 
         menu.querySelectorAll('span').forEach(item =>
@@ -604,6 +620,11 @@ window.onload = function()
     });
 };
 
+window.onresize = function()
+{
+    controller.updateMenu(true);
+};
+
 document.onkeydown = function(event)
 {
     if (event.key == 'Esc' || event.key == 'Escape')
@@ -675,7 +696,7 @@ function sortTable(table, index, first = true, once = false)
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
 }
 
-function addDropdown(dropdown, options, callback, separator = 0)
+function addDropdown(dropdown, options, callback, separator, trigger)
 {
     let list = document.createElement('div');
     let search;
@@ -688,25 +709,28 @@ function addDropdown(dropdown, options, callback, separator = 0)
         search = document.createElement('input');
         search.type = 'text';
         search.placeholder = 'Type to search';
-        list.append(search);
         search.addEventListener('input', function() { list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
+        list.append(search);
     }
 
     options.forEach((option, index) =>
     {
-        let element = document.createElement('div');
+        let item = document.createElement('div');
 
-        element.addEventListener('click', function() { callback(option); });
-        element.innerHTML = option;
-        element.classList.add('item');
+        item.innerHTML = option;
+        item.classList.add('item');
+        item.addEventListener('click', function() { callback(option); });
 
         if (separator && index == separator)
             list.append(document.createElement('hr'));
 
-        list.append(element);
+        list.append(item);
     });
 
-    dropdown.addEventListener('click', function(event)
+    if (!trigger)
+        trigger = dropdown;
+
+    trigger.addEventListener('click', function(event)
     {
         if (list.style.display == 'block' && event.target != search)
         {
@@ -722,7 +746,7 @@ function addDropdown(dropdown, options, callback, separator = 0)
         search.focus();
     });
 
-    document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) list.style.display = 'none'; });
+    document.addEventListener('click', function(event) { if (!trigger.contains(event.target)) list.style.display = 'none'; });
 }
 
 function showModal(show)

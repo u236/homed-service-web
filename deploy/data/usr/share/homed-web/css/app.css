@@ -337,8 +337,8 @@ body[theme="dark"] {
 .homed .dropdown .list {
     display: none;
     position: absolute;
-    right: -1px;
     top: -1px;
+    right: -1px;
     z-index: 1;
     cursor: pointer;
     padding: 3px 10px;
@@ -449,8 +449,32 @@ body[theme="dark"] {
     justify-content: space-between;
 }
 
+.homed .header .services {
+    margin-right: 10px;
+}
+
 .homed .header .menu {
     margin-left: auto;
+}
+
+.homed .header .dropdown {
+    position: absolute;
+}
+
+.homed .header .dropdown:hover {
+    color: var(--color-highlight);
+}
+
+.homed .header .dropdown .list {
+    line-height: 20px;
+    padding: 5px 25px 5px 10px;
+    top: -10px;
+    left: -5px;
+    right: inherit;
+}
+
+.homed .header .dropdown .item {
+    text-transform: uppercase;
 }
 
 .homed .footer
@@ -930,8 +954,8 @@ body[theme="dark"] {
 
 .homed #toast {
     position: fixed;
-    right: 25px;
     top: 25px;
+    right: 25px;
     z-index: 2;
     width: 300px;
 }
