@@ -185,7 +185,7 @@ class ZigBee extends DeviceService
         let menu = document.querySelector('.menu');
         let list = data ? data.split('=') : new Array();
 
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
         menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
 
@@ -228,8 +228,8 @@ class ZigBee extends DeviceService
                 let device = this.devices[ieeeAddress];
                 let row = table.querySelector('tbody').insertRow(device.info.logicalType ? -1 : 0);
 
-                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
                 row.dataset.device = this.service + '/' + device.id;
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
 
                 for (let i = 0; i < 10; i++)
                 {

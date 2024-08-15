@@ -87,7 +87,7 @@ class Modbus extends DeviceService
         let menu = document.querySelector('.menu');
         let list = data ? data.split('=') : new Array();
 
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> Devices</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
@@ -134,8 +134,8 @@ class Modbus extends DeviceService
                 let device = this.devices[id];
                 let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
                 row.dataset.device = this.service + '/' + device.id;
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
 
                 for (let i = 0; i < 7; i++)
                 {

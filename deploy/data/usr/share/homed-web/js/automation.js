@@ -440,11 +440,11 @@ class Automation
         {
             let input = document.createElement('input');
 
-            input.addEventListener('change', function ()
+            input.addEventListener('change', function()
             {
                 let reader = new FileReader();
 
-                reader.onload = function ()
+                reader.onload = function()
                 {
                     try
                     {

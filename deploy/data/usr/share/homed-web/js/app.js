@@ -225,9 +225,9 @@ class Controller
     {
         let element = document.createElement('div');
 
-        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
         element.innerHTML = '<div class="message">' + message + '</div>';
         element.classList.add('item', 'fade-in', style);
+        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
 
         setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
         document.querySelector('#toast').appendChild(element);

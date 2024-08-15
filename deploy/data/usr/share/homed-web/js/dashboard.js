@@ -68,8 +68,8 @@ class Dashboard
             case 'light':
             case 'switch':
                 let name = part[1] ? 'status_' + part[1] : 'status';
-                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                 valueCell.dataset.property = name;
+                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                 break;
 
             case 'cover':
@@ -142,8 +142,8 @@ class Dashboard
                 if (this.index == index)
                     element.classList.add('highlight');
 
-                element.addEventListener('click', function() { this.setIndex(index); this.showDashboard(); }.bind(this));
                 element.innerHTML = dashboard.name;
+                element.addEventListener('click', function() { this.setIndex(index); this.showDashboard(); }.bind(this));
 
                 list.appendChild(element);
             });

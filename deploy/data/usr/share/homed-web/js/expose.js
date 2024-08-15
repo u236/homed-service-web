@@ -189,9 +189,9 @@ function addExpose(table, device, endpoint, expose)
 
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
+                controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseInt(this.value)}); });
-                controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
                 break;
             }
 
