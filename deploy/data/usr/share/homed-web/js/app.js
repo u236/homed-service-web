@@ -585,7 +585,13 @@ window.onload = function()
     modal = document.querySelector('#modal');
     controller = new Controller();
 
-    window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
+    window.addEventListener('mousedown', function(event)
+    {
+        if (event.target == modal)
+            showModal(false);
+
+        document.querySelectorAll('.dropdown').forEach(item => { if (!item.contains(event.target)) item.querySelector('.list').style.display = 'none'; });
+    });
 
     window.addEventListener('hashchange', function()
     {
@@ -635,17 +641,14 @@ function setTheme()
 {
     document.querySelectorAll('body, .homed').forEach(item => item.setAttribute('theme', theme));
     document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
-
-    if (!controller.services.recorder)
-        return;
-
-    controller.services.recorder.updateCharts();
+    controller.services.recorder?.updateCharts();
 }
 
 function setWide()
 {
     document.querySelectorAll('.container').forEach(item => item.style.maxWidth = wide != 'off' ? 'none' : '1000px');
     document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' WIDE MODE';
+    controller.updateMenu(true);
 }
 
 function sortTable(table, index, first = true, once = false)
@@ -696,13 +699,13 @@ function sortTable(table, index, first = true, once = false)
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
 }
 
-function addDropdown(dropdown, options, callback, separator, trigger)
+function addDropdown(element, options, callback, separator, trigger)
 {
     let list = document.createElement('div');
     let search;
 
     list.classList.add('list');
-    dropdown.append(list);
+    element.append(list);
 
     if (options.length > 10)
     {
@@ -719,7 +722,7 @@ function addDropdown(dropdown, options, callback, separator, trigger)
 
         item.innerHTML = option;
         item.classList.add('item');
-        item.addEventListener('click', function() { callback(option); });
+        item.addEventListener('click', function() { callback(option); if (trigger != element) list.style.display = 'none'; });
 
         if (separator && index == separator)
             list.append(document.createElement('hr'));
@@ -728,7 +731,7 @@ function addDropdown(dropdown, options, callback, separator, trigger)
     });
 
     if (!trigger)
-        trigger = dropdown;
+        trigger = element;
 
     trigger.addEventListener('click', function(event)
     {
@@ -745,8 +748,6 @@ function addDropdown(dropdown, options, callback, separator, trigger)
 
         search.focus();
     });
-
-    document.addEventListener('click', function(event) { if (!trigger.contains(event.target)) list.style.display = 'none'; });
 }
 
 function showModal(show)
