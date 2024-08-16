@@ -75,7 +75,7 @@ class Controller
     onclose()
     {
         document.querySelector('.services').innerHTML = null;
-        document.querySelector('.menu').innerHTML = '<i class="icon-false"></i> DISCONNECTED';
+        document.querySelector('.menu').innerHTML = '<span><i class="icon-false"></i> DISCONNECTED</span>';
         this.clearPage('socket closed, reconnecting...');
         this.socket.subscriptions = new Array();
         Object.keys(this.services).forEach(service => { if (service != 'dashboard') this.removeService(service); });
@@ -178,10 +178,10 @@ class Controller
                 let item = document.createElement('span');
                 let dropdown = document.createElement('div');
 
-                item.innerHTML = '<i class="icon-list"></i> ' + this.service;
+                item.classList.add('trigger');
                 dropdown.classList.add('dropdown');
 
-                addDropdown(dropdown, list, function(service) { item.innerHTML = '<i class="icon-list"></i> ' + service; this.showPage(service); }.bind(this), 0, item);
+                addDropdown(dropdown, list, function(service) { this.showPage(service); }.bind(this), 0, item);
 
                 menu.innerHTML = '';
                 menu.append(item, dropdown);
@@ -190,6 +190,12 @@ class Controller
 
         menu.querySelectorAll('span').forEach(item =>
         {
+            if (item.classList.contains('trigger'))
+            {
+                item.innerHTML = '<i class="icon-list"></i> ' + this.service;
+                return;
+            }
+
             if (item.dataset.service != this.service)
             {
                 item.classList.remove('highlight');
@@ -212,12 +218,10 @@ class Controller
         this.page = page;
 
         this.updateMenu(false);
+        this.clearPage();
 
         if (!this.services[service])
-        {
-            this.clearPage(service + ' service is unavailable');
             return;
-        }
 
         this.services[service].showPage(list[1]);
     }
@@ -585,23 +589,8 @@ window.onload = function()
     modal = document.querySelector('#modal');
     controller = new Controller();
 
-    window.addEventListener('mousedown', function(event)
-    {
-        if (event.target == modal)
-            showModal(false);
-
-        document.querySelectorAll('.dropdown').forEach(item => { if (!item.contains(event.target)) item.querySelector('.list').style.display = 'none'; });
-    });
-
-    window.addEventListener('hashchange', function()
-    {
-        let page = decodeURI(location.hash).slice(1);
-
-        if (controller.page == page)
-            return;
-
-        controller.showPage(page);
-    });
+    window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
+    window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
 
     document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('theme', theme); });
     document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('wide', wide); });
@@ -722,7 +711,7 @@ function addDropdown(element, options, callback, separator, trigger)
 
         item.innerHTML = option;
         item.classList.add('item');
-        item.addEventListener('click', function() { callback(option); if (trigger != element) list.style.display = 'none'; });
+        item.addEventListener('click', function() { callback(option); });
 
         if (separator && index == separator)
             list.append(document.createElement('hr'));
@@ -748,6 +737,8 @@ function addDropdown(element, options, callback, separator, trigger)
 
         search.focus();
     });
+
+    document.addEventListener('click', function(event) { if (!trigger.contains(event.target)) list.style.display = 'none'; });
 }
 
 function showModal(show)
