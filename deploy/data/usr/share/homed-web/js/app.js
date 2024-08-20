@@ -260,7 +260,7 @@ class Controller
         if (!toast.contains(item))
             return;
 
-        setTimeout(function() { toast.removeChild(item); }, 200);
+        setTimeout(function() { toast?.removeChild(item); }, 200);
         item.classList.add('fade-out');
     }
 
@@ -435,12 +435,12 @@ class DeviceService
 
                 switch (message.event)
                 {
-                    case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); return;
-                    case 'nameDuplicate':  this.controller.showToast(html + 'new name is already in use', 'error'); return;
-                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
-                    case 'added':          this.controller.showToast(html + 'successfully added'); return;
-                    case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
-                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
+                    case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); break;
+                    case 'nameDuplicate':  this.controller.showToast(html + 'new name is already in use', 'error'); break;
+                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); break;
+                    case 'added':          this.controller.showToast(html + 'successfully added'); break;
+                    case 'updated':        this.controller.showToast(html + 'successfully updated'); break;
+                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); break;
                 }
 
                 break;

@@ -75,11 +75,11 @@ class Automation
 
                 switch (message.event)
                 {
-                    case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); return;
-                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); return;
-                    case 'added':          this.controller.showToast(html + 'successfully added'); return;
-                    case 'updated':        this.controller.showToast(html + 'successfully updated'); return;
-                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); return;
+                    case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); break;
+                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); break;
+                    case 'added':          this.controller.showToast(html + 'successfully added'); break;
+                    case 'updated':        this.controller.showToast(html + 'successfully updated'); break;
+                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); break;
                 }
 
                 break;

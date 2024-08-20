@@ -102,13 +102,13 @@ class ZigBee extends DeviceService
 
                 switch (message.event)
                 {
-                    case 'deviceJoined':        this.controller.showToast(html + 'joined network'); return;
-                    case 'deviceLeft':          this.controller.showToast(html + 'left network', 'warning');  return;
-                    case 'deviceNameDuplicate': this.controller.showToast(html + 'new name is already in use', 'error'); return;
-                    case 'deviceUpdated':       this.controller.showToast(html + 'successfully updated'); return;
-                    case 'interviewError':      this.controller.showToast(html + 'interview error', 'error'); return;
-                    case 'interviewTimeout':    this.controller.showToast(html + 'interview timed out', 'error'); return;
-                    case 'interviewFinished':   this.controller.showToast(html + 'interview finished'); return;
+                    case 'deviceJoined':        this.controller.showToast(html + 'joined network'); break;
+                    case 'deviceLeft':          this.controller.showToast(html + 'left network', 'warning');  break;
+                    case 'deviceNameDuplicate': this.controller.showToast(html + 'new name is already in use', 'error'); break;
+                    case 'deviceUpdated':       this.controller.showToast(html + 'successfully updated'); break;
+                    case 'interviewError':      this.controller.showToast(html + 'interview error', 'error'); break;
+                    case 'interviewTimeout':    this.controller.showToast(html + 'interview timed out', 'error'); break;
+                    case 'interviewFinished':   this.controller.showToast(html + 'interview finished'); break;
 
                     case 'clusterRequest':
                     case 'globalRequest':
@@ -116,7 +116,7 @@ class ZigBee extends DeviceService
                         let item = modal.querySelector('.debugResult');
 
                         if (!item)
-                            return;
+                            break;
 
                         item.innerHTML = JSON.stringify(message, null, 2);
                         break;
