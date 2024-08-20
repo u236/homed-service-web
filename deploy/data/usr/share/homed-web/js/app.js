@@ -396,8 +396,20 @@ class DeviceService
         {
             let device = this.devices[id];
 
-            if (this.service.startsWith('zigbee') && !device.info.logicalType)
-                return;
+            if (this.service.startsWith('zigbee'))
+            {
+                if (!device.info.logicalType)
+                    return;
+
+                if (this.otaDevice == id && device.otaProgress != undefined)
+                {
+                    let cell = modal.querySelector('.progress');
+                    let value  = device.otaProgress + ' %';
+
+                    if (cell && cell.innerHTML != value)
+                        cell.innerHTML = value;
+                }
+            }
 
             document.querySelectorAll('tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
             {
@@ -411,10 +423,8 @@ class DeviceService
                     row.classList.add(className);
                 }
 
-                if (!cell || cell.innerHTML == value)
-                    return;
-
-                cell.innerHTML = value;
+                if (cell && cell.innerHTML != value)
+                    cell.innerHTML = value;
             });
         });
     }
@@ -454,6 +464,9 @@ class DeviceService
                 {
                     if (message.lastSeen)
                         device.lastSeen = message.lastSeen;
+
+                    if (message.otaProgress)
+                        device.otaProgress = message.otaProgress;
 
                     device.availability = message.status;
                 }
@@ -518,7 +531,7 @@ class DeviceService
 
     findDevice(item)
     {
-        return this.names ? Object.values(this.devices).find(device => device.info.name == item) : this.devices[item];
+        return Object.values(this.devices).find(device => device.info.name == item) ?? this.devices[item];
     }
 
     serviceCommand(data, clear = false)
@@ -748,6 +761,9 @@ function showModal(show)
         modal.style.display = 'block';
         return;
     }
+
+    if (controller?.service?.startsWith('zigbee'))
+        delete controller.services[controller.service]?.otaDevice;
 
     modal.querySelector('.data').innerHTML = null;
     modal.style.display = 'none';

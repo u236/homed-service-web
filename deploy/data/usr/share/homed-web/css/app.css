@@ -520,7 +520,6 @@ body[theme="dark"] {
 
 .homed .itemList td {
     overflow: hidden;
-    min-width: 25px;
     max-width: 100px;
     padding: 10px;
     text-overflow: ellipsis;
@@ -893,9 +892,15 @@ body[theme="dark"] {
     text-align: right;
 }
 
-.homed #modal table td.control {
+.homed #modal table td.control, .homed #modal table td.otaData {
     font-family: 'Roboto Mono';
     font-size: 13px;
+}
+
+.homed #modal table td.otaData {
+    overflow: hidden;
+    max-width: 200px;
+    text-overflow: ellipsis;
 }
 
 .homed #modal table td.dropdown {

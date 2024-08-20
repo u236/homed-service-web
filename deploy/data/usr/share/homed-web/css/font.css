@@ -51,3 +51,4 @@
 .icon-copy:before     { content: '\e812'; }
 .icon-goto:before     { content: '\e813'; }
 .icon-chart::before   { content: '\e814'; }
+.icon-refresh::before { content: '\e815'; }

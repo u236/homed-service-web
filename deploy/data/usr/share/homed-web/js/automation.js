@@ -30,11 +30,11 @@ class Automation
             let cell = document.querySelector('tr[data-index="' + index + '"] .lastTriggered');
             let value = timeInterval((Date.now() - item.lastTriggered) / 1000);
 
-            if (!item.lastTriggered || !cell || cell.innerHTML == value)
-                return;
-
-            cell.dataset.value = item.lastTriggered;
-            cell.innerHTML = value;
+            if (item.lastTriggered && cell && cell.innerHTML != value)
+            {
+                cell.dataset.value = item.lastTriggered;
+                cell.innerHTML = value;
+            }
         });
     }
 
