@@ -79,8 +79,12 @@ body[theme="dark"] {
     color: var(--color-main);
 }
 
-.homed button:hover {
+.homed button:hover:enabled {
     background-color: var(--background-hover);
+}
+
+.homed button:disabled {
+    opacity: 0.65;
 }
 
 .homed input[type="checkbox"] {

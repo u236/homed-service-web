@@ -36,13 +36,21 @@ class ZigBee extends DeviceService
     {
         let ota = device.info.ota ?? new Object();
 
-        modal.querySelector('.dataLoader').style.display = 'none';
         modal.querySelector('.manufacturerCode').innerHTML = ota.manufacturerCode != undefined ? this.parseValue('manufacturerCode', ota.manufacturerCode) : empty;
         modal.querySelector('.imageType').innerHTML = ota.imageType != undefined  ? this.parseValue('imageType', ota.imageType) : empty;
         modal.querySelector('.currentVersion').innerHTML = ota.currentVersion != undefined ? this.parseValue('currentVersion', ota.currentVersion) : empty;
         modal.querySelector('.fileName').innerHTML = ota.fileName ?? empty;
         modal.querySelector('.fileVersion').innerHTML = ota.fileVersion != undefined ? this.parseValue('fileVersion', ota.fileVersion) : empty;
-        modal.querySelector('.upgrade').style.display = ota.fileName && ota.currentVersion != ota.fileVersion ? 'block' : 'none';
+        modal.querySelector('.refresh').disabled = ota.running ? true : false;
+        modal.querySelector('.upgrade').disabled = ota.fileName && ota.currentVersion != ota.fileVersion && !ota.running ? false : true;
+
+        if (!ota.running)
+            modal.querySelector('.dataLoader').style.display = 'none';
+
+        if (!ota.fileName || ota.currentVersion == ota.fileVersion)
+            return;
+
+        modal.querySelector('.fileVersion').classList.add(ota.currentVersion < ota.fileVersion ? 'success' : 'warning');
     }
 
     parseMessage(list, message)
@@ -485,7 +493,6 @@ class ZigBee extends DeviceService
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.progress').innerHTML = empty;
 
             modal.querySelector('.refresh').addEventListener('click', function()
             {
