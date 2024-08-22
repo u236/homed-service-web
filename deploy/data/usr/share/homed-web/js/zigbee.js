@@ -286,8 +286,8 @@ class ZigBee extends DeviceService
 
                             break;
 
-                        case 1: cell.innerHTML = device.info.manufacturerName ?? empty; break;
-                        case 2: cell.innerHTML = device.info.modelName ?? empty; break;
+                        case 1: cell.innerHTML = device.info.manufacturerName ?? empty; cell.classList.add('mobileHidden'); break;
+                        case 2: cell.innerHTML = device.info.modelName ?? empty; cell.classList.add('mobileHidden'); break;
                         case 3: cell.innerHTML = this.parseValue('powerSource', device.info.powerSource); cell.classList.add('center'); break;
                         case 4: cell.innerHTML = this.parseValue('supported', device.info.supported); cell.classList.add('center'); break;
                         case 5: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;

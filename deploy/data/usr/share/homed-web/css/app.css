@@ -1027,6 +1027,8 @@ body[theme="dark"] {
     100% { max-height: 0; opacity: 0; }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 680px) {
     .homed .header, .homed .footer, .homed .content { padding: 0 5px; }
+    .homed .footer .container { justify-content: end; }
+    .homed .mobileHidden { display: none; }
 }
