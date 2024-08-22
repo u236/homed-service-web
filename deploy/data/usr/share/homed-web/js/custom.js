@@ -137,8 +137,8 @@ class Custom extends DeviceService
                         case 1: cell.innerHTML = device.id; cell.classList.add('mobileHidden'); break;
                         case 2: cell.innerHTML = '<span class="value">' + device.info.exposes.length + '</span>'; cell.classList.add('center'); break;
                         case 3: cell.innerHTML = this.parseValue('real', device.info.real); cell.classList.add('center'); break;
-                        case 4: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
-                        case 5: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center'); break;
+                        case 4: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center', 'mobileHidden'); break;
+                        case 5: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center', 'mobileHidden'); break;
                     }
                 }
 
