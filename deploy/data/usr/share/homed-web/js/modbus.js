@@ -137,7 +137,7 @@ class Modbus extends DeviceService
                 row.dataset.device = this.service + '/' + device.id;
                 row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
 
-                for (let i = 0; i < 7; i++)
+                for (let i = 0; i < 6; i++)
                 {
                     let cell = row.insertCell();
 
@@ -160,7 +160,6 @@ class Modbus extends DeviceService
                         case 3: cell.innerHTML = '<span class="value">' + device.info.slaveId + '</span>'; cell.classList.add('center'); break;
                         case 4: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
                         case 5: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center'); break;
-                        case 6: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
                     }
                 }
 

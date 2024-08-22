@@ -396,36 +396,30 @@ class DeviceService
         {
             let device = this.devices[id];
 
-            if (this.service.startsWith('zigbee'))
+            if (this.service.startsWith('zigbee') && !device.info.logicalType)
+                return;
+
+            document.querySelectorAll('table:not(.summary) tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
             {
-                if (!device.info.logicalType)
-                    return;
-
-                if (this.otaDevice == id && device.otaProgress != undefined)
-                {
-                    let cell = modal.querySelector('.progress');
-                    let value  = device.otaProgress + ' %';
-
-                    if (cell && cell.innerHTML != value)
-                        cell.innerHTML = value;
-                }
-            }
-
-            document.querySelectorAll('tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
-            {
-                let cell = row.querySelector('.availability');
-                let className = device.info.active ? device.availability : 'shade';
-                let value = device.info.active ? '<i class="' + (device.availability == "online" ? 'icon-true success' : 'icon-false error') + '"></i>' : '<i class="icon-false shade"></i>';
+                let className = device.info.active ? device.availability : 'inactive';
 
                 if (!row.classList.contains(className))
                 {
-                    row.classList.remove('online', 'offline', 'shade');
+                    row.classList.remove('online', 'offline', 'inactive');
                     row.classList.add(className);
                 }
-
-                if (cell && cell.innerHTML != value)
-                    cell.innerHTML = value;
             });
+
+            if (this.otaDevice == id && device.otaProgress != undefined)
+            {
+                let cell = modal.querySelector('.progress');
+                let value  = device.otaProgress + ' %';
+
+                if (!cell || cell.innerHTML == value)
+                    return;
+
+                cell.innerHTML = value;
+            }
         });
     }
 

@@ -281,6 +281,10 @@ body[theme="dark"] {
     background-color: var(--background-error);
 }
 
+.homed .inactive {
+    opacity: 0.65;
+}
+
 .homed .buttons {
     display: inline-flex;
     gap: 5px;
@@ -659,7 +663,6 @@ body[theme="dark"] {
 }
 
 .homed .deviceInfo .summary tr {
-    background-color: var(--background-main);
     display: none;
 }
 

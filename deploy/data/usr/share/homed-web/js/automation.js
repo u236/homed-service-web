@@ -30,11 +30,11 @@ class Automation
             let cell = document.querySelector('tr[data-index="' + index + '"] .lastTriggered');
             let value = timeInterval((Date.now() - item.lastTriggered) / 1000);
 
-            if (item.lastTriggered && cell && cell.innerHTML != value)
-            {
-                cell.dataset.value = item.lastTriggered;
-                cell.innerHTML = value;
-            }
+            if (!item.lastTriggered || !cell || cell.innerHTML == value)
+                return;
+
+            cell.dataset.value = item.lastTriggered;
+            cell.innerHTML = value;
         });
     }
 
@@ -522,7 +522,10 @@ class Automation
                 row.addEventListener('click', function() { this.controller.showPage('automation?index=' + index); }.bind(this));
                 row.dataset.index = index;
 
-                for (let i = 0; i < 6; i++)
+                if (!item.active)
+                    row.classList.add('inactive');
+
+                for (let i = 0; i < 5; i++)
                 {
                     let cell = row.insertCell();
 
@@ -540,11 +543,10 @@ class Automation
 
                             break;
 
-                        case 1: cell.innerHTML = item.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>'; cell.classList.add('center'); break;
-                        case 2: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : empty; cell.classList.add('center'); break;
-                        case 4: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center'); break;
-                        case 5: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
+                        case 1: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center'); break;
+                        case 2: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : empty; cell.classList.add('center'); break;
+                        case 3: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center'); break;
+                        case 4: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
                     }
                 }
 
@@ -611,7 +613,7 @@ class Automation
             this.content.querySelector('.note').innerHTML = this.data.note ?? '';
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';
             this.content.querySelector('.restart').innerHTML = '<span class="value">' + (this.data.restart ?? false) + '</span>';
-            this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false error"></i>';
+            this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false shade"></i>';
 
             triggers = this.content.querySelector('.triggers');
             conditions = this.content.querySelector('.conditions');

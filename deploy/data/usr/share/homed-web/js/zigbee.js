@@ -18,11 +18,11 @@ class ZigBee extends DeviceService
             let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .lastSeen');
             let value = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
 
-            if (cell && cell.innerHTML != value)
-            {
-                cell.dataset.value = this.devices[id].lastSeen;
-                cell.innerHTML = value;
-            }
+            if (!cell || cell.innerHTML == value)
+                return;
+
+            cell.dataset.value = this.devices[id].lastSeen;
+            cell.innerHTML = value;
         });
     }
 
@@ -268,7 +268,7 @@ class ZigBee extends DeviceService
                 row.dataset.device = this.service + '/' + device.id;
                 row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
 
-                for (let i = 0; i < 10; i++)
+                for (let i = 0; i < 9; i++)
                 {
                     let cell = row.insertCell();
 
@@ -292,9 +292,8 @@ class ZigBee extends DeviceService
                         case 4: cell.innerHTML = this.parseValue('supported', device.info.supported); cell.classList.add('center'); break;
                         case 5: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center'); break;
                         case 6: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center'); break;
-                        case 7: cell.innerHTML = empty; cell.classList.add('availability', 'center'); break;
-                        case 8: cell.innerHTML = device.properties('common').linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
-                        case 9: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
+                        case 7: cell.innerHTML = device.properties('common').linkQuality ?? device.info.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
+                        case 8: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                     }
                 }
 
@@ -427,6 +426,7 @@ class ZigBee extends DeviceService
 
             if (!device.info.active)
             {
+                this.content.querySelector('.upgrade').style.display = 'none';
                 this.content.querySelector('.exposes').style.display = 'none';
                 return;
             }
