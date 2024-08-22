@@ -631,7 +631,7 @@ class Dashboard
                 table.querySelector('tr').deleteCell(2);
 
             modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
         });
@@ -674,7 +674,7 @@ class Dashboard
 
             }.bind(this));
 
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             modal.querySelectorAll('#data').forEach(item => { item.id = id; });
 
             if (this.controller.services.recorder)

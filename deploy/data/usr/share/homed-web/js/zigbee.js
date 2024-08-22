@@ -503,7 +503,7 @@ class ZigBee extends DeviceService
             }.bind(this));
 
             modal.querySelector('.upgrade').addEventListener('click', function() { this.serviceCommand({action: 'otaUpgrade', device: item}); }.bind(this));
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
             this.otaDevice = device.id;
             this.updateOtaData(device);
@@ -519,7 +519,7 @@ class ZigBee extends DeviceService
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.json').innerHTML = JSON.stringify(device.info, null, 2);
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
             showModal(true);
         });
@@ -560,7 +560,7 @@ class ZigBee extends DeviceService
 
             }.bind(this));
 
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
             modal.removeEventListener('keypress', handleSend);
             modal.addEventListener('keypress', handleSend);

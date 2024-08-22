@@ -84,6 +84,7 @@ body[theme="dark"] {
 }
 
 .homed button:disabled {
+    cursor: default;
     opacity: 0.65;
 }
 
