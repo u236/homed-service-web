@@ -175,7 +175,7 @@ class Dashboard
                         let endpoint = list[2] ?? 'common';
                         let device;
 
-                        row.classList.add('shade');
+                        row.classList.add('inactive');
 
                         function wait(resolve)
                         {

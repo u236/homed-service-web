@@ -406,7 +406,7 @@ class Recorder
         {
             case 'index':
 
-                let item = this.status.items ? this.status.items[list[1]] : undefined;
+                let item = this.status.items?.[list[1]];
 
                 if (item)
                 {

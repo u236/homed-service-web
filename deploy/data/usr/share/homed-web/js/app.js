@@ -387,10 +387,10 @@ class DeviceService
             this.instance = true;
         }
 
-        this.intervals.push(setInterval(function() { this.updateAvailability(); }.bind(this), 100));
+        this.intervals.push(setInterval(function() { this.updateDeviceData(); }.bind(this), 100));
     }
 
-    updateAvailability()
+    updateDeviceData()
     {
         Object.keys(this.devices).forEach(id =>
         {
@@ -410,7 +410,7 @@ class DeviceService
                 }
             });
 
-            if (this.otaDevice == id && device.otaProgress != undefined)
+            if (device.info.ota?.running && device.otaProgress != undefined && this.otaDevice == id)
             {
                 let cell = modal.querySelector('.progress');
                 let value  = device.otaProgress + ' %';
@@ -551,7 +551,7 @@ class DeviceService
             Object.keys(device.info).forEach(key =>
             {
                 let cell = document.querySelector('.' + key);
-                let row = cell ? cell.closest('tr') : undefined;
+                let row = cell?.closest('tr');
 
                 if (key == 'exposes')
                     return;

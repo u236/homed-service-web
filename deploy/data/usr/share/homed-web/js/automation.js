@@ -476,7 +476,7 @@ class Automation
         {
             case 'index':
 
-                let automation = this.status.automations ? this.status.automations[list[1]] : undefined;
+                let automation = this.status.automations?.[list[1]];
 
                 if (automation)
                 {

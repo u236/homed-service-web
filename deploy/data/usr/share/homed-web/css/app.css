@@ -478,7 +478,7 @@ body[theme="dark"] {
 
 .homed .header .dropdown .list {
     line-height: 20px;
-    padding: 5px 25px 5px 10px;
+    padding: 5px 28px 5px 10px;
     top: -10px;
     left: -5px;
     right: inherit;
@@ -1034,6 +1034,7 @@ body[theme="dark"] {
 
 @media (max-width: 680px) {
     .homed .header, .homed .footer, .homed .content { padding: 0 5px; }
+    .homed .header .dropdown .list { left: 13px; padding-right: 10px;}
     .homed .footer .container { justify-content: end; }
     .homed .mobileHidden { display: none; }
 }

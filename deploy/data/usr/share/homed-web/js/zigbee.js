@@ -36,19 +36,21 @@ class ZigBee extends DeviceService
     {
         let ota = device.info.ota ?? new Object();
 
+        modal.querySelector('.dataLoader').style.display = ota.running ? 'block' : 'none';
         modal.querySelector('.manufacturerCode').innerHTML = ota.manufacturerCode != undefined ? this.parseValue('manufacturerCode', ota.manufacturerCode) : empty;
         modal.querySelector('.imageType').innerHTML = ota.imageType != undefined  ? this.parseValue('imageType', ota.imageType) : empty;
         modal.querySelector('.currentVersion').innerHTML = ota.currentVersion != undefined ? this.parseValue('currentVersion', ota.currentVersion) : empty;
-        modal.querySelector('.fileName').innerHTML = ota.fileName ?? empty;
         modal.querySelector('.fileVersion').innerHTML = ota.fileVersion != undefined ? this.parseValue('fileVersion', ota.fileVersion) : empty;
+        modal.querySelector('.fileName').innerHTML = ota.fileName ?? empty;
+        modal.querySelector('.progress').innerHTML = ota.running ? '0 %' : 'not running';
         modal.querySelector('.refresh').disabled = ota.running ? true : false;
         modal.querySelector('.upgrade').disabled = ota.fileName && ota.currentVersion != ota.fileVersion && !ota.running ? false : true;
 
-        if (!ota.running)
-            modal.querySelector('.dataLoader').style.display = 'none';
-
         if (!ota.fileName || ota.currentVersion == ota.fileVersion)
+        {
+            modal.querySelector('.fileVersion').classList.remove('success', 'warning');
             return;
+        }
 
         modal.querySelector('.fileVersion').classList.add(ota.currentVersion < ota.fileVersion ? 'success' : 'warning');
     }
@@ -89,7 +91,7 @@ class ZigBee extends DeviceService
 
                     this.devices[device.ieeeAddress].info = device;
 
-                    if (device.ieeeAddress != this.otaDevice)
+                    if (this.otaDevice != device.ieeeAddress)
                         return;
 
                     this.updateOtaData(this.devices[device.ieeeAddress]);
@@ -135,20 +137,9 @@ class ZigBee extends DeviceService
                     case 'interviewError':      this.controller.showToast(html + 'interview error', 'error'); break;
                     case 'interviewTimeout':    this.controller.showToast(html + 'interview timed out', 'error'); break;
                     case 'interviewFinished':   this.controller.showToast(html + 'interview finished'); break;
+                    case 'otaUpgradeStarted':   this.controller.showToast(html + 'OTA upgrade started', 'warning'); break;
                     case 'otaUpgradeFinished':  this.controller.showToast(html + 'OTA upgrade finished'); break;
                     case 'otaUpgradeError':     this.controller.showToast(html + 'OTA upgrade error', 'error'); break;
-
-                    case 'otaUpgradeStarted':
-                    {
-                        let device = this.findDevice(message.device);
-                        let cell = modal.querySelector('.progress');
-
-                        if (device && cell && this.otaDevice == device.id)
-                            cell.innerHTML = '0 %';
-
-                        this.controller.showToast(html + 'OTA upgrade started', 'warning');
-                        break;
-                    }
 
                     case 'clusterRequest':
                     case 'globalRequest':
@@ -294,7 +285,16 @@ class ZigBee extends DeviceService
 
                             break;
 
-                        case 1: cell.innerHTML = device.info.modelName ?? empty; cell.classList.add('mobileHidden'); break;
+                        case 1:
+
+                            cell.innerHTML = device.info.modelName ?? empty;
+                            cell.classList.add('mobileHidden');
+
+                            if (device.info.logicalType && !device.info.supported)
+                                cell.classList.add('shade');
+
+                            break;
+
                         case 2: cell.innerHTML = this.parseValue('powerSource', device.info.powerSource); cell.classList.add('center'); break;
                         case 3: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center', 'mobileHidden'); break;
                         case 4: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center', 'mobileHidden'); break;
@@ -407,7 +407,7 @@ class ZigBee extends DeviceService
             Object.keys(device.info).forEach(key =>
             {
                 let cell = document.querySelector('.' + key + ':not(button)');
-                let row = cell ? cell.closest('tr') : undefined;
+                let row = cell?.closest('tr');
 
                 if (cell)
                     cell.innerHTML = this.parseValue(key, device.info[key]);
@@ -493,16 +493,8 @@ class ZigBee extends DeviceService
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-
-            modal.querySelector('.refresh').addEventListener('click', function()
-            {
-                modal.querySelector('.dataLoader').style.display = 'block';
-                modal.querySelectorAll('.otaData').forEach(cell => { cell.innerHTML = empty; });
-                this.serviceCommand({action: 'otaRefresh', device: item});
-
-            }.bind(this));
-
-            modal.querySelector('.upgrade').addEventListener('click', function() { this.serviceCommand({action: 'otaUpgrade', device: item}); }.bind(this));
+            modal.querySelector('.refresh').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; modal.querySelectorAll('.otaData').forEach(cell => { cell.innerHTML = empty; }); this.serviceCommand({action: 'otaRefresh', device: item}); }.bind(this));
+            modal.querySelector('.upgrade').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; this.serviceCommand({action: 'otaUpgrade', device: item}); }.bind(this));
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
             this.otaDevice = device.id;
