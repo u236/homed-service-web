@@ -52,6 +52,11 @@ class Modbus extends DeviceService
                 //
 
                 this.devices[device.id].info = device;
+
+                if (this.controller.service != this.service || this.devices[device.id] != this.device)
+                    return;
+
+                this.updateSummary(this.device)
             });
 
             Object.keys(this.devices).forEach(id =>
@@ -86,6 +91,7 @@ class Modbus extends DeviceService
     {
         let menu = document.querySelector('.menu');
         let list = data ? data.split('=') : new Array();
+        let device;
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
@@ -97,7 +103,7 @@ class Modbus extends DeviceService
         {
             case 'device':
 
-                let device = this.devices[list[1]];
+                device = this.devices[list[1]];
 
                 if (device)
                     this.showDeviceInfo(device);
@@ -110,6 +116,7 @@ class Modbus extends DeviceService
             default: this.showDeviceList(); break;
         }
 
+        this.device = device;
         this.updatePage();
     }
 

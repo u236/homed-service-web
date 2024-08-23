@@ -536,6 +536,26 @@ class DeviceService
         this.controller.socket.publish('command/' + this.service, data);
     }
 
+    updateSummary(device)
+    {
+        Object.keys(device.info).forEach(key =>
+        {
+            let cell = document.querySelector('table.summary .' + key);
+            let row = cell?.closest('tr');
+
+            if (cell)
+                cell.innerHTML = this.parseValue(key, device.info[key]);
+
+            if (!row)
+                return;
+
+            if (key == 'lastSeen')
+                row.dataset.device = this.service + '/' + device.id;
+
+            row.style.display = 'table-row';
+        });
+    }
+
     showDeviceInfo(device)
     {
         fetch('html/' + this.service + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
@@ -543,27 +563,11 @@ class DeviceService
             let table;
 
             this.content.innerHTML = html;
-            table = this.content.querySelector('table.exposes');
-
+            this.content.querySelector('.name').innerHTML = device.info.name;
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
 
-            Object.keys(device.info).forEach(key =>
-            {
-                let cell = document.querySelector('.' + key);
-                let row = cell?.closest('tr');
-
-                if (key == 'exposes')
-                    return;
-
-                if (cell)
-                    cell.innerHTML = this.parseValue(key, device.info[key]);
-
-                if (!row)
-                    return;
-
-                row.style.display = 'table-row';
-            });
+            this.updateSummary(device);
 
             if (!device.info.active)
             {
@@ -571,6 +575,7 @@ class DeviceService
                 return;
             }
 
+            table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
         });
     }
@@ -756,9 +761,7 @@ function showModal(show)
         return;
     }
 
-    if (controller?.service?.startsWith('zigbee'))
-        delete controller.services[controller.service]?.otaDevice;
-
+    Object.keys(modal.dataset).forEach(item => { delete modal.dataset[item]; });
     modal.querySelector('.data').innerHTML = null;
     modal.style.display = 'none';
 }

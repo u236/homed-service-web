@@ -91,10 +91,15 @@ class ZigBee extends DeviceService
 
                     this.devices[device.ieeeAddress].info = device;
 
-                    if (this.otaDevice != device.ieeeAddress)
+                    if (this.controller.service != this.service || this.devices[device.ieeeAddress] != this.device)
                         return;
 
-                    this.updateOtaData(this.devices[device.ieeeAddress]);
+                    this.updateSummary(this.device);
+
+                    if (!modal.dataset.ota)
+                        return;
+
+                    this.updateOtaData(this.device);
                 });
 
                 Object.keys(this.devices).forEach(id =>
@@ -220,6 +225,7 @@ class ZigBee extends DeviceService
     {
         let menu = document.querySelector('.menu');
         let list = data ? data.split('=') : new Array();
+        let device;
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
@@ -233,7 +239,7 @@ class ZigBee extends DeviceService
         {
             case 'device':
 
-                let device = this.devices[list[1]];
+                device = this.devices[list[1]];
 
                 if (device)
                     this.showDeviceInfo(device);
@@ -246,6 +252,7 @@ class ZigBee extends DeviceService
             default: this.showDeviceList(); break;
         }
 
+        this.device = device;
         this.updatePage();
     }
 
@@ -396,30 +403,14 @@ class ZigBee extends DeviceService
             let ota;
 
             this.content.innerHTML = html;
-            table = this.content.querySelector('table.exposes');
-
+            this.content.querySelector('.name').innerHTML = device.info.name;
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
             this.content.querySelector('.upgrade').addEventListener('click', function() { this.showDeviceUpgrade(device); }.bind(this));
             this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(device); }.bind(this));
             this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(device); }.bind(this));
 
-            Object.keys(device.info).forEach(key =>
-            {
-                let cell = document.querySelector('.' + key + ':not(button)');
-                let row = cell?.closest('tr');
-
-                if (cell)
-                    cell.innerHTML = this.parseValue(key, device.info[key]);
-
-                if (!row)
-                    return;
-
-                if (key == 'lastSeen')
-                    row.dataset.device = this.service + '/' + device.id;
-
-                row.style.display = 'table-row';
-            });
+            this.updateSummary(device);
 
             if (!device.info.logicalType)
             {
@@ -442,6 +433,7 @@ class ZigBee extends DeviceService
             if (!ota)
                 this.content.querySelector('.upgrade').style.display = 'none';
 
+            table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
             addExpose(table, device, 'common', 'linkQuality');
         });
@@ -497,7 +489,7 @@ class ZigBee extends DeviceService
             modal.querySelector('.upgrade').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; this.serviceCommand({action: 'otaUpgrade', device: item}); }.bind(this));
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
-            this.otaDevice = device.id;
+            modal.dataset.ota = true;
             this.updateOtaData(device);
 
             showModal(true);
