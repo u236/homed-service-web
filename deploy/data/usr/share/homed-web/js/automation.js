@@ -427,13 +427,14 @@ class Automation
     {
         let menu = document.querySelector('.menu');
         let list = data ? data.split('=') : new Array();
+        let automation;
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
         menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('automation'); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage('automation?add'); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(false, true); }.bind(this));
 
         menu.querySelector('#import').addEventListener('click', function()
         {
@@ -471,26 +472,17 @@ class Automation
         if (!this.status.version)
             return;
 
-        switch (list[0])
+        if (list[0] == 'index')
+            automation = this.status.automations?.[list[1]];
+
+        if (automation)
         {
-            case 'index':
-
-                let automation = this.status.automations?.[list[1]];
-
-                if (automation)
-                {
-                    this.data = automation;
-                    this.name = automation.name;
-                    this.showAutomationInfo(false);
-                }
-                else
-                    this.showAutomationList();
-
-                break;
-
-            case 'add': this.showAutomationInfo(false, true); return;
-            default: this.showAutomationList(); break;
+            this.data = automation;
+            this.name = automation.name;
+            this.showAutomationInfo(false);
         }
+        else
+            this.showAutomationList();
 
         this.updatePage();
     }

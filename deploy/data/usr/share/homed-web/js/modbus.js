@@ -97,24 +97,15 @@ class Modbus extends DeviceService
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage(this.service + '?add'); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
-        switch (list[0])
-        {
-            case 'device':
+        if (list[0] == 'device')
+            device = this.devices[list[1]];
 
-                device = this.devices[list[1]];
-
-                if (device)
-                    this.showDeviceInfo(device);
-                else
-                    this.showDeviceList();
-
-                break;
-
-            case 'add': this.showDeviceEdit(); break;
-            default: this.showDeviceList(); break;
-        }
+        if (device)
+            this.showDeviceInfo(device);
+        else
+            this.showDeviceList();
 
         this.device = device;
         this.updatePage();

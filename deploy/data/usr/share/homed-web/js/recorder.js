@@ -392,35 +392,27 @@ class Recorder
     {
         let menu = document.querySelector('.menu');
         let list = data ? data.split('=') : new Array();
+        let item;
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.controller.showPage('recorder?add'); }.bind(this));
+        menu.querySelector('#add').addEventListener('click', function() { this.showItemEdit(true); }.bind(this));
 
         if (!this.status.version)
             return;
 
-        switch (list[0])
+        if (list[0] == 'index')
+            item = this.status.items?.[list[1]];
+
+        if (item)
         {
-            case 'index':
-
-                let item = this.status.items?.[list[1]];
-
-                if (item)
-                {
-                    this.data = item;
-                    this.showItemInfo();
-                }
-                else
-                    this.showItemList();
-
-                break;
-
-            case 'add': this.showItemEdit(true); return;
-            default: this.showItemList(); break;
+            this.data = item;
+            this.showItemInfo();
         }
+        else
+            this.showItemList();
 
         this.updatePage();
     }
