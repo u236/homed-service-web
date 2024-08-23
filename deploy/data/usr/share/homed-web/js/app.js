@@ -430,6 +430,31 @@ class DeviceService
         });
     }
 
+    updateSummary(device)
+    {
+        Object.keys(device.info).forEach(key =>
+        {
+            let cell = document.querySelector('table.summary .' + key);
+            let row = cell?.closest('tr');
+
+            if (!cell)
+                return;
+
+            if (row)
+            {
+                row.style.display = 'table-row';
+
+                if (key == 'lastSeen')
+                {
+                    row.dataset.device = this.service + '/' + device.id;
+                    return;
+                }
+            }
+
+            cell.innerHTML = this.parseValue(key, device.info[key]);
+        });
+    }
+
     parseMessage(list, message)
     {
         switch (list[0])
@@ -541,26 +566,6 @@ class DeviceService
             this.controller.clearPage();
 
         this.controller.socket.publish('command/' + this.service, data);
-    }
-
-    updateSummary(device)
-    {
-        Object.keys(device.info).forEach(key =>
-        {
-            let cell = document.querySelector('table.summary .' + key);
-            let row = cell?.closest('tr');
-
-            if (cell)
-                cell.innerHTML = this.parseValue(key, device.info[key]);
-
-            if (!row)
-                return;
-
-            if (key == 'lastSeen')
-                row.dataset.device = this.service + '/' + device.id;
-
-            row.style.display = 'table-row';
-        });
     }
 
     showDeviceInfo(device)
