@@ -410,15 +410,22 @@ class DeviceService
                 }
             });
 
-            if (device.info.ota?.running && device.otaProgress != undefined && this.otaDevice == id)
+            if (this.controller.service == this.service && device == this.device && device.info.ota?.running && device.otaProgress != undefined)
             {
+                let button = document.querySelector('.title button.upgrade');
                 let cell = modal.querySelector('.progress');
-                let value  = device.otaProgress + ' %';
 
-                if (!cell || cell.innerHTML == value)
-                    return;
+                if (button && button.dataset.value != device.otaProgress)
+                {
+                    button.dataset.value = device.otaProgress;
+                    button.innerHTML = '<i class="icon-download"></i> OTA: ' + device.otaProgress + ' %';
+                }
 
-                cell.innerHTML = value;
+                if (cell && cell.dataset.value != device.otaProgress)
+                {
+                    cell.dataset.value = device.otaProgres;
+                    cell.innerHTML = device.otaProgress + ' %';
+                }
             }
         });
     }

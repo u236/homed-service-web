@@ -16,13 +16,12 @@ class ZigBee extends DeviceService
         Object.keys(this.devices).forEach(id =>
         {
             let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .lastSeen');
-            let value = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
 
-            if (!cell || cell.innerHTML == value)
-                return;
-
-            cell.dataset.value = this.devices[id].lastSeen;
-            cell.innerHTML = value;
+            if (cell && cell.dataset.value != this.devices[id].lastSeen)
+            {
+                cell.dataset.value = this.devices[id].lastSeen;
+                cell.innerHTML = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
+            }
         });
     }
 
@@ -42,9 +41,14 @@ class ZigBee extends DeviceService
         modal.querySelector('.currentVersion').innerHTML = ota.currentVersion != undefined ? this.parseValue('currentVersion', ota.currentVersion) : empty;
         modal.querySelector('.fileVersion').innerHTML = ota.fileVersion != undefined ? this.parseValue('fileVersion', ota.fileVersion) : empty;
         modal.querySelector('.fileName').innerHTML = ota.fileName ?? empty;
-        modal.querySelector('.progress').innerHTML = ota.running ? '0 %' : 'not running';
         modal.querySelector('.refresh').disabled = ota.running ? true : false;
         modal.querySelector('.upgrade').disabled = ota.fileName && ota.currentVersion != ota.fileVersion && !ota.running ? false : true;
+
+        if (!ota.running)
+        {
+            document.querySelector('.title button.upgrade').innerHTML = '<i class="icon-download"></i> OTA';
+            modal.querySelector('.progress').innerHTML = 'not running';
+        }
 
         if (!ota.fileName || ota.currentVersion == ota.fileVersion)
         {

@@ -28,13 +28,12 @@ class Automation
         this.status.automations.forEach((item, index) =>
         {
             let cell = document.querySelector('tr[data-index="' + index + '"] .lastTriggered');
-            let value = timeInterval((Date.now() - item.lastTriggered) / 1000);
 
-            if (!item.lastTriggered || !cell || cell.innerHTML == value)
-                return;
-
-            cell.dataset.value = item.lastTriggered;
-            cell.innerHTML = value;
+            if (item.lastTriggered && cell && cell.dataset.value != item.lastTriggered)
+            {
+                cell.dataset.value = item.lastTriggered;
+                cell.innerHTML = timeInterval((Date.now() - item.lastTriggered) / 1000);
+            }
         });
     }
 
