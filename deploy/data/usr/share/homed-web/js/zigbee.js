@@ -16,12 +16,13 @@ class ZigBee extends DeviceService
         Object.keys(this.devices).forEach(id =>
         {
             let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .lastSeen');
+            let value = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
 
-            if (cell && cell.dataset.value != this.devices[id].lastSeen)
-            {
-                cell.dataset.value = this.devices[id].lastSeen;
-                cell.innerHTML = timeInterval(Date.now() / 1000 - this.devices[id].lastSeen);
-            }
+            if (!cell || cell.innerHTML == value)
+                return;
+
+            cell.dataset.value = this.devices[id].lastSeen;
+            cell.innerHTML = value;
         });
     }
 
@@ -430,7 +431,7 @@ class ZigBee extends DeviceService
                 return;
             }
 
-            device.info.endpoints.forEach(endpoint => { if (endpoint.outClusters?.includes(25)) ota = true; });
+            device.info.endpoints?.forEach(endpoint => { if (endpoint.outClusters?.includes(25)) ota = true; });
 
             if (!ota)
                 this.content.querySelector('.upgrade').style.display = 'none';
