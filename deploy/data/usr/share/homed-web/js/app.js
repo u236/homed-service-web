@@ -652,7 +652,7 @@ document.onkeydown = function(event)
 
 function setTheme()
 {
-    document.querySelectorAll('body, .homed').forEach(item => item.setAttribute('theme', theme));
+    document.querySelector('html').setAttribute('theme', theme);
     document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
     controller.services.recorder?.updateCharts();
 }
