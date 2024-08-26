@@ -97,7 +97,7 @@ class ZigBee extends DeviceService
                     if (!this.device.info.ota?.running)
                         document.querySelector('.title button.upgrade').innerHTML = '<i class="icon-download"></i> OTA';
 
-                    this.updateSummary(this.device);
+                    this.showDeviceInfo(this.device);
 
                     if (!modal.dataset.ota)
                         return;
@@ -131,10 +131,7 @@ class ZigBee extends DeviceService
                 let html = 'Device <b>' + message.device + '</b> ';
 
                 if (this.controller.service == this.service && message.event == 'deviceUpdated')
-                {
-                    this.controller.clearPage();
-                    this.devices = new Object();
-                }
+                    showModal(false);
 
                 switch (message.event)
                 {

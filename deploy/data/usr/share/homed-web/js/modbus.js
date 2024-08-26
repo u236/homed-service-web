@@ -56,7 +56,7 @@ class Modbus extends DeviceService
                 if (this.controller.service != this.service || this.devices[device.id] != this.device)
                     return;
 
-                this.updateSummary(this.device)
+                this.showDeviceInfo(this.device);
             });
 
             Object.keys(this.devices).forEach(id =>

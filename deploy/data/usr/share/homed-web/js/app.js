@@ -463,10 +463,13 @@ class DeviceService
             {
                 let html = 'Device <b>' + message.device + '</b> ';
 
-                if (this.controller.service == this.service && (message.event == 'added' || message.event == 'updated'))
+                if (this.controller.service == this.service)
                 {
-                    this.controller.clearPage();
-                    this.devices = new Object();
+                    switch (message.event)
+                    {
+                        case 'added':      this.controller.clearPage(); this.devices = new Object(); break;
+                        case 'updated':    showModal(false); break;
+                    }
                 }
 
                 switch (message.event)
