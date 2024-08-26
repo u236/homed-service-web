@@ -410,16 +410,20 @@ class ZigBee extends DeviceService
             this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(device); }.bind(this));
             this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(device); }.bind(this));
 
-            this.updateSummary(device);
+            this.updateDeviceInfo(device);
 
             if (!device.info.logicalType)
             {
                 this.content.querySelector('.edit').style.display = 'none';
                 this.content.querySelector('.remove').style.display = 'none';
                 this.content.querySelector('.upgrade').style.display = 'none';
+                this.content.querySelector('.previous').style.display = 'none';
+                this.content.querySelector('.next').style.display = 'none';
                 this.content.querySelector('.exposes').style.display = 'none';
                 return;
             }
+
+            this.updateArrowButtons(device);
 
             if (!device.info.active)
             {

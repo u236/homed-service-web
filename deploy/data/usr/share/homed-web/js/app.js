@@ -430,11 +430,11 @@ class DeviceService
         });
     }
 
-    updateSummary(device)
+    updateDeviceInfo(device)
     {
         Object.keys(device.info).forEach(key =>
         {
-            let cell = document.querySelector('table.summary .' + key);
+            let cell = document.querySelector('.' + key);
             let row = cell?.closest('tr');
 
             if (!cell)
@@ -453,6 +453,23 @@ class DeviceService
 
             cell.innerHTML = this.parseValue(key, device.info[key]);
         });
+    }
+
+    updateArrowButtons(device)
+    {
+        let devices = new Array();
+        let list = new Array();
+
+        Object.keys(this.devices).forEach(id =>
+        {
+            if (this.service.startsWith('zigbee') && !this.devices[id].info.logicalType)
+                return;
+
+            devices.push([id, this.devices[id].info.name.toLowerCase()]);
+        });
+
+        devices.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach(item => { list.push(item[0]); });
+        handleArrowButtons(this.content, list, list.indexOf(device.id), function(id) { this.controller.showPage(this.service + '?device=' + id); }.bind(this));
     }
 
     parseMessage(list, message)
@@ -582,7 +599,8 @@ class DeviceService
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
 
-            this.updateSummary(device);
+            this.updateDeviceInfo(device);
+            this.updateArrowButtons(device);
 
             if (!device.info.active)
             {
@@ -790,13 +808,26 @@ function handleSave(event)
     }
 }
 
-function handleSend(event, item)
+function handleSend(event)
 {
     if (event.key == 'Enter' && !event.shiftKey)
     {
         event.preventDefault();
         document.querySelector('.send').click();
     }
+}
+
+function handleArrowButtons(element, list, index, callback)
+{
+    if (list.length < 2 || !index)
+        element.querySelector('.previous').disabled = true;
+    else
+        element.querySelector('.previous').addEventListener('click', function() { callback(list[index - 1]); });
+
+    if (list.length < 2 || index == list.length - 1)
+        element.querySelector('.next').disabled = true;
+    else
+        element.querySelector('.next').addEventListener('click', function() { callback(list[index + 1]); });
 }
 
 function randomString(length)

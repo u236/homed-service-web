@@ -471,6 +471,8 @@ class Recorder
             let chart;
 
             this.content.innerHTML = html;
+            handleArrowButtons(this.content, Object.keys(this.status.items), this.status.items.indexOf(this.data), function(index) { this.controller.showPage('recorder?index=' + index); }.bind(this));
+
             name = this.content.querySelector('.name');
             chart = this.content.querySelector('.chart');
             name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;

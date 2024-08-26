@@ -570,6 +570,24 @@ class Automation
                 this.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
                 this.name = undefined;
             }
+            else
+            {
+                let automations = new Array();
+                let list = new Array();
+                let current;
+
+                this.status.automations.forEach((automation, index) => { automations.push([index, automation.name.toLowerCase()]); });
+
+                automations.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
+                {
+                    if (this.data.name.toLowerCase() == item[1])
+                        current = index;
+
+                    list.push(item[0]);
+                });
+
+                handleArrowButtons(this.content, list, current, function(index) { this.controller.showPage('automation?index=' + index); }.bind(this));
+            }
 
             if (!this.data.name)
                 this.data.name = 'Automation ' + randomString(4);
@@ -579,6 +597,8 @@ class Automation
                 this.content.querySelector('.remove').style.display = 'none';
                 this.content.querySelector('.copy').style.display = 'none';
                 this.content.querySelector('.export').style.display = 'none';
+                this.content.querySelector('.previous').style.display = 'none';
+                this.content.querySelector('.next').style.display = 'none';
             }
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
