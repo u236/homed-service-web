@@ -480,23 +480,26 @@ class DeviceService
             {
                 let html = 'Device <b>' + message.device + '</b> ';
 
-                if (this.controller.service == this.service)
-                {
-                    switch (message.event)
-                    {
-                        case 'added':      this.controller.clearPage(); this.devices = new Object(); break;
-                        case 'updated':    showModal(false); break;
-                    }
-                }
+                if (this.controller.service != this.service)
+                    break;
 
                 switch (message.event)
                 {
                     case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); break;
                     case 'nameDuplicate':  this.controller.showToast(html + 'new name is already in use', 'error'); break;
                     case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); break;
-                    case 'added':          this.controller.showToast(html + 'successfully added'); break;
-                    case 'updated':        this.controller.showToast(html + 'successfully updated'); break;
                     case 'removed':        this.controller.showToast(html + 'removed', 'warning'); break;
+
+                    case 'added':
+                        this.controller.showToast(html + 'successfully added');
+                        this.controller.clearPage();
+                        this.devices = new Object();
+                        break;
+
+                    case 'updated':
+                        this.controller.showToast(html + 'successfully updated');
+                        showModal(false);
+                        break;
                 }
 
                 break;

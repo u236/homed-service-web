@@ -67,10 +67,13 @@ class Automation
 
                 let html = 'Automation <b>' + message.automation + '</b> ';
 
-                if (message.event == 'added' || message.event == 'updated')
+                if (this.controller.service == 'automation')
                 {
-                    this.controller.clearPage();
-                    this.status = new Object();
+                    switch (message.event)
+                    {
+                        case 'added':      this.controller.clearPage(); this.status = new Object(); break;
+                        case 'updated':    this.showAutomationInfo(false); break;
+                    }
                 }
 
                 switch (message.event)

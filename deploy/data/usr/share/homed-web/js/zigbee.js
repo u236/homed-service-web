@@ -130,21 +130,26 @@ class ZigBee extends DeviceService
 
                 let html = 'Device <b>' + message.device + '</b> ';
 
-                if (this.controller.service == this.service && message.event == 'deviceUpdated')
-                    showModal(false);
+                if (this.controller.service != this.service)
+                    break;
 
                 switch (message.event)
                 {
                     case 'deviceJoined':        this.controller.showToast(html + 'joined network'); break;
                     case 'deviceLeft':          this.controller.showToast(html + 'left network', 'warning');  break;
                     case 'deviceNameDuplicate': this.controller.showToast(html + 'new name is already in use', 'error'); break;
-                    case 'deviceUpdated':       this.controller.showToast(html + 'successfully updated'); break;
                     case 'interviewError':      this.controller.showToast(html + 'interview error', 'error'); break;
                     case 'interviewTimeout':    this.controller.showToast(html + 'interview timed out', 'error'); break;
                     case 'interviewFinished':   this.controller.showToast(html + 'interview finished'); break;
                     case 'otaUpgradeStarted':   this.controller.showToast(html + 'OTA upgrade started', 'warning'); break;
                     case 'otaUpgradeFinished':  this.controller.showToast(html + 'OTA upgrade finished'); break;
                     case 'otaUpgradeError':     this.controller.showToast(html + 'OTA upgrade error', 'error'); break;
+
+
+                    case 'deviceUpdated':
+                        this.controller.showToast(html + 'successfully updated');
+                        showModal(false);
+                        break;
 
                     case 'clusterRequest':
                     case 'globalRequest':

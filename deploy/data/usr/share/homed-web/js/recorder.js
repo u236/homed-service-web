@@ -385,6 +385,8 @@ class Recorder
                 }
 
                 break;
+
+            // TODO: add events
         }
     }
 
