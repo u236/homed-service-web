@@ -67,22 +67,31 @@ class Automation
 
                 let html = 'Automation <b>' + message.automation + '</b> ';
 
-                if (this.controller.service == 'automation')
-                {
-                    switch (message.event)
-                    {
-                        case 'added':      this.controller.clearPage(); this.status = new Object(); break;
-                        case 'updated':    this.showAutomationInfo(false); break;
-                    }
-                }
+                if (this.controller.service != 'automation')
+                    break;
 
                 switch (message.event)
                 {
                     case 'nameDuplicate':  this.controller.showToast(html + 'name is already in use', 'error'); break;
                     case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); break;
-                    case 'added':          this.controller.showToast(html + 'successfully added'); break;
-                    case 'updated':        this.controller.showToast(html + 'successfully updated'); break;
-                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); break;
+
+                    case 'added':
+                        this.controller.showToast(html + 'successfully added');
+                        this.controller.clearPage();
+                        this.updated = false;
+                        this.status = new Object();
+                        break;
+
+                    case 'updated':
+                        this.controller.showToast(html + 'successfully updated');
+                        this.updated = false;
+                        this.showAutomationInfo(false);
+                        break;
+
+                    case 'removed':
+                        this.controller.showToast(html + 'removed', 'warning');
+                        this.updated = false;
+                        break;
                 }
 
                 break;
@@ -277,7 +286,7 @@ class Automation
 
     conditionList(automation, list, table, level = 0, colSpan = 0)
     {
-        list.forEach((condition, index) =>
+        list?.forEach((condition, index) =>
         {
             let row = table.insertRow();
 
@@ -335,7 +344,7 @@ class Automation
 
     actionList(automation, list, table, level = 0)
     {
-        list.forEach((action, index) =>
+        list?.forEach((action, index) =>
         {
             let row = table.insertRow();
 
@@ -453,7 +462,7 @@ class Automation
                     try
                     {
                         this.data = JSON.parse(reader.result);
-                        this.name = undefined;
+                        delete this.name;
                         this.showAutomationInfo();
                     }
                     catch
@@ -566,12 +575,15 @@ class Automation
             this.content.innerHTML = html;
 
             if (updated)
+            {
                 this.content.querySelector('.save').classList.add('warning');
+                this.updated = true;
+            }
 
             if (add)
             {
                 this.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
-                this.name = undefined;
+                delete this.name;
             }
             else
             {
@@ -607,7 +619,7 @@ class Automation
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
             this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
-            this.content.querySelector('.copy').addEventListener('click', function() { this.data = {...this.data}; delete this.data.active; this.data.name += ' (copy)'; this.name = undefined; this.showAutomationInfo(); }.bind(this));
+            this.content.querySelector('.copy').addEventListener('click', function() { this.data = {...this.data}; delete this.data.active; this.data.name += ' (copy)'; delete this.name; this.showAutomationInfo(); }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
@@ -1309,6 +1321,19 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true, 'input[name="delay"]');
+        });
+    }
+
+    showAlert(page)
+    {
+        fetch('html/automation/alert.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = this.data.name;
+            modal.querySelector('.leave').addEventListener('click', function() { this.updated = false; this.controller.showPage(page); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            showModal(true);
         });
     }
 }

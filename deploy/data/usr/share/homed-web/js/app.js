@@ -211,6 +211,12 @@ class Controller
         let list = page.split('?');
         let service = list[0];
 
+        if (this.services.automation?.updated)
+        {
+            this.services.automation.showAlert(page);
+            return;
+        }
+
         localStorage.setItem('page', page);
         location.hash = page;
 
