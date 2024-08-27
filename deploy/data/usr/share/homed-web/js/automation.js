@@ -696,12 +696,7 @@ class Automation
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -835,9 +830,6 @@ class Automation
             modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(item, list, append);
             showModal(true);
         });
@@ -903,13 +895,8 @@ class Automation
             modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(item, list, append);
-            showModal(true);
-
-            modal.querySelector('input[name="topic"]').focus();
+            showModal(true, 'input[name="topic"]');
         });
     }
 
@@ -944,13 +931,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true);
-
-            modal.querySelector('textarea[name="message"]').focus();
+            showModal(true, 'textarea[name="message"]');
         });
     }
 
@@ -982,13 +964,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true);
-
-            modal.querySelector('input[name="time"]').focus();
+            showModal(true, 'input[name="time"]');
         });
     }
 
@@ -1020,13 +997,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true);
-
-            modal.querySelector('input[name="interval"]').focus();
+            showModal(true, 'input[name="interval"]');
         });
     }
 
@@ -1079,13 +1051,8 @@ class Automation
             modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(condition, this.data.conditions, append);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -1135,13 +1102,8 @@ class Automation
             modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(condition, this.data.conditions, append);
-            showModal(true);
-
-            modal.querySelector('select[name="statement"]').focus();
+            showModal(true, 'select[name="statement"]');
         });
     }
 
@@ -1168,13 +1130,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(condition, this.data.conditions, append);
-            showModal(true);
-
-            modal.querySelector('input[name="days"]').focus();
+            showModal(true, 'input[name="days"]');
         });
     }
 
@@ -1210,13 +1167,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(action, this.data.actions, append);
-            showModal(true);
-
-            modal.querySelector('input[name="topic"]').focus();
+            showModal(true, 'input[name="topic"]');
         });
     }
 
@@ -1250,13 +1202,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(action, this.data.actions, append);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -1293,13 +1240,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(action, this.data.actions, append);
-            showModal(true);
-
-            modal.querySelector('textarea[name="message"]').focus();
+            showModal(true, 'textarea[name="message"]');
         });
     }
 
@@ -1331,13 +1273,8 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             this.handleCopy(action, this.data.actions, append);
-            showModal(true);
-
-            modal.querySelector('input[name="command"]').focus();
+            showModal(true, 'input[name="command"]');
         });
     }
 
@@ -1368,12 +1305,7 @@ class Automation
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="delay"]').focus();
+            showModal(true, 'input[name="delay"]');
         });
     }
 }

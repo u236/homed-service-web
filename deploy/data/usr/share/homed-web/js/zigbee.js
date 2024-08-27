@@ -445,6 +445,9 @@ class ZigBee extends DeviceService
 
     showDeviceEdit(device)
     {
+        if (!device.info.logicalType)
+            return;
+
         fetch('html/zigbee/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
@@ -457,16 +460,15 @@ class ZigBee extends DeviceService
             modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({...{action: 'updateDevice', device: this.names ? device.info.name : device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
     showDeviceRemove(device)
     {
+        if (!device.info.logicalType)
+            return;
+
         fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let item = this.names ? device.info.name : device.id;
@@ -483,6 +485,9 @@ class ZigBee extends DeviceService
 
     showDeviceUpgrade(device)
     {
+        if (!device.info.logicalType)
+            return;
+
         fetch('html/zigbee/deviceUpgrade.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let item = this.names ? device.info.name : device.id;
@@ -549,9 +554,6 @@ class ZigBee extends DeviceService
             }.bind(this));
 
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
-
-            modal.removeEventListener('keypress', handleSend);
-            modal.addEventListener('keypress', handleSend);
             showModal(true);
         });
     }

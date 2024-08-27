@@ -292,10 +292,8 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.save').addEventListener('click', function() { this.storeData(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-            showTable(modal.querySelector('table.dashboards'));
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
+            showTable(modal.querySelector('table.dashboards'));
             showModal(true);
         });
     }
@@ -380,13 +378,9 @@ class Dashboard
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
             showTable(modal.querySelector('table.blocks'), dashboard);
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -488,13 +482,9 @@ class Dashboard
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { callback ? callback() : showModal(false); });
+
             showTable(modal.querySelector('table.items'), dashboard, block);
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -605,12 +595,7 @@ class Dashboard
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { callback ? callback() : showModal(false); });
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 

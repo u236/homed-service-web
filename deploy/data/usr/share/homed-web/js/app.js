@@ -667,8 +667,42 @@ window.onresize = function()
 
 document.onkeydown = function(event)
 {
-    if (event.key == 'Esc' || event.key == 'Escape')
-        showModal(false);
+    let key = event.key.toLocaleLowerCase();
+
+    if (modal.style.display != 'block')
+    {
+        switch (key)
+        {
+            case 'arrowleft':  document.querySelector('.title .previous')?.click(); break;
+            case 'arrowright': document.querySelector('.title .next')?.click(); break;
+            case 'e':          document.querySelector('.title .edit')?.click(); break;
+            case 'r':          document.querySelector('.title .remove')?.click(); break;
+            case 's':          document.querySelector('.title .save')?.click(); break;
+        }
+
+        return;
+    }
+
+    switch (key)
+    {
+        case 'enter':
+
+            if (event.target.tagName.toLowerCase() == 'textarea')
+                break;
+
+            event.preventDefault();
+            modal.querySelector('.save')?.click();
+            modal.querySelector('.send')?.click();
+            break;
+
+        case 'esc':
+        case 'escape':
+            modal.querySelector('.cancel')?.click();
+            modal.querySelector('.close')?.click();
+            break;
+    }
+
+    return;
 };
 
 function setTheme()
@@ -786,35 +820,18 @@ function addDropdown(element, options, callback, separator, trigger)
     document.addEventListener('click', function(event) { if (!trigger.contains(event.target)) list.style.display = 'none'; });
 }
 
-function showModal(show)
+function showModal(show, focus)
 {
     if (show)
     {
         modal.style.display = 'block';
+        modal.querySelector(focus)?.focus();
         return;
     }
 
     Object.keys(modal.dataset).forEach(item => { delete modal.dataset[item]; });
     modal.querySelector('.data').innerHTML = null;
     modal.style.display = 'none';
-}
-
-function handleSave(event)
-{
-    if (event.key == 'Enter' && !event.shiftKey)
-    {
-        event.preventDefault();
-        document.querySelector('.save').click();
-    }
-}
-
-function handleSend(event)
-{
-    if (event.key == 'Enter' && !event.shiftKey)
-    {
-        event.preventDefault();
-        document.querySelector('.send').click();
-    }
 }
 
 function handleArrowButtons(element, list, index, callback)
