@@ -95,7 +95,7 @@ class ZigBee extends DeviceService
                         return;
 
                     if (!this.device.info.ota?.running)
-                        document.querySelector('.title button.upgrade').innerHTML = '<i class="icon-download"></i> OTA';
+                        document.querySelector('.title button.upgrade').innerHTML = ' OTA';
 
                     this.showDeviceInfo(this.device);
 

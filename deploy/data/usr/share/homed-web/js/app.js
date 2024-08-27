@@ -418,13 +418,13 @@ class DeviceService
 
             if (this.controller.service == this.service && device == this.device && device.info.ota?.running && device.otaProgress != undefined)
             {
-                let button = document.querySelector('.title button.upgrade');
+                let button = document.querySelector('.title button.upgrade span');
                 let cell = modal.querySelector('.progress');
 
                 if (button && button.dataset.value != device.otaProgress)
                 {
                     button.dataset.value = device.otaProgress;
-                    button.innerHTML = '<i class="icon-download"></i> OTA: ' + device.otaProgress + ' %';
+                    button.innerHTML = ' OTA: ' + device.otaProgress + ' %';
                 }
 
                 if (cell && cell.dataset.value != device.otaProgress)
