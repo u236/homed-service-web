@@ -108,9 +108,9 @@ class Automation
         let device = this.controller.findDevice(item);
 
         if (form)
-            return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
+            return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common');
 
-        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> &rarr; <span class="value">' + exposeTitle(item.property, device.info ? item.endpoint.split('/')[2] ?? 'common' : 'common') + '</span>';
+        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="icon-right"></i> <span class="value">' + exposeTitle(item.property, device.info ? item.endpoint.split('/')[2] ?? 'common' : 'common') + '</span>';
     }
 
     handleCopy(item, list, append)
@@ -163,7 +163,7 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '&rarr; <span class="value">' + trigger.property + '</span> ' : '')) + statement;
+                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="icon-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + statement;
 
                     if (statement == 'updates')
                         break;
@@ -211,7 +211,7 @@ class Automation
             {
                 case 'property':
                 case 'mqtt':
-                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '&rarr; <span class="value">' + condition.property + '</span> ' : '')) + statement + ' <span class="value">' + value + '</span>';
+                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="icon-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + statement + ' <span class="value">' + value + '</span>';
 
                 case 'state':
                     return '<span class="value">' + condition.name + '</span> ' + statement + ' <span class="value">' + value + '</span>';
@@ -240,7 +240,7 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = this.itemProperty(action) + ' &rarr; ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
+                    data = this.itemProperty(action) + ' <i class="icon-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
                 }
 
                 break;
@@ -297,7 +297,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
                         cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type;
                         break;
 
@@ -355,7 +355,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '">&#8618;</span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
                         cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type;
                         break;
 
@@ -376,7 +376,7 @@ class Automation
                             let actionCell = actionRow.insertCell();
 
                             for (let k = 0; k <= level; k++)
-                                nameCell.innerHTML += '<span class="' + (k < level ? 'shade' : 'warning') + '">&#8618;</span> ';
+                                nameCell.innerHTML += '<span class="' + (k < level ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
 
                             nameCell.colSpan = 4;
                             actionCell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
@@ -411,7 +411,7 @@ class Automation
                         if (list.length < 2 || index == list.length - 1)
                             break;
 
-                        cell.innerHTML = '&darr;';
+                        cell.innerHTML = '<i class="icon-down"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
                         break;
@@ -421,7 +421,7 @@ class Automation
                         if (list.length < 2 || !index)
                             break;
 
-                        cell.innerHTML = '&uarr;';
+                        cell.innerHTML = '<i class="icon-up"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
                         break;
@@ -775,7 +775,7 @@ class Automation
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = 'property ' + type;
-            modal.querySelector('.property').innerHTML = append ? '<i>Select property there &rarr;</i>' : this.itemProperty(item, true);
+            modal.querySelector('.property').innerHTML = append ? 'Select property there <i class="icon-right"></i>' : this.itemProperty(item, true);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
             {

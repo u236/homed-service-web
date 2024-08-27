@@ -316,7 +316,7 @@ class Controller
                             if (endpoint != 'common')
                                 value.endpoint += '/' + endpoint;
 
-                            list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
+                            list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = value;
                         });
                     });
                 });

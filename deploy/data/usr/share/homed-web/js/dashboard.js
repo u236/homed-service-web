@@ -35,7 +35,7 @@ class Dashboard
     itemString(item, edit = true)
     {
         let device = this.controller.findDevice(item);
-        return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' &rarr; ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
+        return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
     }
 
     setIndex(index)
@@ -267,7 +267,7 @@ class Dashboard
                             if (index == this.status.dashboards.length - 1)
                                 break;
 
-                            cell.innerHTML = '&darr;';
+                            cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.status.dashboards[index + 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index + 1])[0]; showTable(table); }.bind(this));
                             break;
@@ -277,7 +277,7 @@ class Dashboard
                             if (!index)
                                 break;
 
-                            cell.innerHTML = '&uarr;';
+                            cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.status.dashboards[index - 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index - 1])[0]; showTable(table); }.bind(this));
                             break;
@@ -326,7 +326,7 @@ class Dashboard
                             if (dashboard.blocks.length < 2 || index == dashboard.blocks.length - 1)
                                 break;
 
-                            cell.innerHTML = '&darr;';
+                            cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { dashboard.blocks[index + 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index + 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
@@ -336,7 +336,7 @@ class Dashboard
                             if (dashboard.blocks.length < 2 || !index)
                                 break;
 
-                            cell.innerHTML = '&uarr;';
+                            cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { dashboard.blocks[index - 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index - 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
@@ -425,7 +425,7 @@ class Dashboard
                             if (block.items.length < 2 || index == block.items.length - 1)
                                 break;
 
-                            cell.innerHTML = '&darr;';
+                            cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { block.items[index + 1] = block.items.splice(index, 1, block.items[index + 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
@@ -435,7 +435,7 @@ class Dashboard
                             if (block.items.length < 2 || !index)
                                 break;
 
-                            cell.innerHTML = '&uarr;';
+                            cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { block.items[index - 1] = block.items.splice(index, 1, block.items[index - 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
@@ -457,7 +457,7 @@ class Dashboard
         fetch('html/dashboard/blockEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name;
+            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
             modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
 
@@ -516,7 +516,7 @@ class Dashboard
                         if (endpoint != 'common')
                             value.endpoint += '/' + endpoint;
 
-                        list['Device &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(expose, endpoint)] = value;
+                        list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpoint)] = value;
                     });
                 });
             });
@@ -531,7 +531,7 @@ class Dashboard
                 if (!device.info)
                     return;
 
-                list['Recorder &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
+                list['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
             });
         }
 
@@ -540,9 +540,9 @@ class Dashboard
             let data;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name + ' &rarr; ' + item.name;
+            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> ' + item.name;
             modal.querySelector('input[name="name"]').value = item.name;
-            modal.querySelector('.item').innerHTML = item.add ? '<i>Select item there &rarr;</i>' : this.itemString(item);
+            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="icon-right"></i>' : this.itemString(item);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {

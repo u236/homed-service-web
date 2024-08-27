@@ -82,7 +82,7 @@ class Recorder
             resolve();
         }
 
-        new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' &rarr; ' + exposeTitle(item.property, endpoint); }.bind(this));
+        new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(item.property, endpoint); }.bind(this));
     }
 
     dataRequest(canvas)
@@ -448,7 +448,7 @@ class Recorder
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = '<span class="shade">' + item.endpoint + ' &rarr; ' + item.property + '</span>';
+                            cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="icon-right"></i> ' + item.property + '</span>';
                             this.devicePromise(item, cell);
                             break;
 
@@ -477,7 +477,7 @@ class Recorder
 
             name = this.content.querySelector('.name');
             chart = this.content.querySelector('.chart');
-            name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+            name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showItemRemove(); }.bind(this));
@@ -527,7 +527,7 @@ class Recorder
             }
             else
             {
-                name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+                name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
                 this.devicePromise(this.data, name);
             }
 
@@ -574,7 +574,7 @@ class Recorder
 
             modal.querySelector('.data').innerHTML = html;
             name = modal.querySelector('.name');
-            name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+            name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
 
             modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
