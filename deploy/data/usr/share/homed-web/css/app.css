@@ -279,7 +279,7 @@ td.remove:hover {
 }
 
 .inactive {
-    opacity: 0.65;
+    opacity: 0.5;
 }
 
 .buttons {

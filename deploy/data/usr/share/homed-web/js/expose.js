@@ -154,7 +154,7 @@ function addExpose(table, device, endpoint, expose)
 
         controller.services.recorder?.status.items?.forEach((data, index) =>
         {
-            var item = device.service.split('/')[0] + '/' + device.id;
+            let item = device.service.split('/')[0] + '/' + device.id;
 
             if (endpoint != 'common')
                 item += '/' + endpoint;
