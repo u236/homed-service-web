@@ -41,7 +41,7 @@ class ZigBee extends DeviceService
         modal.querySelector('.imageType').innerHTML = ota.imageType != undefined  ? this.parseValue('imageType', ota.imageType) : empty;
         modal.querySelector('.currentVersion').innerHTML = ota.currentVersion != undefined ? this.parseValue('currentVersion', ota.currentVersion) : empty;
         modal.querySelector('.fileVersion').innerHTML = ota.fileVersion != undefined ? this.parseValue('fileVersion', ota.fileVersion) : empty;
-        modal.querySelector('.fileName').innerHTML = ota.fileName ?? empty;
+        modal.querySelector('.fileName').innerHTML = ota.fileName ? '<span title="' + ota.fileName + '">' + ota.fileName + '</span>' : empty;
         modal.querySelector('.progress').innerHTML = ota.running ? '0 %' : 'not running';
         modal.querySelector('.refresh').disabled = ota.running ? true : false;
         modal.querySelector('.upgrade').disabled = ota.fileName && ota.currentVersion != ota.fileVersion && !ota.running ? false : true;
