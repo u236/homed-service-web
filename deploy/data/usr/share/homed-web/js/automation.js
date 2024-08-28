@@ -187,7 +187,7 @@ class Automation
         }
 
         if (trigger.name)
-            data += ' with name <span class="value">' + trigger.name + '</span>';
+            data += ' <span>with name</span> <span class="value">' + trigger.name + '</span>';
 
         return data;
     }
@@ -267,7 +267,7 @@ class Automation
         }
 
         if (action.triggerName)
-            data += ' when trigger is <span class="value">' + action.triggerName + '</span>';
+            data += ' <span>when trigger is</span> <span class="value">' + action.triggerName + '</span>';
 
         return data;
     }

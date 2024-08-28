@@ -179,7 +179,7 @@ pre {
 }
 
 span.value {
-    padding: 1px 10px;
+    padding: 1px 8px 2px 8px;
     border-radius: var(--border-radius);
     background-color: var(--background-shade);
     font-family: 'Roboto Mono';
@@ -210,6 +210,7 @@ tfoot th {
 
 td {
     padding: 5px;
+    padding-top: 4px;
     border-top: 1px solid var(--border-shade);
     white-space: nowrap;
 }
@@ -593,12 +594,26 @@ td.remove:hover {
     color: var(--color-shade);
 }
 
+.automationInfo table, .itemInfo table, .deviceInfo table {
+    margin-bottom: 20px;
+}
+
 .automationInfo td:first-child, .itemInfo td:first-child {
     width: 100px;
 }
 
-.automationInfo table, .itemInfo table, .deviceInfo table {
-    margin-bottom: 20px;
+.automationInfo td {
+    white-space: normal;
+    vertical-align: top;
+}
+
+.automationInfo td span {
+    display: inline-block;
+    overflow: hidden;
+    max-width: 250px;
+    white-space: nowrap;
+    vertical-align: bottom;
+    text-overflow: ellipsis;
 }
 
 .automationInfo .title, .itemInfo .title, .deviceInfo .title {
@@ -755,8 +770,8 @@ td.remove:hover {
 
 .log {
     display: block;
-    max-height: 500px;
     overflow-y: auto;
+    max-height: 500px;
 }
 
 .log tr:hover {
@@ -997,5 +1012,6 @@ tr:first-child td {
     .header, .footer, .content { padding: 0 5px; }
     .header .dropdown .list { left: 13px; padding-right: 10px;}
     .footer .container { justify-content: end; }
+    .automationInfo td span { max-width: 150px; }
     .mobileHidden { display: none; }
 }
