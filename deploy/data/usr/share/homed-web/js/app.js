@@ -440,7 +440,7 @@ class DeviceService
     {
         Object.keys(device.info).forEach(key =>
         {
-            let cell = document.querySelector('.' + key);
+            let cell = document.querySelector('.' + key + ':not(.exposes)');
             let row = cell?.closest('tr');
 
             if (!cell)
