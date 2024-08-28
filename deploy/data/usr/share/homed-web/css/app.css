@@ -60,12 +60,13 @@ body * {
 
 button {
     cursor: pointer;
-    height: 26px;
-    padding: 0 10px;
+    height: 24px;
+    padding: 0 10px 1px 10px;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
     background-color: var(--background-shade);
     font-family: var(--font-family);
+    font-size: 0.8125rem;
     font-weight: 400;
     text-transform: uppercase;
     color: var(--color-main);
@@ -179,7 +180,8 @@ pre {
 }
 
 span.value {
-    padding: 1px 8px 2px 8px;
+    margin: 1px 0;
+    padding: 0px 6px 1px 6px;
     border-radius: var(--border-radius);
     background-color: var(--background-shade);
     font-family: 'Roboto Mono';
@@ -610,7 +612,7 @@ td.remove:hover {
 .automationInfo td span {
     display: inline-block;
     overflow: hidden;
-    max-width: 250px;
+    max-width: 300px;
     white-space: nowrap;
     vertical-align: bottom;
     text-overflow: ellipsis;

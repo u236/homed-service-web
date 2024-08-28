@@ -678,6 +678,12 @@ document.onkeydown = function(event)
 {
     let key = event.key.toLocaleLowerCase();
 
+    switch (key)
+    {
+        case 't': document.querySelector('#toggleTheme').click(); return;
+        case 'w': document.querySelector('#toggleWide').click(); return;
+    }
+
     if (modal.style.display != 'block')
     {
         switch (key)
@@ -710,8 +716,6 @@ document.onkeydown = function(event)
             modal.querySelector('.close')?.click();
             break;
     }
-
-    return;
 };
 
 function setTheme()
