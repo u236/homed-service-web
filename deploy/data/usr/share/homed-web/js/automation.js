@@ -540,10 +540,7 @@ class Automation
                             cell.innerHTML = item.name;
 
                             if (item.note)
-                            {
-                                cell.innerHTML += '<span class="note">' + item.note + '</span>';
-                                row.classList.add('tooltip');
-                            }
+                                row.title = item.note;
 
                             break;
 

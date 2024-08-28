@@ -146,10 +146,7 @@ class Modbus extends DeviceService
                             cell.innerHTML = device.info.name;
 
                             if (device.info.note)
-                            {
-                                cell.innerHTML += '<span class="note">' + device.info.note + '</span>';
-                                row.classList.add('tooltip');
-                            }
+                                row.title = device.info.note;
 
                             break;
 

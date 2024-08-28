@@ -363,39 +363,6 @@ td.remove:hover {
     color: var(--color-warning);
 }
 
-.tooltip {
-    position: relative;
-}
-
-.tooltip .note {
-    display: none;
-    position: absolute;
-    bottom: calc(100% - 10px);
-    left: 0;
-    z-index: 1;
-    margin: 5px;
-    padding: 5px 10px;
-    border-radius: var(--border-radius);
-    background-color: rgba(0, 0, 0, 0.75);
-    font-size: 0.8125rem;
-    white-space: normal;
-    color: white;
-}
-
-.tooltip:hover .note {
-    display: block;
-}
-
-.tooltip .note::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 15px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
-}
-
 .login {
     max-width: 300px;
     min-height: calc(100vh - 20px);
