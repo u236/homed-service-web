@@ -696,7 +696,7 @@ document.onkeydown = function(event)
     {
         case 'enter':
 
-            if (event.target.tagName.toLowerCase() == 'textarea')
+            if (event.shiftKey)
                 break;
 
             event.preventDefault();
