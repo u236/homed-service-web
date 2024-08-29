@@ -930,7 +930,7 @@ tr:first-child td {
 }
 
 #modal .legend td:first-child {
-    width: 100px;
+    width: 120px;
 }
 
 #modal .legend td:last-child, #modal .log td:last-child {

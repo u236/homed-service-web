@@ -686,10 +686,13 @@ document.onkeydown = function(event)
 {
     let key = event.key.toLocaleLowerCase();
 
-    switch (key)
+    if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
     {
-        case 't': document.querySelector('#toggleTheme').click(); return;
-        case 'w': document.querySelector('#toggleWide').click(); return;
+        switch (key)
+        {
+            case 't': document.querySelector('#toggleTheme').click(); return;
+            case 'w': document.querySelector('#toggleWide').click(); return;
+        }
     }
 
     if (modal.style.display != 'block')
