@@ -771,13 +771,13 @@ class Automation
             let data;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = 'property ' + type;
+            modal.querySelector('.name').innerHTML = 'Property ' + type;
             modal.querySelector('.property').innerHTML = append ? 'Select property there <i class="icon-right"></i>' : this.itemProperty(item, true);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
             {
                 data = properties[key];
-                modal.querySelector('.property').innerHTML = this.itemProperty(data);
+                modal.querySelector('.property').innerHTML = this.itemProperty(data, true);
                 modal.querySelector('.property').classList.remove('error');
 
             }.bind(this));
@@ -800,7 +800,7 @@ class Automation
                     modal.querySelector('input[name="max"]').value = item[statement][1];
                 }
                 else
-                    modal.querySelector('input[name="value"]').value = statement != 'updates' ? item[statement] : '';
+                    modal.querySelector('textarea[name="value"]').value = statement != 'updates' ? item[statement] : '';
 
                 this.valueForm(modal, statement);
             });
@@ -852,7 +852,7 @@ class Automation
         fetch('html/automation/mqttItem.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = 'mqtt ' + type;
+            modal.querySelector('.name').innerHTML = 'MQTT ' + type;
             modal.querySelector('input[name="topic"]').value = item.topic ?? '';
             modal.querySelector('input[name="property"]').value = item.property ?? '';
 
@@ -874,7 +874,7 @@ class Automation
                     modal.querySelector('input[name="max"]').value = item[statement][1];
                 }
                 else
-                    modal.querySelector('input[name="value"]').value = statement != 'updates' ? item[statement] : '';
+                    modal.querySelector('textarea[name="value"]').value = statement != 'updates' ? item[statement] : '';
 
                 this.valueForm(modal, statement);
             });
@@ -1039,7 +1039,7 @@ class Automation
                     modal.querySelector('input[name="max"]').value = condition[statement][1];
                 }
                 else
-                    modal.querySelector('input[name="value"]').value = condition[statement];
+                    modal.querySelector('textarea[name="value"]').value = condition[statement];
 
                 this.valueForm(modal, statement);
             });
@@ -1190,7 +1190,7 @@ class Automation
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="name"]').value = action.name ?? '';
-            modal.querySelector('input[name="value"]').value = action.value ?? '';
+            modal.querySelector('textarea[name="value"]').value = action.value ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1262,7 +1262,7 @@ class Automation
         fetch('html/automation/shellAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('input[name="command"]').value = action.command ?? '';
+            modal.querySelector('textarea[name="command"]').value = action.command ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1286,7 +1286,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, this.data.actions, append);
-            showModal(true, 'input[name="command"]');
+            showModal(true, 'textarea[name="command"]');
         });
     }
 

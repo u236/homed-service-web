@@ -541,7 +541,7 @@ td.remove:hover {
 .dashboardData .column {
     flex: 1;
     padding: 0 5px;
-    min-width: 300px;
+    min-width: 330px;
 }
 
 .dashboardBlock {
