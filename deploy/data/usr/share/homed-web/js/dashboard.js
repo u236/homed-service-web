@@ -392,7 +392,6 @@ class Dashboard
             modal.querySelector('.name').innerHTML = dashboard.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.status.dashboards.splice(this.index, 1); this.setIndex(0); this.storeData(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }
@@ -617,7 +616,6 @@ class Dashboard
 
             modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }

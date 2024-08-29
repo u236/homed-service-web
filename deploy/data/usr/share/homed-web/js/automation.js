@@ -720,7 +720,6 @@ class Automation
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: this.name}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }
@@ -1329,7 +1328,6 @@ class Automation
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('.leave').addEventListener('click', function() { this.updated = false; this.controller.showPage(page); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }

@@ -461,7 +461,6 @@ class ZigBee extends DeviceService
             modal.querySelector('input[name="active"]').checked = device.info.active;
             modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({...{action: 'updateDevice', device: this.names ? device.info.name : device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true, 'input[name="name"]');
         });
     }
@@ -474,13 +473,11 @@ class ZigBee extends DeviceService
         fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let item = this.names ? device.info.name : device.id;
-
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.graceful').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: item}, true); }.bind(this));
             modal.querySelector('.force').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: item, force: true}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }
@@ -515,7 +512,6 @@ class ZigBee extends DeviceService
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.json').innerHTML = JSON.stringify(device.info, null, 2);
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }

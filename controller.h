@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "2.3.3"
+#define SERVICE_VERSION     "2.3.4"
 #define COOKIE_MAX_AGE      31536000
 
 #include <QTcpServer>

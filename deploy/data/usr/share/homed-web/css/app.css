@@ -862,15 +862,13 @@ tr:first-child td {
     margin-bottom: 10px;
 }
 
-#modal table td:first-child {
-    padding-right: 20px;
+#modal table td:first-child, #modal table th:first-child {
     padding-left: 0;
 }
 
 #modal table.exposes td:first-child {
     width: 1%;
     padding-right: 20px;
-    padding-left: 0;
 }
 
 #modal table td:last-child {
@@ -927,11 +925,15 @@ tr:first-child td {
     font-size: 0.8125rem;
 }
 
-#modal .log {
+#modal .legend, #modal .log {
     border: none;
 }
 
-#modal .log td:last-child {
+#modal .legend td:first-child {
+    width: 100px;
+}
+
+#modal .legend td:last-child, #modal .log td:last-child {
     text-align: left;
 }
 
@@ -986,12 +988,16 @@ tr:first-child td {
     padding: 0 5px;
 }
 
+#hotkeys {
+    cursor: pointer;
+}
+
 #toggleTheme, #toggleWide, #logout {
     cursor: pointer;
     padding: 0 5px;
 }
 
-#toggleTheme:hover, #toggleWide:hover, #logout:hover {
+#hotkeys:hover, #toggleTheme:hover, #toggleWide:hover, #logout:hover {
     color: var(--color-main);
 }
 

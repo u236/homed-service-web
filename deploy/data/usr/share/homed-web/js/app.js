@@ -630,7 +630,6 @@ class DeviceService
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: this.names ? device.info.name : device.id}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }
@@ -645,6 +644,16 @@ window.onload = function()
 
     window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
     window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
+
+    document.querySelector('#hotkeys').addEventListener('click', function()
+    {
+        fetch('hotkeys.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            showModal(true);
+        });
+    });
 
     document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('theme', theme); });
     document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('wide', wide); });
@@ -663,7 +672,6 @@ window.onload = function()
             modal.querySelector('.current').addEventListener('click', function() { window.location.href = 'logout?session=current'; }.bind(this));
             modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     });
