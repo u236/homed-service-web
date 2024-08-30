@@ -543,9 +543,6 @@ class DeviceService
                         device.setExposes(endpoint, message[endpoint]);
                     });
 
-                    if (device.service.startsWith('zigbee') && !device.endpoints.common)
-                        this.controller.socket.subscribe('fd/' + this.service + '/' + item);
-
                     this.serviceCommand({action: 'getProperties', device: item, service: 'web'});
                 }
 

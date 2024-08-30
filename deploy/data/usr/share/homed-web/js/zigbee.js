@@ -441,7 +441,6 @@ class ZigBee extends DeviceService
 
             table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
-            addExpose(table, device, 'common', 'linkQuality');
         });
     }
 
