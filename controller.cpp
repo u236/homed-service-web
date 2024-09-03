@@ -158,7 +158,7 @@ void Controller::readyRead(void)
 {
     QTcpSocket *socket = reinterpret_cast <QTcpSocket*> (sender());
     QByteArray request = socket->peek(socket->bytesAvailable());
-    QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(' '), cookieList, itemList;
+    QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(0x20), cookieList, itemList;
     QString method = target.value(0), url = target.value(1), content = list.value(1);
     QMap <QString, QString> headers, cookies, items;
 
@@ -204,7 +204,7 @@ void Controller::readyRead(void)
                 buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
 
             token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
+            httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
             m_database->tokens().insert(token);
             m_database->store(true);
         }
@@ -218,7 +218,7 @@ void Controller::readyRead(void)
 
     if (url == "/logout")
     {
-        httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append("/")}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
+        httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
 
         if (items.value("session") == "all")
         {
