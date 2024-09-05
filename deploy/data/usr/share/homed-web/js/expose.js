@@ -380,6 +380,12 @@ function updateExpose(device, endpoint, name, value)
                             input.value = value;
                     }
 
+					if (typeof parseInt(cell.dataset.round) == 'number'){
+						const precision = parseInt(cell.dataset.round);
+						const roundedValue = Number(value).toFixed(precision); // Rounds to the specified precision
+						value = Number(roundedValue);
+					}	
+
                     cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
                     break;
             }
