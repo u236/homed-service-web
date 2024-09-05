@@ -96,9 +96,22 @@ class Dashboard
 
         menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
+
+        menu.querySelector('#import').addEventListener('click', function()
+        {
+            loadFile(function(data)
+            {
+                this.status.dashboards.push(data);
+                this.setIndex(this.status.dashboards.length - 1);
+                this.storeData();
+
+            }.bind(this));
+
+        }.bind(this));
 
         if (!this.status.version)
             return;
@@ -131,6 +144,15 @@ class Dashboard
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDashboardEdit(dashboard); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDashboardRemove(dashboard); }.bind(this));
+
+            this.content.querySelector('.export').addEventListener('click', function()
+            {
+                let item = document.createElement("a");
+                item.href = URL.createObjectURL(new Blob([JSON.stringify(dashboard, null, 2)], {type: 'application/json'}));
+                item.download = dashboard.name + '.json';
+                item.click();
+
+            }.bind(this));
 
             this.status.dashboards.forEach((dashboard, index) =>
             {

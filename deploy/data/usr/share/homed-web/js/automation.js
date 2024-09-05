@@ -451,34 +451,13 @@ class Automation
 
         menu.querySelector('#import').addEventListener('click', function()
         {
-            let input = document.createElement('input');
-
-            input.addEventListener('change', function()
+            loadFile(function(data)
             {
-                let reader = new FileReader();
-
-                reader.onload = function()
-                {
-                    try
-                    {
-                        this.data = JSON.parse(reader.result);
-                        delete this.name;
-                        this.showAutomationInfo();
-                    }
-                    catch
-                    {
-                        this.controller.showToast('File <b>' + input.files[0].name + '</b> is not valid json file', 'error');
-                    }
-
-                }.bind(this);
-
-                reader.readAsText(input.files[0]);
+                this.data = data;
+                delete this.name;
+                this.showAutomationInfo();
 
             }.bind(this));
-
-            input.setAttribute('type', 'file');
-            input.setAttribute('accept', 'application/json');
-            input.click();
 
         }.bind(this));
 

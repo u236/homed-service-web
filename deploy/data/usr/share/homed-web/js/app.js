@@ -916,3 +916,26 @@ function deviceCommand(device, endpoint, data)
     item = service.names ? device.info.name : device.id;
     controller.socket.publish('td/' + device.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
 }
+
+function loadFile(callback)
+{
+    let input = document.createElement('input');
+
+    input.addEventListener('change', function()
+    {
+        let reader = new FileReader();
+
+        reader.onload = function()
+        {
+            let data;
+            try { data = JSON.parse(reader.result); } catch { controller.showToast('File <b>' + input.files[0].name + '</b> is not valid json file', 'error'); }
+            callback(data);
+        };
+
+        reader.readAsText(input.files[0]);
+    });
+
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'application/json');
+    input.click();
+}
