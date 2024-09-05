@@ -6,58 +6,74 @@ class Recorder
 
     constructor(controller)
     {
-        var dark = theme == 'dark';
-
         this.controller = controller;
         this.color =
         {
-            line:   'rgba(54, 162, 235, 1.0)',
-            area:   'rgba(54, 162, 235, 0.4)',
-            on:     'rgba(243, 168, 59, 1.0)',
-            off:    dark ? 'rgba(68, 68, 68, 0.5)' : 'rgba(204, 204, 204, 0.5)',
-            grid:   dark ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)',
-            major:  dark ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)',
+            grid:  function() { return theme == 'dark' ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)'; },
+            major: function() { return theme == 'dark' ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)'; },
+            error: 'rgba(255, 0, 0, 0.5)',
+            line:  'rgba(54, 162, 235, 1.0)',
+            area:  'rgba(54, 162, 235, 0.4)',
+            on:    'rgba(243, 168, 59, 1.0)',
+            off:   'rgba(127, 127, 127, 0.2)',
+            bar:
+            [
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(255, 159, 64, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 205, 86, 0.5)',
+                'rgba(201, 203, 207, 0.5)'
+            ]
         };
 
+        Chart.defaults.color = '#888888';
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
+
+        setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { this.dataRequest(canvas); }); }.bind(this), 5000);
     }
 
-    timestampString(timestamp, seconds = true, interval = false)
+    updateCharts()
     {
-        var date = new Date(timestamp);
-        var data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+        document.querySelectorAll('canvas').forEach(canvas =>
+        {
+            let chart = Chart.getChart(canvas);
+
+            if (!chart)
+                return;
+
+            chart.update();
+        });
+    }
+
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
+    }
+
+    timestampString(timestamp, seconds = true)
+    {
+        let date = new Date(timestamp);
+        let data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
 
         if (seconds)
             data += ':' + ('0' + date.getSeconds()).slice(-2);
 
-        if (interval)
-            data += ' (' + timeInterval((Date.now() - timestamp) / 1000) + ')';
-
         return data;
-    }
-
-    findDevice(item)
-    {
-        var list = item.endpoint.split('/');
-        var devices = this.controller[list[0]].devices ?? new Object();
-
-        if (devices.hasOwnProperty(list[1]))
-            return devices[list[1]];
-
-        return Object.values(devices).find(device => device.info.name == list[1]) ?? new Object();
     }
 
     devicePromise(item, cell)
     {
-        var list = item.endpoint.split('/');
-        var endpoint = list[2] ?? 'common';
-        var device;
+        let list = item.endpoint.split('/');
+        let endpoint = list[2] ?? 'common';
+        let device;
 
         function wait(resolve)
         {
-            device = this.findDevice(item);
+            device = this.controller.findDevice(item);
 
-            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
+            if (!device.endpoints?.[endpoint]?.exposes)
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -66,15 +82,14 @@ class Recorder
             resolve();
         }
 
-        new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' &rarr; ' + exposeTitle(item.property, endpoint); }.bind(this));
+        new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(item.property, endpoint); }.bind(this));
     }
 
-    chartQuery(item, element, interval)
+    dataRequest(canvas)
     {
-        var canvas = element.querySelector('canvas');
-        var date = new Date();
+        let date = new Date();
 
-        switch (interval)
+        switch (canvas.dataset.interval)
         {
             case '2h':    date.setHours(date.getHours() - 2); break;
             case '8h':    date.setHours(date.getHours() - 8); break;
@@ -84,22 +99,33 @@ class Recorder
         }
 
         canvas.dataset.start = date.getTime();
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.start, end: Date.now()});
+    }
+
+    chartQuery(item, element, interval)
+    {
+        let canvas = element.querySelector('canvas');
+
+        if (interval)
+            canvas.dataset.interval = interval;
+
+        canvas.dataset.endpoint = item.endpoint;
         canvas.dataset.property = item.property;
         canvas.style.display = 'none';
 
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: item.endpoint, property: item.property, start: date.getTime(), end: Date.now()});
+        this.dataRequest(canvas);
     }
 
     parseData(message)
     {
-        var canvas = document.getElementById(message.id);
-        var status = document.querySelector('.status');
-        var table = document.querySelector('.log');
-        var chart = Chart.getChart(canvas);
-        var datasets = new Array();
-        var numeric = true;
-        var average = false;
-        var options;
+        let canvas = document.querySelector('canvas#' + message.id);
+        let status = document.querySelector('.status#' + message.id);
+        let table = document.querySelector('.log#' + message.id);
+        let chart = Chart.getChart(canvas);
+        let datasets = new Array();
+        let numeric = true;
+        let average = false;
+        let options;
 
         if (!canvas)
             return;
@@ -107,14 +133,22 @@ class Recorder
         if (status)
             status.innerHTML = message.timestamp.length + ' records, ' + message.time + ' ms';
 
-        if (table)
-            table.innerHTML = null;
+        if (!message.timestamp.length)
+        {
+            if (table)
+            {
+                canvas.closest('div').style.height = 0;
+                table.innerHTML = '<tr><td><div class="placeholder"></div><div class="center shade">no data available for selected period</div></td></tr>';
+            }
 
-        if (chart)
-            chart.destroy();
-
-        if (!message.timestamp.length) // TODO: use canvas placeholder here
             return;
+        }
+
+        if (table && (table.dataset.interval != canvas.dataset.interval || table.rows[0]?.querySelector('.placeholder')))
+        {
+            table.dataset.interval = canvas.dataset.interval;
+            table.innerHTML = null;
+        }
 
             options =
             {
@@ -182,7 +216,7 @@ class Recorder
 
         if (message.hasOwnProperty('value'))
         {
-            for (var i = 0; i < message.value.length; i++)
+            for (let i = 0; i < message.value.length; i++)
             {
                 if (message.value[i] && isNaN(message.value[i]))
                 {
@@ -193,30 +227,46 @@ class Recorder
 
             if (numeric)
             {
-                var data = new Array();
-                message.timestamp.forEach((timestamp, index) => { data.push({x: timestamp, y: Number(parseFloat(message.value[index]).toFixed(2)) }); });
+                let data = new Array();
+
+                message.timestamp.forEach((timestamp, index) =>
+                {
+                    let value = message.value[index];
+
+                    if (!value && index)
+                        data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2)) });
+
+                    data.push({x: timestamp, y: Number(parseFloat(value).toFixed(2)) });
+                });
+
                 data.push({x: options.scales.x.max, y: data[data.length - 1].y});
                 datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true, fill: true, lineTension: 0.3,cubicInterpolationMode: "monotone",backgroundColor: "rgba(17, 209, 247, .06)",});
             }
             else
             {
+                let count = 0;
+
                 message.timestamp.forEach((timestamp, index) =>
                 {
-                    var value = message.value[index];
-                    var data =
+                    let value = message.value[index];
+                    let data =
                     {
                         data: [[index ? timestamp : options.scales.x.min, message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max]],
                         timestamp: timestamp,
-                        label: value,
+                        label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
-                        minBarLength: 2,
-                    }
+                        minBarLength: 2
+                    };
 
-                    if (value == null)
-                        return;
-
-                    if (canvas.dataset.property == 'status' || ['true', 'false'].includes(value))
+                    if (!value)
+                        data.backgroundColor = this.color.error;
+                    else if (canvas.dataset.property == 'status' || ['true', 'false'].includes(value))
                         data.backgroundColor = ['on', 'true'].includes(value) ? this.color.on : this.color.off;
+                    else
+                        data.backgroundColor = this.color.bar[count++];
+
+                    if (count == this.color.bar.length)
+                        count = 0;
 
                     datasets.push(data);
                 });
@@ -224,19 +274,19 @@ class Recorder
         }
         else
         {
-            var avg = new Array();
-            var min = new Array();
-            var max = new Array();
+            let avg = new Array();
+            let min = new Array();
+            let max = new Array();
 
             message.timestamp.forEach((timestamp, index) => // TODO: check for empty hours?
             {
-                var avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2));
-                var minTooltip = 'min: ' + Number(message.min[index].toFixed(2));
-                var maxTooltip = 'max: ' + Number(message.max[index].toFixed(2));
+                let avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2));
+                let minTooltip = 'min: ' + Number(message.min[index].toFixed(2));
+                let maxTooltip = 'max: ' + Number(message.max[index].toFixed(2));
 
                 if (message.min[index] != message.max[index])
                 {
-                    var tooltip = new Array(avgTooltip, minTooltip, maxTooltip);
+                    let tooltip = new Array(avgTooltip, minTooltip, maxTooltip);
                     avgTooltip = tooltip;
                     minTooltip = tooltip;
                     maxTooltip = tooltip;
@@ -245,7 +295,6 @@ class Recorder
                 avg.push({x: timestamp, y: message.avg[index], tooltip: avgTooltip});
                 min.push({x: timestamp, y: message.min[index], tooltip: minTooltip});
                 max.push({x: timestamp, y: message.max[index], tooltip: maxTooltip});
-
             });
 
             datasets.push({data: avg, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0});
@@ -269,23 +318,23 @@ class Recorder
                 displayColors: false,
                 xAlign: 'center',
                 yAlign: 'bottom',
-                callbacks: {title: (context) => this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true)}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this)}
             };
             options.scales.y =
             {
                 grace: '50%',
                 border: {display: false},
-                grid: {color: this.color.grid}
+                grid: {color: function() { return this.color.grid(); }.bind(this)}
             };
 
             if (average)
-                options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; }
+                options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
 
-            new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
+            if (!chart)
+                chart = new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
         }
         else
         {
-
             canvas.closest('div').style.height = '80px';
 
             options.indexAxis = 'y';
@@ -296,30 +345,70 @@ class Recorder
                 xAlign: 'center',
                 yAlign: 'top',
                 position: 'custom',
-                callbacks: {title: (context) => this.timestampString(context[0].dataset.timestamp), label: (context) => context.dataset.label}
-            }
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label; }}
+            };
             options.scales.y =
             {
                 stacked: true,
                 grid: {display: false}
             };
 
-            new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(canvas.dataset.property)], datasets: datasets}, options: options});
+            if (!chart)
+                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(canvas.dataset.property)]}});
+        }
 
-            if (table)
+        chart.data.datasets = datasets;
+        chart.options = options;
+        chart.update();
+
+        if (!numeric && table)
+        {
+            datasets.forEach((record, index) =>
             {
-                datasets.slice().reverse().forEach((record) =>
+                let row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
+                let interval = timeInterval((Date.now() - record.timestamp) / 1000);
+                let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + interval;
+                let next = datasets[index + 1];
+
+                if (interval != 'now')
+                    timestamp += ' ago';
+
+                if (next)
+                    timestamp += ', ' + timeInterval((next.timestamp - record.timestamp) / 1000, false) + ' long';
+
+                if (!row)
                 {
-                    var row = table.insertRow();
-                    var circleCell = row.insertCell();
-                    var recordCell = row.insertCell();
+                    let row = table.insertRow(0);
+                    let circleCell = row.insertCell();
+                    let recordCell = row.insertCell();
 
+                    row.dataset.timestamp = record.timestamp;
                     circleCell.innerHTML = '<div class="circle"></div>';
-                    recordCell.innerHTML = record.label + '<div class="timestamp">' +  this.timestampString(record.timestamp, true, true) + '</div>';
-
+                    recordCell.innerHTML = record.label + '<div class="timestamp">' + timestamp + '</div>';
                     circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
-                });
-            }
+
+                    row.addEventListener('mouseover', function()
+                    {
+                        let index = chart.data.datasets.length - this.rowIndex - 1;
+
+                        if (index < 0)
+                            return;
+
+                        chart.tooltip.setActiveElements([{datasetIndex: index, index: 0}]);
+                        chart.update();
+                    });
+
+                    row.addEventListener('mouseleave', function()
+                    {
+                        chart.tooltip.setActiveElements(new Array());
+                        chart.update();
+                    });
+
+                    return;
+                }
+
+                row.querySelector('.timestamp').innerHTML = timestamp;
+            });
         }
 
         canvas.style.display = 'block';
@@ -335,37 +424,48 @@ class Recorder
 
                 if (this.controller.service == 'recorder')
                 {
-                    document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
-                    this.showItemList();
+                    this.controller.showPage('recorder');
+                    this.updatePage();
                 }
 
                 break;
+
+            // TODO: add events
         }
     }
 
-    showMenu()
+    showPage(data)
     {
-        var menu = document.querySelector('.menu');
+        let menu = document.querySelector('.menu');
+        let list = data ? data.split('=') : new Array();
+        let item;
 
-        menu.innerHTML  = null;
-        menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
+        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
-        menu.querySelector('#list').addEventListener('click', function() { this.showItemList(); }.bind(this));
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showItemEdit(true); }.bind(this));
 
-        if (!this.status)
+        if (!this.status.version)
             return;
 
-        document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
+        if (list[0] == 'index')
+            item = this.status.items?.[list[1]];
+
+        if (item)
+        {
+            this.data = item;
+            this.showItemInfo();
+        }
+        else
+            this.showItemList();
+
+        this.updatePage();
     }
 
     showItemList()
     {
-        this.controller.setService('recorder');
-        this.controller.setPage('recorder');
-
-        if (!this.status.items || !this.status.items.length)
+        if (!this.status.items?.length)
         {
             this.content.innerHTML = '<div class="emptyList">recorder items list is empty</div>';
             return;
@@ -373,25 +473,26 @@ class Recorder
 
         fetch('html/recorder/itemList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
+            let count = 0;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.itemList table');
 
-            this.status.items.forEach(item =>
+            this.status.items.forEach((item, index) =>
             {
-                var row = table.querySelector('tbody').insertRow();
+                let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.data = item; this.showItemInfo(); }.bind(this));
+                row.addEventListener('click', function() { this.controller.showPage('recorder?index=' + index); }.bind(this));
 
-                for (var i = 0; i < 3; i++)
+                for (let i = 0; i < 3; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = '<span class="shade">' + item.endpoint + ' &rarr; ' + item.property + '</span>';
+                            cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="icon-right"></i> ' + item.property + '</span>';
                             this.devicePromise(item, cell);
                             break;
 
@@ -399,24 +500,28 @@ class Recorder
                         case 2: cell.innerHTML = '<span class="value">' + item.threshold + '</span>'; cell.classList.add('center'); break;
                     }
                 }
+
+                count++;
             });
+
+            table.querySelector('tfoot').innerHTML='<tr><th colspan="3">' + count + (count > 1 ? ' items ' : ' item ') + 'total</th></tr>';
         });
     }
 
     showItemInfo()
     {
-        this.controller.setService('recorder');
-        this.controller.setPage('recorderItem');
-
         fetch('html/recorder/itemInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var name;
-            var chart;
+            let id = 'chart-' + randomString(8);
+            let name;
+            let chart;
 
             this.content.innerHTML = html;
+            handleArrowButtons(this.content, Object.keys(this.status.items), this.status.items.indexOf(this.data), function(index) { this.controller.showPage('recorder?index=' + index); }.bind(this));
+
             name = this.content.querySelector('.name');
             chart = this.content.querySelector('.chart');
-            name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+            name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showItemRemove(); }.bind(this));
@@ -430,6 +535,8 @@ class Recorder
 
             }.bind(this)));
 
+            this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
+
             this.devicePromise(this.data, name);
             this.chartQuery(this.data, chart);
         });
@@ -439,15 +546,15 @@ class Recorder
     {
         fetch('html/recorder/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var name;
-            var data;
+            let name;
+            let data;
 
             modal.querySelector('.data').innerHTML = html;
             name = modal.querySelector('.name');
 
             if (add)
             {
-                var properties = this.controller.propertiesList();
+                let properties = this.controller.propertiesList();
 
                 this.data = new Object();
                 name.innerHTML = 'New item';
@@ -464,7 +571,7 @@ class Recorder
             }
             else
             {
-                name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+                name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
                 this.devicePromise(this.data, name);
             }
 
@@ -473,7 +580,7 @@ class Recorder
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                var form = formData(modal.querySelector('form'));
+                let form = formData(modal.querySelector('form'));
 
                 if (add)
                 {
@@ -490,19 +597,15 @@ class Recorder
                     }
                 }
 
-                this.data.debounce = parseInt(form.debounce);
-                this.data.threshold = parseFloat(form.threshold);
+                this.data.debounce = form.debounce;
+                this.data.threshold = form.threshold;
 
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
-                this.controller.clearPage('recorder'); // TODO: handle events
+                this.controller.clearPage(); // TODO: handle events
 
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-
             showModal(true);
         });
     }
@@ -511,13 +614,13 @@ class Recorder
     {
         fetch('html/recorder/itemRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var name;
+            let name;
 
             modal.querySelector('.data').innerHTML = html;
             name = modal.querySelector('.name');
-            name.innerHTML = this.data.endpoint + ' &rarr; ' + this.data.property;
+            name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
 
-            modal.querySelector('.remove').addEventListener('click', function(){ this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage('recorder'); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.devicePromise(this.data, name);

@@ -1,4 +1,4 @@
-var modal, controller, theme = localStorage.getItem('theme') ?? 'dark', empty = '<span class="shade">&bull;</span>';
+let modal, controller, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -7,9 +7,9 @@ class Socket
 
     constructor(onopen, onclose, onmessage)
     {
-        this.onopen = onopen ?? function() {};
-        this.onclose = onclose ?? function() {};
-        this.onmessage = onmessage ?? function() {};
+        this.onopen = onopen;
+        this.onclose = onclose;
+        this.onmessage = onmessage;
         this.connect();
     }
 
@@ -18,7 +18,7 @@ class Socket
         this.ws = new WebSocket((location.protocol == 'https:' ? 'wss://' : 'ws://') + location.host + location.pathname);
 
         this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
-        this.ws.onmessage = function(event) { var data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
+        this.ws.onmessage = function(event) { let data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
         this.ws.onerror = function() { this.ws.close(); }.bind(this);
 
         this.ws.onclose = function()
@@ -57,153 +57,184 @@ class Socket
 
 class Controller
 {
-    services = {'dashboard': 'offline', 'recorder': 'offline', 'automation': 'offline', 'zigbee': 'offline', 'custom': 'offline'};
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
+    services = {dashboard: new Dashboard(this)};
 
-    dashboard = new Dashboard(this);
-    recorder = new Recorder(this);
-    automation = new Automation(this);
-    zigbee = new ZigBee(this);
-    custom = new Custom(this);
-
-    modbus = {devices: new Object()}; // for future purposes
+    constructor()
+    {
+        this.showPage(localStorage.getItem('page') ?? 'dashboard');
+    }
 
     onopen()
     {
         console.log('socket successfully connected');
-        Object.keys(this.services).forEach(service => { this.socket.subscribe('service/' + (service != 'dashboard' ? service : 'web')); });
-        this.zigbee.devices = new Object();
-        this.custom.devices = new Object();
+        this.socket.subscribe('service/#');
+        this.socket.subscribe('status/web');
     }
 
     onclose()
     {
-        this.clearPage(this.service, 'socket closed, reconnecting');
+        document.querySelector('.services').innerHTML = null;
+        document.querySelector('.menu').innerHTML = '<span><i class="icon-false"></i> DISCONNECTED</span>';
+        this.clearPage('socket closed, reconnecting...');
+        this.socket.subscriptions = new Array();
+        Object.keys(this.services).forEach(service => { if (service != 'dashboard') this.removeService(service); });
     }
 
     onmessage(topic, message)
     {
-        var list = topic.split('/');
-        var service = list[1] != 'web' ? list[1] : 'dashboard';
+        let list = topic.split('/');
 
         if (list[0] == 'service')
         {
-            if (message.status != 'online')
-            {
-                var item = list[1];
+            let service = list[2] ? list[1] + '/' + list[2] : list[1];
 
+            if (message.status == 'online')
+            {
+                if (this.services[service])
+                    return;
+
+                switch (list[1])
+                {
+                    case 'automation': this.services[service] = new Automation(this); break;
+                    case 'recorder':   this.services[service] = new Recorder(this); break;
+                    case 'custom':     this.services[service] = new Custom(this, list[2]); break;
+                    case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
+                    case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
+                    default:           return;
+                }
+
+                if (service == 'recorder')
+                    this.socket.subscribe('recorder');
+
+                this.socket.subscribe('status/' + service);
+                this.socket.subscribe('event/' + service);
+            }
+            else
+            {
                 if (this.service == service)
-                    this.clearPage(this.page, service + ' service is offline');
+                    this.clearPage(service + ' service is unavailable');
 
                 if (service == 'recorder')
                     this.socket.unsubscribe('recorder');
 
-                this.socket.subscriptions.filter(topic => { var list = topic.split('/'); return list[0] != 'service' && list[1] == item; }).forEach(topic => { this.socket.unsubscribe(topic); });
-            }
-            else
-            {
-                if (service == 'recorder')
-                    this.socket.subscribe('recorder');
-
-                this.socket.subscribe('status/' + list[1]);
-                this.socket.subscribe('event/' + list[1]);
+                this.socket.subscriptions.filter(topic => { return !topic.startsWith('service') && topic.includes(service); }).forEach(topic => { this.socket.unsubscribe(topic); });
+                this.removeService(service);
             }
 
-            this.services[service] = message.status;
-            this.updateMenu();
+            this.updateMenu(true);
             return;
         }
 
-        if (list[0] == 'recorder')
+        if (topic != 'recorder' || !this.services.recorder)
         {
-            this.recorder.parseData(message);
+            let service = list[1] != 'web' ? this.services[list[1] + '/' + list[2]] ?? this.services[list[1]] : this.services.dashboard;
+            service?.parseMessage(list, message);
             return;
         }
 
-        switch (service)
-        {
-            case 'dashboard': this.dashboard.parseMessage(list, message); break;
-            case 'recorder': this.recorder.parseMessage(list, message); break;
-            case 'automation': this.automation.parseMessage(list, message); break;
-            case 'zigbee': this.zigbee.parseMessage(list, message); break;
-            case 'custom': this.custom.parseMessage(list, message); break;
-        }
+        this.services.recorder.parseData(message);
     }
 
-    updateMenu()
+    removeService(item)
     {
-        var services = document.querySelector('.header .services');
+        this.services[item]?.intervals?.forEach(interval => { clearInterval(interval); });
+        delete this.services[item];
+    }
 
-        services.innerHTML = '';
+    updateMenu(redraw)
+    {
+        let menu = document.querySelector('.header .services');
 
-        Object.keys(this.services).forEach(service =>
+        if (redraw)
         {
-            var element = document.createElement('span');
+            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
+            let services = Object.keys(this.services);
+            let list = new Array();
 
-            if (this.services[service] != 'online')
+            menu.innerHTML = '';
+            services.sort();
+
+            names.forEach(name =>
+            {
+                services.filter(service => { return service.startsWith(name); }).forEach(service =>
+                {
+                    let item = document.createElement('span');
+
+                    if (menu.innerHTML)
+                        menu.append('|');
+
+                    item.innerHTML = service;
+                    item.dataset.service = service;
+                    item.addEventListener('click', function() { this.showPage(service); }.bind(this));
+
+                    menu.appendChild(item);
+                    list.push(service);
+                });
+            });
+
+            if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 275)
+            {
+                let item = document.createElement('span');
+                let dropdown = document.createElement('div');
+
+                item.classList.add('trigger');
+                dropdown.classList.add('dropdown');
+
+                addDropdown(dropdown, list, function(service) { this.showPage(service); }.bind(this), 0, item);
+
+                menu.innerHTML = '';
+                menu.append(item, dropdown);
+            }
+        }
+
+        menu.querySelectorAll('span').forEach(item =>
+        {
+            if (item.classList.contains('trigger'))
+            {
+                item.innerHTML = '<i class="icon-list"></i> ' + this.service;
                 return;
+            }
 
-            if (services.innerHTML)
-                services.append('|');
+            if (item.dataset.service != this.service)
+            {
+                item.classList.remove('highlight');
+                return;
+            }
 
-            if (this.service == service)
-                element.classList.add('highlight');
-
-            element.addEventListener('click', function() { this.showPage(service); localStorage.setItem('page', service); }.bind(this));
-            element.innerHTML = service;
-
-            services.appendChild(element);
+            item.classList.add('highlight');
         });
     }
 
-    setService(service)
+    showPage(page)
     {
-        if (this.service == service)
-            return;
+        let list = page.split('?');
+        let service = list[0];
 
-        document.querySelectorAll('.header .services span').forEach(item => { item.classList.toggle('highlight', item.innerHTML == service); });
-
-        switch (service)
+        if (this.services.automation?.updated)
         {
-            case 'dashboard': this.dashboard.showMenu(); break;
-            case 'recorder': this.recorder.showMenu(); break;
-            case 'automation': this.automation.showMenu(); break;
-            case 'zigbee': this.zigbee.showMenu(); break;
-            case 'custom': this.custom.showMenu(); break;
+            this.services.automation.showAlert(page);
+            return;
         }
+
+        localStorage.setItem('page', page);
+        location.hash = page;
 
         this.service = service;
-    }
-
-    setPage(page)
-    {
-        location.hash = page;
         this.page = page;
-    }
 
-    showPage(page, force = false)
-    {
-        if (this.page == page && !force)
+        this.updateMenu(false);
+        this.clearPage();
+
+        if (!this.services[service])
             return;
 
-        switch (page)
-        {
-            case 'recorder':       this.recorder.showItemList(); break;
-            case 'recorderItem':   this.recorder.showItemInfo(); break;
-            case 'automation':     this.automation.showAutomationList(); break;
-            case 'automationInfo': this.automation.showAutomationInfo(); break;
-            case 'zigbee':         this.zigbee.showDeviceList(); break;
-            case 'zigbeeMap':      this.zigbee.showDeviceMap(); break;
-            case 'zigbeeDevice':   this.zigbee.showDeviceInfo(); break;
-            case 'custom':         this.custom.showDeviceList(); break;
-            case 'customDevice':   this.custom.showDeviceInfo(); break;
-            default:               this.dashboard.showDashboard(); break;
-        }
+        this.services[service].showPage(list[1]);
     }
 
-    clearPage(name, warning = null)
+    clearPage(warning)
     {
-        var content = document.querySelector('.content .container');
+        let content = document.querySelector('.content .container');
 
         content.innerHTML = '<div class="pageLoader"></div><div class="center warning"></div>';
 
@@ -213,26 +244,16 @@ class Controller
             console.log(warning);
         }
 
-        switch (this.service)
-        {
-            case 'dashboard': this.dashboard.status = new Object(); break;
-            case 'recorder': this.recorder.status = new Object(); break;
-            case 'automation': this.automation.status = new Object(); break;
-            case 'zigbee': this.zigbee.devices = new Object(); break;
-            case 'custom': this.custom.devices = new Object(); break;
-        }
-
-        this.setPage(name);
         showModal(false);
     }
 
     showToast(message, style = 'success')
     {
-        var element = document.createElement('div');
+        let element = document.createElement('div');
 
-        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
         element.innerHTML = '<div class="message">' + message + '</div>';
         element.classList.add('item', 'fade-in', style);
+        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
 
         setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
         document.querySelector('#toast').appendChild(element);
@@ -240,43 +261,62 @@ class Controller
 
     clearToast(item)
     {
-        var toast = document.querySelector('#toast');
+        let toast = document.querySelector('#toast');
 
         if (!toast.contains(item))
             return;
 
-        setTimeout(function() { toast.removeChild(item); }, 200);
+        setTimeout(function() { toast?.removeChild(item); }, 200);
         item.classList.add('fade-out');
+    }
+
+    findDevice(item)
+    {
+        let list = item.endpoint.split('/');
+        let device;
+
+        Object.keys(this.services).forEach(item =>
+        {
+            if (device)
+                return;
+
+            if (item.startsWith(list[0]))
+            {
+                let devices = this.services[item].devices ?? new Object();
+                device = devices.hasOwnProperty(list[1]) ? devices[list[1]] : Object.values(devices).find(device => device.info.name == list[1]);
+            }
+        });
+
+        return device ?? new Object();
     }
 
     propertiesList()
     {
-        var services = ['custom', 'modbus', 'zigbee'];
-        var list = new Object();
+        let list = new Object();
 
-        services.forEach(service =>
+        Object.keys(this.services).forEach(item =>
         {
-            var devices = this[service].devices ?? new Object();
+            let service = this.services[item];
 
-            if (!Object.keys(devices))
+            if (!service.devices || !Object.keys(service.devices).length)
                 return;
 
-            Object.keys(devices).forEach(id =>
+            Object.keys(service.devices).forEach(id =>
             {
-                var device = devices[id];
+                let device = service.devices[id];
 
                 Object.keys(device.endpoints).forEach(endpoint =>
                 {
-                    device.items(endpoint).forEach( expose =>
+                    device.items(endpoint).forEach(expose =>
                     {
                         exposeList(expose, device.options(endpoint)).forEach(property =>
                         {
-                            var value = {endpoint: service + '/' + id, property: property}
+                            let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
 
                             if (endpoint != 'common')
                                 value.endpoint += '/' + endpoint;
 
-                            list[device.info.name + ' &rarr; ' + exposeTitle(property, endpoint)] = value;
+                            list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = value;
                         });
                     });
                 });
@@ -300,7 +340,7 @@ class Device
     endpoint(endpoint)
     {
         if (!this.endpoints[endpoint])
-            this.endpoints[endpoint] = new Object;
+            this.endpoints[endpoint] = {properties: new Object()};
 
         return this.endpoints[endpoint];
     }
@@ -322,36 +362,301 @@ class Device
 
     properties(endpoint)
     {
-        return this.endpoint(endpoint).properties ?? new Object();
+        return this.endpoint(endpoint).properties;
     }
 
-    setExposes(endpoint, expose)
+    setExposes(endpoint, exposes)
     {
-        this.endpoint(endpoint).exposes = expose;
+        this.endpoint(endpoint).exposes = exposes;
     }
 
-    setProperties(endpoint, properties)
+    setProperties(endpoint, data)
     {
-        this.endpoint(endpoint).properties = properties;
+        Object.keys(data).forEach(key => { this.endpoint(endpoint).properties[key] = data[key]; });
+    }
+}
+
+class DeviceService
+{
+    content = document.querySelector('.content .container');
+    intervals = new Array();
+    devices = new Object();
+
+    constructor(controller, service, instance)
+    {
+        this.controller = controller;
+        this.service = service;
+
+        if (instance)
+        {
+            this.service += '/' + instance;
+            this.instance = true;
+        }
+
+        this.intervals.push(setInterval(function() { this.updateDeviceData(); }.bind(this), 100));
+    }
+
+    updateDeviceData()
+    {
+        Object.keys(this.devices).forEach(id =>
+        {
+            let device = this.devices[id];
+
+            if (this.service.startsWith('zigbee') && !device.info.logicalType)
+                return;
+
+            document.querySelectorAll('table:not(.summary) tr[data-device="' + this.service + '/' + id + '"]').forEach(row =>
+            {
+                let className = device.info.active ? device.availability : 'inactive';
+
+                if (!row.classList.contains(className))
+                {
+                    row.classList.remove('online', 'offline', 'inactive');
+                    row.classList.add(className);
+                }
+            });
+
+            if (this.controller.service == this.service && device == this.device && device.info.ota?.running && device.otaProgress != undefined)
+            {
+                let button = document.querySelector('.title button.upgrade span');
+                let cell = modal.querySelector('.progress');
+
+                if (button && button.dataset.value != device.otaProgress)
+                {
+                    button.dataset.value = device.otaProgress;
+                    button.innerHTML = ' OTA: ' + device.otaProgress + ' %';
+                }
+
+                if (cell && cell.dataset.value != device.otaProgress)
+                {
+                    cell.dataset.value = device.otaProgres;
+                    cell.innerHTML = device.otaProgress + ' %';
+                }
+            }
+        });
+    }
+
+    updateDeviceInfo(device)
+    {
+        Object.keys(device.info).forEach(key =>
+        {
+            let cell = document.querySelector('.' + key + ':not(.exposes)');
+            let row = cell?.closest('tr');
+
+            if (!cell)
+                return;
+
+            if (row)
+            {
+                row.style.display = 'table-row';
+
+                if (key == 'lastSeen')
+                {
+                    row.dataset.device = this.service + '/' + device.id;
+                    return;
+                }
+            }
+
+            cell.innerHTML = this.parseValue(key, device.info[key]);
+        });
+    }
+
+    updateArrowButtons(device)
+    {
+        let devices = new Array();
+        let list = new Array();
+
+        Object.keys(this.devices).forEach(id =>
+        {
+            if (this.service.startsWith('zigbee') && !this.devices[id].info.logicalType)
+                return;
+
+            devices.push([id, this.devices[id].info.name.toLowerCase()]);
+        });
+
+        devices.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach(item => { list.push(item[0]); });
+        handleArrowButtons(this.content, list, list.indexOf(device.id), function(id) { this.controller.showPage(this.service + '?device=' + id); }.bind(this));
+    }
+
+    parseMessage(list, message)
+    {
+        switch (list[0])
+        {
+            case 'event':
+            {
+                let html = 'Device <b>' + message.device + '</b> ';
+
+                if (this.controller.service != this.service)
+                    break;
+
+                switch (message.event)
+                {
+                    case 'idDuplicate':    this.controller.showToast(html + 'identifier is already in use', 'error'); break;
+                    case 'nameDuplicate':  this.controller.showToast(html + 'new name is already in use', 'error'); break;
+                    case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); break;
+                    case 'removed':        this.controller.showToast(html + 'removed', 'warning'); break;
+
+                    case 'added':
+                        this.controller.showToast(html + 'successfully added');
+                        this.controller.clearPage();
+                        this.devices = new Object();
+                        break;
+
+                    case 'updated':
+                        this.controller.showToast(html + 'successfully updated');
+                        showModal(false);
+                        break;
+                }
+
+                break;
+            }
+
+            case 'device':
+            {
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
+
+                if (device && message)
+                {
+                    if (message.lastSeen)
+                        device.lastSeen = message.lastSeen;
+
+                    if (message.otaProgress)
+                        device.otaProgress = message.otaProgress;
+
+                    device.availability = message.status;
+                }
+
+                break;
+            }
+
+            case 'expose':
+            {
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
+
+                if (device && message)
+                {
+                    let item = this.names ? device.info.name : device.id;
+
+                    Object.keys(message).forEach(endpoint =>
+                    {
+                        this.controller.socket.subscribe('fd/' + this.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item));
+                        device.setExposes(endpoint, message[endpoint]);
+                    });
+
+                    this.serviceCommand({action: 'getProperties', device: item, service: 'web'});
+                }
+
+                break;
+            }
+
+            case 'fd':
+            {
+                let device = this.findDevice(this.instance ? list[3] : list[2]);
+
+                if (device && message)
+                {
+                    let endpoint = list[3] ?? 'common';
+                    device.setProperties(endpoint, message);
+                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+                }
+
+                break;
+            }
+        }
+    }
+
+    parseValue(key, value)
+    {
+        switch (key)
+        {
+            case 'active':
+            case 'cloud':
+            case 'discovery':
+            case 'interviewFinished':
+            case 'real':
+            case 'supported':
+                return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
+
+            default: return value;
+        }
+    }
+
+    findDevice(item)
+    {
+        return Object.values(this.devices).find(device => device.info.name == item) ?? this.devices[item];
+    }
+
+    serviceCommand(data, clear = false)
+    {
+        if (clear)
+            this.controller.clearPage();
+
+        this.controller.socket.publish('command/' + this.service, data);
+    }
+
+    showDeviceInfo(device)
+    {
+        fetch('html/' + this.service + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            let table;
+
+            this.content.innerHTML = html;
+            this.content.querySelector('.name').innerHTML = device.info.name;
+            this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
+            this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
+
+            this.updateDeviceInfo(device);
+            this.updateArrowButtons(device);
+
+            if (!device.info.active)
+            {
+                this.content.querySelector('.exposes').style.display = 'none';
+                return;
+            }
+
+            table = this.content.querySelector('table.exposes');
+            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+        });
+    }
+
+    showDeviceRemove(device)
+    {
+        fetch('html/' + this.service + '/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.remove').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: this.names ? device.info.name : device.id}, true); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            showModal(true);
+        });
     }
 }
 
 window.onload = function()
 {
-    var logout = document.querySelector('#logout');
+    let logout = document.querySelector('#logout');
 
     modal = document.querySelector('#modal');
     controller = new Controller();
 
-    window.addEventListener('hashchange', function() { controller.showPage(location.hash.slice(1)); });
     window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
+    window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
 
-    document.querySelector('body').setAttribute('theme', theme);
-    document.querySelector('.homed').setAttribute('theme', theme);
-    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
-    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; localStorage.setItem('theme', theme); location.reload(); });
+    document.querySelector('#hotkeys').addEventListener('click', function()
+    {
+        fetch('hotkeys.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            showModal(true);
+        });
+    });
 
-    controller.showPage(localStorage.getItem('page') ?? 'dashboard');
+    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('theme', theme); });
+    document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('wide', wide); });
+
+    setTheme();
+    setWide();
 
     if (!logout)
         return;
@@ -364,74 +669,160 @@ window.onload = function()
             modal.querySelector('.current').addEventListener('click', function() { window.location.href = 'logout?session=current'; }.bind(this));
             modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     });
 };
 
-document.onkeydown = function(event)
+window.onresize = function()
 {
-    if (event.key == 'Esc' || event.key == 'Escape')
-        showModal(false);
+    controller.updateMenu(true);
 };
 
-function sortTable(table, index, first = true)
+document.onkeydown = function(event)
 {
-    var check = true;
+    let key = event.key.toLocaleLowerCase();
+
+    if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
+    {
+        switch (key)
+        {
+            case 't': document.querySelector('#toggleTheme').click(); return;
+            case 'w': document.querySelector('#toggleWide').click(); return;
+        }
+    }
+
+    if (modal.style.display != 'block')
+    {
+        switch (key)
+        {
+            case 'arrowleft':  document.querySelector('.title .previous')?.click(); break;
+            case 'arrowright': document.querySelector('.title .next')?.click(); break;
+            case 'e':          document.querySelector('.title .edit')?.click(); break;
+            case 'r':          document.querySelector('.title .remove')?.click(); break;
+            case 's':          document.querySelector('.title .save')?.click(); break;
+        }
+
+        return;
+    }
+
+    switch (key)
+    {
+        case 'enter':
+
+            if (event.shiftKey)
+                break;
+
+            event.preventDefault();
+            modal.querySelector('.save')?.click();
+            modal.querySelector('.send')?.click();
+            break;
+
+        case 'esc':
+        case 'escape':
+            modal.querySelector('.cancel')?.click();
+            modal.querySelector('.close')?.click();
+            break;
+    }
+};
+
+function setTheme()
+{
+    document.querySelector('html').setAttribute('theme', theme);
+    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' DARK THEME';
+    controller.services.recorder?.updateCharts();
+}
+
+function setWide()
+{
+    document.querySelectorAll('.container').forEach(item => item.style.maxWidth = wide != 'off' ? 'none' : '1000px');
+    document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' WIDE MODE';
+    controller.updateMenu(true);
+}
+
+function sortTable(table, index, first = true, once = false)
+{
+    let check = true;
 
     while (check)
     {
-        var rows = table.rows;
+        let rows = table.rows;
 
         check = false;
 
-        for (var i = first ? 1 : 2; i < rows.length - 1; i++)
+        for (let i = first ? 1 : 2; i < rows.length - 1; i++)
         {
-            if (rows[i].querySelectorAll('td')[index].innerHTML.toLowerCase() <= rows[i + 1].querySelectorAll('td')[index].innerHTML.toLowerCase())
-                continue;
+            let current = rows[i].querySelectorAll('td')[index];
+            let next = rows[i + 1].querySelectorAll('td')[index];
+            let sort;
 
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            check = true;
-            break;
+            switch (true)
+            {
+                case current.classList.contains('lastSeen') || current.classList.contains('lastTriggered'):
+                    sort = parseInt(current.dataset.value) > parseInt(next?.dataset.value);
+                    break;
+
+                case current.classList.contains('linkQuality'):
+                    sort = parseInt(current.innerHTML) > parseInt(next?.innerHTML);
+                    break;
+
+                default:
+                    sort = current.innerHTML.toLowerCase() > next?.innerHTML.toLowerCase();
+                    break;
+            }
+
+            if (sort)
+            {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                check = true;
+                break;
+            }
         }
     }
 
     table.querySelectorAll('th.sort').forEach(cell => cell.classList.remove('warning') );
+
+    if (once)
+        return;
+
     table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
 }
 
-function addDropdown(dropdown, options, callback, separator = 0)
+function addDropdown(element, options, callback, separator, trigger)
 {
-    var list = document.createElement('div');
-    var search = undefined;
+    let list = document.createElement('div');
+    let search;
 
     list.classList.add('list');
-    dropdown.append(list);
+    element.append(list);
 
     if (options.length > 10)
     {
         search = document.createElement('input');
         search.type = 'text';
-        search.placeholder = 'Type to search'
-        list.append(search);
+        search.placeholder = 'Type to search';
         search.addEventListener('input', function() { list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
+        list.append(search);
     }
 
     options.forEach((option, index) =>
     {
-        var element = document.createElement('div');
-        element.addEventListener('click', function() { callback(option); });
-        element.innerHTML = option;
-        element.classList.add('item');
+        let item = document.createElement('div');
+
+        item.innerHTML = option;
+        item.classList.add('item');
+        item.addEventListener('click', function() { callback(option); });
 
         if (separator && index == separator)
             list.append(document.createElement('hr'));
 
-        list.append(element);
+        list.append(item);
     });
 
-    dropdown.addEventListener('click', function(event)
+    if (!trigger)
+        trigger = element;
+
+    trigger.addEventListener('click', function(event)
     {
         if (list.style.display == 'block' && event.target != search)
         {
@@ -447,70 +838,104 @@ function addDropdown(dropdown, options, callback, separator = 0)
         search.focus();
     });
 
-    document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) list.style.display = 'none'; });
+    document.addEventListener('click', function(event) { if (!trigger.contains(event.target)) list.style.display = 'none'; });
 }
 
-function showModal(show)
+function showModal(show, focus)
 {
     if (show)
     {
         modal.style.display = 'block';
+        modal.querySelector(focus)?.focus();
         return;
     }
 
+    Object.keys(modal.dataset).forEach(item => { delete modal.dataset[item]; });
     modal.querySelector('.data').innerHTML = null;
     modal.style.display = 'none';
 }
 
-function handleSave(event)
+function handleArrowButtons(element, list, index, callback)
 {
-    if (event.key == 'Enter' && !event.shiftKey)
-    {
-        event.preventDefault();
-        document.querySelector('.save').click();
-    }
+    if (list.length < 2 || !index)
+        element.querySelector('.previous').disabled = true;
+    else
+        element.querySelector('.previous').addEventListener('click', function() { callback(list[index - 1]); });
+
+    if (list.length < 2 || index == list.length - 1)
+        element.querySelector('.next').disabled = true;
+    else
+        element.querySelector('.next').addEventListener('click', function() { callback(list[index + 1]); });
 }
 
-function handleSend(event, item)
+function randomString(length)
 {
-    if (event.key == 'Enter' && !event.shiftKey)
-    {
-        event.preventDefault();
-        document.querySelector('.send').click();
-    }
+    return Math.random().toString(36).substring(2, length + 2);
 }
 
 function formData(form)
 {
-    var data = new Object();
-    Array.from(form).forEach(input => { data[input.name] = input.type == 'checkbox' ? input.checked : input.value; });
+    let data = new Object();
+
+    Array.from(form).forEach(input =>
+    {
+        switch (input.type)
+        {
+            case 'checkbox': data[input.name] = input.checked; break;
+            case 'number':   data[input.name] = parseFloat(input.value); break;
+            default:         data[input.name] = input.value; break;
+        }
+    });
+
     return data;
 }
 
-function timeInterval(interval)
+function timeInterval(interval, round = true)
 {
     switch (true)
     {
-        case interval >= 86400: return parseInt(interval / 86400) + ' day';
-        case interval >= 3600:  return parseInt(interval / 3600)  + ' hrs';
-        case interval >= 60:    return parseInt(interval / 60)    + ' min';
-        case interval >= 5:     return parseInt(interval / 5) * 5 + ' sec';
-        default:                return                               'now';
+        case interval >= 86400: return parseInt(Math.round(interval / 86400)) + ' day';
+        case interval >= 3600:  return parseInt(Math.round(interval / 3600))  + ' hrs';
+        case interval >= 60:    return parseInt(Math.round(interval / 60))    + ' min';
     }
+
+    if (!round)
+        return Math.ceil(interval) + ' sec';
+
+    return interval >= 5 ? parseInt(interval / 5) * 5 + ' sec' : 'now';
 }
 
 function deviceCommand(device, endpoint, data)
 {
-    switch (device.service)
-    {
-        case 'zigbee':
-            var item = controller.zigbee.names ? device.info.name : device.info.ieeeAddress;
-            controller.socket.publish('td/zigbee/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
-            break;
+    let service = controller.services[device.service];
+    let item;
 
-        case 'custom':
-            var item = controller.custom.names ? device.info.name : device.info.id;
-            controller.socket.publish('td/custom/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
-            break;
-    }
+    if (!service)
+        return;
+
+    item = service.names ? device.info.name : device.id;
+    controller.socket.publish('td/' + device.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
+}
+
+function loadFile(callback)
+{
+    let input = document.createElement('input');
+
+    input.addEventListener('change', function()
+    {
+        let reader = new FileReader();
+
+        reader.onload = function()
+        {
+            let data;
+            try { data = JSON.parse(reader.result); } catch { controller.showToast('File <b>' + input.files[0].name + '</b> is not valid json file', 'error'); }
+            callback(data);
+        };
+
+        reader.readAsText(input.files[0]);
+    });
+
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'application/json');
+    input.click();
 }

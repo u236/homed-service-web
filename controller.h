@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "2.2.0"
+#define SERVICE_VERSION     "2.3.5"
 #define COOKIE_MAX_AGE      31536000
 
 #include <QTcpServer>
@@ -28,7 +28,7 @@ private:
     bool m_auth;
 
     QList <QString> m_retained, m_types;
-    QMap <QString, QJsonObject> m_messages;
+    QMap <QString, QByteArray> m_messages;
 
     QList <QTcpSocket*> m_sockets;
     QMap <QWebSocket*, QStringList> m_clients;

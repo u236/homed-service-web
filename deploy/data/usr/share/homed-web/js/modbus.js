@@ -1,13 +1,21 @@
-class Custom extends DeviceService
+class Modbus extends DeviceService
 {
+    deviceType =
+    {
+        homedRelayController:  'HOMEd Relay Controller',
+        homedSwitchController: 'HOMEd Switch Controller',
+        wbMap3e:               'Wiren Board WB-MAP3E',
+        wbMap12h:              'Wiren Board WB-MAP12H'
+    };
+
     constructor(controller, instance)
     {
-        super(controller, 'custom', instance);
+        super(controller, 'modbus', instance);
     }
 
     updatePage()
     {
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Custom ' + this.version : '<i>unknown</i>';
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'Modbus ' + this.version : '<i>unknown</i>';
     }
 
     parseMessage(list, message)
@@ -21,6 +29,8 @@ class Custom extends DeviceService
 
             message.devices.forEach(device =>
             {
+                device.id = device.portId + '.' + device.slaveId;
+
                 if (!device.name)
                     device.name = device.id;
 
@@ -35,6 +45,12 @@ class Custom extends DeviceService
                     check = true;
                 }
 
+                // TODO: remove it
+                device.active = true;
+                device.discovery = true;
+                device.cloud = true;
+                //
+
                 this.devices[device.id].info = device;
 
                 if (this.controller.service != this.service || this.devices[device.id] != this.device)
@@ -45,7 +61,7 @@ class Custom extends DeviceService
 
             Object.keys(this.devices).forEach(id =>
             {
-                if (message.devices.filter(device => device.id == id).length)
+                if (message.devices.filter(device => (device.portId + '.' + device.slaveId) == id).length)
                     return;
 
                 delete this.devices[id];
@@ -64,6 +80,11 @@ class Custom extends DeviceService
         }
 
         super.parseMessage(list, message);
+    }
+
+    parseValue(key, value)
+    {
+        return key != 'type' ? super.parseValue(key, value) : this.deviceType[value] ?? '<span class="shade">' + value + '</span>';
     }
 
     showPage(data)
@@ -98,7 +119,7 @@ class Custom extends DeviceService
             return;
         }
 
-        fetch('html/custom/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/modbus/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
             let count = 0;
@@ -129,9 +150,9 @@ class Custom extends DeviceService
 
                             break;
 
-                        case 1: cell.innerHTML = device.id; cell.classList.add('mobileHidden'); break;
-                        case 2: cell.innerHTML = '<span class="value">' + device.info.exposes.length + '</span>'; cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = this.parseValue('real', device.info.real); cell.classList.add('center'); break;
+                        case 1: cell.innerHTML = this.deviceType[device.info.type] ?? '<span class="shade">' + device.info.type + '</span>'; cell.classList.add('mobileHidden'); break;
+                        case 2: cell.innerHTML = '<span class="value">' + device.info.portId + '</span>'; cell.classList.add('center'); break;
+                        case 3: cell.innerHTML = '<span class="value">' + device.info.slaveId + '</span>'; cell.classList.add('center'); break;
                         case 4: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center', 'mobileHidden'); break;
                         case 5: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center', 'mobileHidden'); break;
                     }
@@ -154,42 +175,40 @@ class Custom extends DeviceService
         if (!device)
         {
             let random = randomString(4);
-            device = {info: {name: 'Device ' + random, id: 'device_' + random, exposes: ['switch'], active: true}};
+            device = {info: {name: 'Device ' + random, id: 'device_' + random, portId: 1, slaveId: 1, baudRate: 9600, pollInterval: 1000, active: true}};
             add = true;
         }
 
-        fetch('html/custom/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/modbus/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
-            modal.querySelector('input[name="id"]').value = device.info.id;
-            modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
-            modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
-            modal.querySelector('input[name="real"]').checked = device.info.real;
+
+            Object.keys(this.deviceType).forEach(key =>
+            {
+                let option = document.createElement('option');
+
+                option.innerHTML = this.deviceType[key];
+                option.value = key;
+
+                modal.querySelector('select[name="type"]').append(option);
+
+                if (device.info.type != key)
+                    return;
+
+                modal.querySelector('select[name="type"]').value = key;
+            });
+
+            modal.querySelector('input[name="portId"]').value = device.info.portId;
+            modal.querySelector('input[name="slaveId"]').value = device.info.slaveId;
+            modal.querySelector('input[name="baudRate"]').value = device.info.baudRate;
+            modal.querySelector('input[name="pollInterval"]').value = device.info.pollInterval;
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-
-            modal.querySelector('.save').addEventListener('click', function()
-            {
-                let form = formData(modal.querySelector('form'));
-
-                if (form.exposes)
-                    form.exposes = form.exposes.split(',').map(item =>item.trim());
-                else
-                    delete form.exposes;
-
-                if (form.options)
-                    form.options = JSON.parse(form.options);
-                else
-                    delete form.options;
-
-                this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
-
-            }.bind(this));
-
+            modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true, 'input[name="name"]');
         });

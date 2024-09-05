@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'Fontello';
-    src: url('../font/fontello.woff2') format('woff2');
+    font-family: 'HOMEd Icons';
+    src: url('../font/homed-icons.woff2') format('woff2');
 }
 
 @font-face {
@@ -25,24 +25,35 @@
 
 [class^="icon-"] {
     display: inline-block;
-    font-family: 'Fontello';
+    font-family: 'HOMEd Icons';
     font-style: normal;
     margin: 0 0.1rem;
 }
 
-.icon-true:before     { content: '\e801'; }
-.icon-false:before    { content: '\e802'; }
-.icon-on:before       { content: '\e803'; }
-.icon-off:before      { content: '\e804'; }
-.icon-list:before     { content: '\e805'; }
-.icon-settings:before { content: '\e806'; }
-.icon-battery:before  { content: '\e807'; }
-.icon-plug:before     { content: '\e808'; }
-.icon-enable:before   { content: '\e809'; }
-.icon-edit:before     { content: '\e810'; }
-.icon-trash:before    { content: '\e811'; }
-.icon-info:before     { content: '\e812'; }
-.icon-code:before     { content: '\e813'; }
-.icon-map:before      { content: '\e814'; }
-.icon-hash:before     { content: '\e815'; }
-.icon-plus:before     { content: '\e816'; }
+.icon-true:before     { content: '\e800'; }
+.icon-false:before    { content: '\e801'; }
+.icon-on:before       { content: '\e802'; }
+.icon-off:before      { content: '\e803'; }
+.icon-list:before     { content: '\e804'; }
+.icon-settings:before { content: '\e805'; }
+.icon-battery:before  { content: '\e806'; }
+.icon-plug:before     { content: '\e807'; }
+.icon-enable:before   { content: '\e808'; }
+.icon-edit:before     { content: '\e809'; }
+.icon-trash:before    { content: '\e80a'; }
+.icon-info:before     { content: '\e80b'; }
+.icon-code:before     { content: '\e80c'; }
+.icon-map:before      { content: '\e80d'; }
+.icon-hash:before     { content: '\e80e'; }
+.icon-plus:before     { content: '\e80f'; }
+.icon-download:before { content: '\e810'; }
+.icon-upload:before   { content: '\e811'; }
+.icon-copy:before     { content: '\e812'; }
+.icon-goto:before     { content: '\e813'; }
+.icon-left::before    { content: '\e814'; }
+.icon-right::before   { content: '\e815'; }
+.icon-up::before      { content: '\e816'; }
+.icon-down::before    { content: '\e817'; }
+.icon-enter::before   { content: '\e818'; }
+.icon-chart::before   { content: '\e819'; }
+.icon-refresh::before { content: '\e81a'; }

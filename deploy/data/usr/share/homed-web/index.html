@@ -3,7 +3,7 @@
     <head>
         <title>HOMEd</title>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="application-name" content="HOMEd">
@@ -19,33 +19,32 @@
 		<script src="js/lib/chartjs-plugin-zoom.min.js"></script>
         <script src="js/lib/d3.min.js"></script>
         <script src="js/lib/iro.min.js"></script>
+        <script src="js/app.js"></script>
         <script src="js/dashboard.js"></script>
         <script src="js/automation.js"></script>
         <script src="js/recorder.js"></script>
         <script src="js/zigbee.js"></script>
+        <script src="js/modbus.js"></script>
         <script src="js/custom.js"></script>
         <script src="js/expose.js"></script>
-        <script src="js/app.js"></script>
     </head>
     <body>
-        <div class="homed">
-            <div id="modal"><div class="data"></div></div>
-            <div id="toast"></div>
-            <div class="header">
-                <div class="container">
-                    <img src="img/homed.svg">
-                    <div class="services"></div>
-                    <div class="menu"></div>
-                </div>
+        <div id="modal"><div class="data"></div></div>
+        <div id="toast"></div>
+        <div class="header">
+            <div class="container">
+                <img src="img/homed.svg" class="mobileHidden">
+                <div class="services"></div>
+                <div class="menu"></div>
             </div>
-            <div class="content">
-                <div class="container"></div>
-            </div>
-            <div class="footer">
-                <div class="container">
-                    <span id="footerData">Interface: %1 | Service: <span id="serviceVersion">unknown</span> | <a href="https://wiki.homed.dev" target="_blank">HOMEd Wiki</a></span>
-                    <span><span id="toggleTheme"></span>%2</span>
-                </div>
+        </div>
+        <div class="content">
+            <div class="container"></div>
+        </div>
+        <div class="footer">
+            <div class="container">
+                <span id="footerData" class="mobileHidden">Interface: %1 | Service: <span id="serviceVersion"><i>unknown</i></span> | <a href="https://wiki.homed.dev" target="_blank">HOMEd Wiki</a> | <span id="hotkeys">Hotkeys</span></span>
+                <span><span id="toggleTheme"></span><span id="toggleWide"></span>%2</span>
             </div>
         </div>
     </body>

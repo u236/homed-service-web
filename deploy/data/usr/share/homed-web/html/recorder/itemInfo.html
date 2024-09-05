@@ -2,8 +2,10 @@
     <div class="title">
         <span class="name"></span>
         <div class="buttons">
-            <button class="edit"><i class="icon-edit"></i> Edit</button>
-            <button class="remove"><i class="icon-trash"></i> Remove</button>
+            <button class="edit"><i class="icon-edit"></i><span class="mobileHidden"> Edit</span></button>
+            <button class="remove"><i class="icon-trash"></i><span class="mobileHidden"> Remove</span></button>
+            <button class="previous mobileHidden" title="Previous"><i class="icon-left"></i></button>
+            <button class="next mobileHidden" title="Next"><i class="icon-right"></i></button>
         </div>
     </div>
     <table>
@@ -12,10 +14,10 @@
     </table>
     <div class="title">
         <div class="interval"><span>2h</span> | <span>8h</span> | <span>24h</span> | <span>week</span> | <span>month</span></div>
-        <div class="status"><div class="dataLoader"></div></div>
+        <div class="status" id="data"><div class="dataLoader"></div></div>
     </div>
     <div class="chart">
-        <canvas id="recorder-chart"></canvas>
+        <canvas id="data"></canvas>
     </div>
-    <table class="log"></table>
+    <table class="log" id="data"></table>
 </div>

@@ -9,6 +9,11 @@ class Dashboard
         this.controller = controller;
     }
 
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+    }
+
     parseMessage(list, message)
     {
         switch (list[0])
@@ -19,25 +24,18 @@ class Dashboard
 
                 if (this.controller.service == 'dashboard')
                 {
-                    this.showDashboard();
-                    document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+                    this.controller.showPage('dashboard');
+                    this.updatePage();
                 }
 
                 break;
         }
     }
 
-    findDevice(item)
-    {
-        var list = item.endpoint.split('/');
-        var devices = this.controller[list[0]].devices ?? new Object();
-        return devices[list[1]] ?? new Object();
-    }
-
     itemString(item, edit = true)
     {
-        var device = this.findDevice(item);
-        return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' &rarr; ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' &rarr; ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
+        let device = this.controller.findDevice(item);
+        return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
     }
 
     setIndex(index)
@@ -49,72 +47,82 @@ class Dashboard
     storeData()
     {
         this.controller.socket.publish('command/web', {action: 'updateDashboards', data: this.status.dashboards});
-        this.controller.clearPage('dashboard');
+        this.controller.clearPage();
     }
 
     addBlockExpose(table, item)
     {
-        var row = table.insertRow();
-        var titleCell = row.insertCell();
-        var valueCell = row.insertCell();
-        var list = item.endpoint.split('/');
-        var part = item.expose.split('_');
-
-        row.dataset.expose = list[0] + '/' + list[1] + '/' + (list[2] ?? 'common') + '/';
+        let row = table.insertRow();
+        let titleCell = row.insertCell();
+        let valueCell = row.insertCell();
+        let part = item.expose.split('_');
 
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
 
-        valueCell.innerHTML = '<i class="icon-false shade"></i>';
+        valueCell.innerHTML = empty;
         valueCell.classList.add('value');
 
         switch (part[0])
         {
             case 'light':
             case 'switch':
-                var name = part[1] ? 'status_' + part[1] : 'status';
-                row.dataset.expose += name;
-                valueCell.addEventListener('click', function() { this.controller.socket.publish('td/' + item.endpoint, {[name]: 'toggle'}); }.bind(this));
+                let name = part[1] ? 'status_' + part[1] : 'status';
+                valueCell.dataset.property = name;
+                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                 break;
 
             case 'cover':
-                row.dataset.expose += 'position';
+                valueCell.dataset.property = 'position';
                 valueCell.dataset.unit = '%';
                 break;
 
             case 'thermostat':
-                row.dataset.expose += 'temperature';
+                valueCell.dataset.property = 'temperature';
                 valueCell.dataset.unit = '°C';
                 break;
 
             default:
-                row.dataset.expose += item.expose;
+                valueCell.dataset.property = item.expose;
                 break;
         }
 
         return row;
     }
 
-    showMenu()
+    showPage()
     {
-        var menu = document.querySelector('.menu');
+        let menu = document.querySelector('.menu');
 
-        menu.innerHTML = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span><span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
+        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
+
         menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
 
-        if (!this.status)
+        menu.querySelector('#import').addEventListener('click', function()
+        {
+            loadFile(function(data)
+            {
+                this.status.dashboards.push(data);
+                this.setIndex(this.status.dashboards.length - 1);
+                this.storeData();
+
+            }.bind(this));
+
+        }.bind(this));
+
+        if (!this.status.version)
             return;
 
-        document.querySelector('#serviceVersion').innerHTML = 'Web ' + this.status.version;
+        this.showDashboard();
+        this.updatePage();
     }
 
     showDashboard()
     {
-        this.controller.setService('dashboard');
-        this.controller.setPage('dashboard');
-
-        if (!this.status.dashboards || !this.status.dashboards.length)
+        if (!this.status.dashboards?.length)
         {
             this.content.innerHTML = '<div class="emptyList">dashboards list is empty</div>';
             return;
@@ -127,8 +135,8 @@ class Dashboard
 
         fetch('html/dashboard/dashboard.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var list;
-            var dashboard;
+            let list;
+            let dashboard;
 
             this.content.innerHTML = html;
             list = this.content.querySelector('.dashboardList');
@@ -137,9 +145,18 @@ class Dashboard
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDashboardEdit(dashboard); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDashboardRemove(dashboard); }.bind(this));
 
+            this.content.querySelector('.export').addEventListener('click', function()
+            {
+                let item = document.createElement("a");
+                item.href = URL.createObjectURL(new Blob([JSON.stringify(dashboard, null, 2)], {type: 'application/json'}));
+                item.download = dashboard.name + '.json';
+                item.click();
+
+            }.bind(this));
+
             this.status.dashboards.forEach((dashboard, index) =>
             {
-                var element = document.createElement('span');
+                let element = document.createElement('span');
 
                 if (list.innerHTML)
                     list.append('|');
@@ -147,44 +164,46 @@ class Dashboard
                 if (this.index == index)
                     element.classList.add('highlight');
 
-                element.addEventListener('click', function() { this.setIndex(index); this.showDashboard(); }.bind(this));
                 element.innerHTML = dashboard.name;
+                element.addEventListener('click', function() { this.setIndex(index); this.showDashboard(); }.bind(this));
 
                 list.appendChild(element);
             });
 
             if (!dashboard.blocks.length)
             {
-                var element = this.content.querySelector('.dashboardData');
+                let element = this.content.querySelector('.dashboardData');
                 element.innerHTML = '<div class="emptyList">dashboard "' + dashboard.name + '" data is empty</div>';
                 element.style.display = 'block';
                 return;
             }
 
-            dashboard.blocks.forEach((block, blockIndex) =>
+            dashboard.blocks.forEach((block, index) =>
             {
-                var element = document.createElement('div');
-                var table = document.createElement('table');
+                let element = document.createElement('div');
+                let table = document.createElement('table');
 
                 element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span><span class="edit"><i class="icon-edit"></i></span></div>';
                 element.append(table);
                 element.classList.add('dashboardBlock');
                 element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
 
-                block.items.forEach((item, itemIndex) =>
+                block.items.forEach(item =>
                 {
                     if (item.hasOwnProperty('expose'))
                     {
-                        var row = this.addBlockExpose(table, item);
-                        var list = item.endpoint.split('/');
-                        var endpoint = list[2] ?? 'common';
-                        var device;
+                        let row = this.addBlockExpose(table, item);
+                        let list = item.endpoint.split('/');
+                        let endpoint = list[2] ?? 'common';
+                        let device;
+
+                        row.classList.add('inactive');
 
                         function wait(resolve)
                         {
-                            device = this.findDevice(item);
+                            device = this.controller.findDevice(item);
 
-                            if (!device.endpoints || !device.endpoints[endpoint] || !device.endpoints[endpoint].exposes || !device.endpoints[endpoint].properties)
+                            if (!device.endpoints?.[endpoint]?.exposes)
                             {
                                 setTimeout(wait.bind(this, resolve), 10);
                                 return;
@@ -195,8 +214,11 @@ class Dashboard
 
                         new Promise(wait.bind(this)).then(function()
                         {
-                            var option = device.options(endpoint)[item.expose] ?? new Object();
-                            var properties = device.properties(endpoint);
+                            let option = device.options(endpoint)[item.expose] ?? new Object();
+                            let properties = device.properties(endpoint);
+
+                            row.dataset.device = device.service + '/' + device.id;
+                            row.dataset.endpoint = endpoint;
 
                             if (device.items(endpoint).includes(item.expose))
                                 row.querySelector('td.name').addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this));
@@ -212,36 +234,53 @@ class Dashboard
                     }
                     else
                     {
-                        var row = table.insertRow();
-                        var cell = row.insertCell();
+                        let row = table.insertRow();
+                        let cell = row.insertCell();
 
-                        cell.innerHTML = item.name + '<div><canvas id="dashboard-chart-' + blockIndex + '-' + itemIndex + '"></canvas></div>';
+                        cell.innerHTML = item.name + '<div class="placeholder"></div>';
                         cell.classList.add('chart');
                         cell.colSpan = 2;
 
-                        row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
-                        this.controller.recorder.chartQuery(item, cell);
+                        function wait(resolve)
+                        {
+                            if (!this.controller.services.recorder)
+                            {
+                                setTimeout(wait.bind(this, resolve), 10);
+                                return;
+                            }
+
+                            resolve();
+                        }
+
+                        new Promise(wait.bind(this)).then(function()
+                        {
+                            row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
+                            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+                            cell.querySelector('div').classList.remove('placeholder');
+                            this.controller.services.recorder.chartQuery(item, cell);
+
+                        }.bind(this));
                     }
                 });
 
-                this.content.querySelector('.column.' + (blockIndex < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
+                this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
             });
         });
     }
 
     showDashboardSort()
     {
-        var showTable = function(table)
+        let showTable = function(table)
         {
             table.innerHTML = null;
 
             this.status.dashboards.forEach((dashboard, index) =>
             {
-                var row = table.insertRow();
+                let row = table.insertRow();
 
-                for (var i = 0; i < 3; i++)
+                for (let i = 0; i < 3; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
@@ -252,7 +291,7 @@ class Dashboard
                             if (index == this.status.dashboards.length - 1)
                                 break;
 
-                            cell.innerHTML = '&darr;';
+                            cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.status.dashboards[index + 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index + 1])[0]; showTable(table); }.bind(this));
                             break;
@@ -262,7 +301,7 @@ class Dashboard
                             if (!index)
                                 break;
 
-                            cell.innerHTML = '&uarr;';
+                            cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.status.dashboards[index - 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index - 1])[0]; showTable(table); }.bind(this));
                             break;
@@ -277,35 +316,33 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.save').addEventListener('click', function() { this.storeData(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-            showTable(modal.querySelector('table.dashboards'));
 
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
+            showTable(modal.querySelector('table.dashboards'));
             showModal(true);
         });
     }
 
     showDashboardEdit(dashboard)
     {
-        var showTable = function(table, dashboard)
+        let showTable = function(table, dashboard)
         {
             table.style.display = dashboard.blocks.length ? 'table' : 'none';
             table.innerHTML = null;
 
             dashboard.blocks.forEach((block, index) =>
             {
-                var row = table.insertRow();
+                let row = table.insertRow();
 
-                for (var i = 0; i < 4; i++)
+                for (let i = 0; i < 4; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
                         case 0:
                             cell.innerHTML = block.name;
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showBlockEdit(dashboard, block, function() { this.showDashboardEdit(dashboard); }.bind(this)) }.bind(this));
+                            cell.addEventListener('click', function() { this.showBlockEdit(dashboard, block, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:
@@ -313,7 +350,7 @@ class Dashboard
                             if (dashboard.blocks.length < 2 || index == dashboard.blocks.length - 1)
                                 break;
 
-                            cell.innerHTML = '&darr;';
+                            cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { dashboard.blocks[index + 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index + 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
@@ -323,7 +360,7 @@ class Dashboard
                             if (dashboard.blocks.length < 2 || !index)
                                 break;
 
-                            cell.innerHTML = '&uarr;';
+                            cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { dashboard.blocks[index - 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index - 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
@@ -365,13 +402,9 @@ class Dashboard
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
             showTable(modal.querySelector('table.blocks'), dashboard);
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -383,32 +416,31 @@ class Dashboard
             modal.querySelector('.name').innerHTML = dashboard.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.status.dashboards.splice(this.index, 1); this.setIndex(0); this.storeData(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
             showModal(true);
         });
     }
 
     showBlockEdit(dashboard, block, callback)
     {
-        var showTable = function(table, dashboard, block)
+        let showTable = function(table, dashboard, block)
         {
             table.style.display = block.items.length ? 'table' : 'none';
             table.innerHTML = null;
 
             block.items.forEach((item, index) =>
             {
-                var row = table.insertRow();
+                let row = table.insertRow();
 
-                for (var i = 0; i < 4; i++)
+                for (let i = 0; i < 4; i++)
                 {
-                    var cell = row.insertCell();
+                    let cell = row.insertCell();
 
                     switch (i)
                     {
                         case 0:
                             cell.innerHTML = item.name + '<div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)) }.bind(this));
+                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:
@@ -416,7 +448,7 @@ class Dashboard
                             if (block.items.length < 2 || index == block.items.length - 1)
                                 break;
 
-                            cell.innerHTML = '&darr;';
+                            cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { block.items[index + 1] = block.items.splice(index, 1, block.items[index + 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
@@ -426,7 +458,7 @@ class Dashboard
                             if (block.items.length < 2 || !index)
                                 break;
 
-                            cell.innerHTML = '&uarr;';
+                            cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { block.items[index - 1] = block.items.splice(index, 1, block.items[index - 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
@@ -448,7 +480,7 @@ class Dashboard
         fetch('html/dashboard/blockEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name;
+            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
             modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
 
@@ -473,76 +505,71 @@ class Dashboard
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { callback ? callback() : showModal(false); });
+
             showTable(modal.querySelector('table.items'), dashboard, block);
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
     showItemEdit(dashboard, block, item, callback)
     {
-        var services = ['custom', 'modbus', 'zigbee'];
-        var recorder = this.controller.recorder;
-        var items = new Object();
+        let recorder = this.controller.services.recorder;
+        let list = new Object();
 
         if (!item)
             item = {name: 'New item', add: true};
 
-        services.forEach(service =>
+        Object.keys(this.controller.services).forEach(item =>
         {
-            var devices = this.controller[service].devices ?? new Object();
+            let service = this.controller.services[item];
 
-            if (!Object.keys(devices))
+            if (!service.devices || !Object.keys(service.devices).length)
                 return;
 
-            Object.keys(devices).forEach(id =>
+            Object.keys(service.devices).forEach(id =>
             {
-                var device = devices[id];
+                let device = service.devices[id];
 
                 Object.keys(device.endpoints).forEach(endpoint =>
                 {
                     device.items(endpoint).forEach(expose =>
                     {
-                        var value = {endpoint: service + '/' + id, expose: expose};
+                        let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
 
                         if (endpoint != 'common')
                             value.endpoint += '/' + endpoint;
 
-                        items['Device &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(expose, endpoint)] = value;
+                        list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpoint)] = value;
                     });
                 });
             });
         });
 
-        if (recorder.status.items && recorder.status.items.length)
+        if (recorder?.status?.items?.length)
         {
             recorder.status.items.forEach(item =>
             {
-                var device = this.findDevice(item);
+                let device = this.controller.findDevice(item);
 
                 if (!device.info)
                     return;
 
-                items['Recorder &rarr; ' + device.info.name + ' &rarr; ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
+                list['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
             });
         }
 
         fetch('html/dashboard/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var data;
+            let data;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = dashboard.name + ' &rarr; ' + block.name + ' &rarr; ' + item.name;
+            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> ' + item.name;
             modal.querySelector('input[name="name"]').value = item.name;
-            modal.querySelector('.item').innerHTML = item.add ? '<i>Select item there &rarr;</i>' : this.itemString(item);
+            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="icon-right"></i>' : this.itemString(item);
 
-            addDropdown(modal.querySelector('.dropdown'), Object.keys(items), function(key)
+            addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {
-                data = items[key];
+                data = list[key];
                 modal.querySelector('.item').innerHTML = this.itemString(data);
                 modal.querySelector('.item').classList.remove('error');
 
@@ -591,12 +618,7 @@ class Dashboard
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { callback ? callback() : showModal(false); });
-
-            modal.removeEventListener('keypress', handleSave);
-            modal.addEventListener('keypress', handleSave);
-            showModal(true);
-
-            modal.querySelector('input[name="name"]').focus();
+            showModal(true, 'input[name="name"]');
         });
     }
 
@@ -604,7 +626,7 @@ class Dashboard
     {
         fetch('html/dashboard/exposeInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var table;
+            let table;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = item.name;
@@ -616,9 +638,8 @@ class Dashboard
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);
 
-            modal.querySelector('.device').addEventListener('click', function() { this.controller[device.service].showDeviceInfo(device); showModal(false); }.bind(this));
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
-
+            modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
     }
@@ -627,7 +648,8 @@ class Dashboard
     {
         fetch('html/dashboard/recorderInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            var chart;
+            let id = 'chart-' + randomString(8);
+            let chart;
 
             modal.querySelector('.data').innerHTML = html;
             chart = modal.querySelector('.chart');
@@ -638,13 +660,33 @@ class Dashboard
             modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
             {
                 modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                this.controller.recorder.chartQuery(item, chart, element.innerHTML);
+
+                if (!this.controller.services.recorder)
+                    return;
+
+                this.controller.services.recorder.chartQuery(item, chart, element.innerHTML);
 
             }.bind(this)));
 
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.item').addEventListener('click', function()
+            {
+                this.controller.services.recorder?.status.items?.forEach((data, index) =>
+                {
+                    if (data.endpoint != item.endpoint || data.property != item.property)
+                        return;
 
-            this.controller.recorder.chartQuery(item, chart);
+                    this.controller.showPage('recorder?index=' + index);
+                    showModal(false);
+                });
+
+            }.bind(this));
+
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            modal.querySelectorAll('#data').forEach(item => { item.id = id; });
+
+            if (this.controller.services.recorder)
+                this.controller.services.recorder.chartQuery(item, chart);
+
             showModal(true);
         });
     }
