@@ -277,7 +277,10 @@ function addExpose(table, device, endpoint, expose)
 
                     case 'sensor':
 
-                        if (option.unit)
+                        if (!isNaN(option.round))
+                            valueCell.dataset.round = option.round;
+
+                        if (option.unit != undefined)
                             valueCell.dataset.unit = option.unit;
 
                         break;
@@ -380,13 +383,16 @@ function updateExpose(device, endpoint, name, value)
                             input.value = value;
                     }
 
-					if (typeof parseInt(cell.dataset.round) == 'number'){
-						const precision = parseInt(cell.dataset.round);
-						const roundedValue = Number(value).toFixed(precision); // Rounds to the specified precision
-						value = Number(roundedValue);
-					}	
+                    if (typeof value == 'number')
+                    {
+                        if (cell.dataset.round)
+                            value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
 
-                    cell.innerHTML = typeof value == 'number' ? Math.round(value * 1000) / 1000 + (cell.dataset.unit ? ' ' + cell.dataset.unit : '') : value;
+                        if (cell.dataset.unit)
+                            value += ' ' + cell.dataset.unit;
+                    }
+
+                    cell.innerHTML = value;
                     break;
             }
 
