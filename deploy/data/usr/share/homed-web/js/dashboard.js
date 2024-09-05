@@ -203,6 +203,8 @@ class Dashboard
 
                             if (option.unit)
                                 row.querySelector("td.value").dataset.unit = option.unit;
+                            if (option.round)
+                                row.querySelector("td.value").dataset.round = option.round;
 
                             Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
 
