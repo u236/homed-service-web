@@ -1203,6 +1203,7 @@ class Automation
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            modal.querySelector('input[name="thread"]').value = action.thread ? action.thread : '';
             modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
@@ -1215,6 +1216,11 @@ class Automation
                 action.message = form.message.trim();
                 action.chats = chats.length ? chats : null;
                 action.silent = form.silent;
+
+                if (form.thread)
+                    action.thread = form.thread;
+                else
+                    delete action.thread;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
