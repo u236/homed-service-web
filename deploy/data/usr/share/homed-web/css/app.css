@@ -798,7 +798,6 @@ td.remove:hover {
 .title .name {
     overflow: hidden;
     font-size: 1.25rem;
-    font-weight: 700;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
@@ -1014,6 +1013,10 @@ tr:first-child td {
 @keyframes homedFadeOut {
     0%   { max-height: 100px; opacity: 1; }
     100% { max-height: 0; opacity: 0; }
+}
+
+@media (max-width: 1030px) {
+    .narrowHidden { display: none; }
 }
 
 @media (max-width: 680px) {
