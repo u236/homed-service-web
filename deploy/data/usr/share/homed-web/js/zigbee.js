@@ -519,15 +519,25 @@ class ZigBee extends DeviceService
     {
         fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            let list;
+            
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
+            list = modal.querySelector('select[name="endpointId"]');
 
-            device.info.endpoints.forEach(item =>
+            device.info.endpoints?.forEach(item =>
             {
                 let option = document.createElement('option');
                 option.innerHTML = item.endpointId;
-                modal.querySelector('select[name="endpointId"]').append(option);
+                list.append(option);
             });
+
+            if (!list.innerHTML)
+            {
+                let option = document.createElement('option');
+                option.innerHTML = '1';
+                list.append(option);
+            }
 
             modal.querySelector('.send').addEventListener('click', function()
             {
