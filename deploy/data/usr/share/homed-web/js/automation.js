@@ -254,7 +254,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = '<span class="value">' + action.message + '</span>' + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
+                data = (action.photo ? 'photo' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
                 break;
 
             case 'shell':
@@ -1203,6 +1203,7 @@ class Automation
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            modal.querySelector('input[name="photo"]').value = action.photo ?? '';
             modal.querySelector('input[name="thread"]').value = action.thread ? action.thread : '';
             modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
@@ -1214,6 +1215,7 @@ class Automation
                 let chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 action.message = form.message.trim();
+                action.photo = form.photo.trim();
                 action.chats = chats.length ? chats : null;
                 action.silent = form.silent;
 
