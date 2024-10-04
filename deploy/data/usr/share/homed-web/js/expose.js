@@ -136,6 +136,7 @@ function addExpose(table, device, endpoint, expose)
 
     list.forEach(name =>
     {
+        let option = options[name] ?? new Object();
         let item = name.split('_')[0];
         let row = table.insertRow();
         let labelCell = row.insertCell();
@@ -183,7 +184,6 @@ function addExpose(table, device, endpoint, expose)
 
             case 'colorTemperature':
             {
-                let option = options.colorTemperature ?? {};
                 let min = option.min ?? 150;
                 let max = option.max ?? 500;
 
@@ -214,8 +214,12 @@ function addExpose(table, device, endpoint, expose)
             case 'level':
             case 'position':
             {
-                valueCell.dataset.type = 'number';
                 valueCell.dataset.unit = '%';
+
+                if (option.type == 'sensor')
+                    break;
+
+                valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + name + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: item == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
@@ -231,8 +235,6 @@ function addExpose(table, device, endpoint, expose)
 
             default:
             {
-                let option = options[name] ?? new Object();
-
                 switch (option.type)
                 {
                     case 'button':
