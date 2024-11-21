@@ -137,7 +137,7 @@ class Recorder
         {
             if (table)
             {
-                canvas.closest('div').style.height = 0;
+                canvas.closest('div').style.display = 'none';
                 table.innerHTML = '<tr><td><div class="placeholder"></div><div class="center shade">no data available for selected period</div></td></tr>';
             }
 
@@ -146,6 +146,7 @@ class Recorder
 
         if (table && (table.dataset.interval != canvas.dataset.interval || table.rows[0]?.querySelector('.placeholder')))
         {
+            canvas.closest('div').style.display = 'block';
             table.dataset.interval = canvas.dataset.interval;
             table.innerHTML = null;
         }
