@@ -12,6 +12,7 @@ html[theme="light"] {
     --range-main:       #cccccc;
     --range-dark:       #666666;
     --range-light:      #eeeeee;
+    color-scheme:       light;
 }
 
 html[theme="dark"] {
@@ -28,6 +29,7 @@ html[theme="dark"] {
     --range-main:       #444444;
     --range-dark:       #222222;
     --range-light:      #cccccc;
+    color-scheme:       dark;
 }
 
 html {
