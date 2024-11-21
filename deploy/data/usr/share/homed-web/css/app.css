@@ -181,7 +181,7 @@ pre {
 
 span.value {
     margin: 1px 0;
-    padding: 0px 6px 1px 6px;
+    padding: 0 6px 1px 6px;
     border-radius: var(--border-radius);
     background-color: var(--background-shade);
     font-family: 'Roboto Mono';
@@ -369,7 +369,7 @@ td.remove:hover {
 .login {
     max-width: 300px;
     min-height: calc(100vh - 20px);
-    margin: 0px auto;
+    margin: 0 auto;
     padding: 10px;
     text-align: center;
 }
@@ -1006,7 +1006,7 @@ tr:first-child td {
 }
 
 @keyframes homedFadeIn {
-    0%   { max-height: 0px; opacity: 0; }
+    0%   { max-height: 0; opacity: 0; }
     100% { max-height: 100px; opacity: 1; }
 }
 

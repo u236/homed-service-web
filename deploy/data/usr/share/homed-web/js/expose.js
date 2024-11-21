@@ -273,7 +273,7 @@ function addExpose(table, device, endpoint, expose)
                         if (!items.length)
                             break;
 
-                        items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span class="control">' + item + '</span>'; });
+                        items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span>' + item + '</span>'; });
                         controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); } }) );
                         break;
 
