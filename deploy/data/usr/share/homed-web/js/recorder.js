@@ -31,7 +31,7 @@ class Recorder
         Chart.defaults.color = '#888888';
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
 
-        setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { this.dataRequest(canvas); }); }.bind(this), 5000);
+        setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.dataset.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000);
     }
 
     updateCharts()
@@ -87,28 +87,39 @@ class Recorder
 
     dataRequest(canvas)
     {
-        let date = new Date();
-
-        switch (canvas.dataset.interval)
+        if (canvas.dataset.interval != 'custom')
         {
-            case '2h':    date.setHours(date.getHours() - 2); break;
-            case '8h':    date.setHours(date.getHours() - 8); break;
-            case 'week':  date.setDate(date.getDate() - 7); break;
-            case 'month': date.setMonth(date.getMonth() - 1); break;
-            default:      date.setHours(date.getHours() - 24); break;
+            let date = new Date();
+
+            switch (canvas.dataset.interval)
+            {
+                case '2h':    date.setHours(date.getHours() - 2); break;
+                case '8h':    date.setHours(date.getHours() - 8); break;
+                case 'week':  date.setDate(date.getDate() - 7); break;
+                case 'month': date.setMonth(date.getMonth() - 1); break;
+                default:      date.setHours(date.getHours() - 24); break;
+            }
+
+            canvas.dataset.start = date.getTime();
+            canvas.dataset.end = Date.now();
         }
 
-        canvas.dataset.start = date.getTime();
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.start, end: Date.now()});
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.start, end: canvas.dataset.end});
     }
 
-    chartQuery(item, element, interval)
+    chartQuery(item, element, interval, start, end)
     {
         let canvas = element.querySelector('canvas');
 
         if (interval)
             canvas.dataset.interval = interval;
 
+        if (interval == 'custom')
+        {
+            canvas.dataset.start = start;
+            canvas.dataset.end = end;
+        }
+        
         canvas.dataset.endpoint = item.endpoint;
         canvas.dataset.property = item.property;
         canvas.style.display = 'none';
@@ -164,7 +175,7 @@ class Recorder
                     time: {unit: 'hour', displayFormats: {hour: 'HH:mm'}},
                     ticks: {maxRotation: 0, major: {enabled: true}, font: function(context) { return context.tick?.major ? {weight: 'bold'} : new Object(); }},
                     min: new Date(parseInt(canvas.dataset.start)),
-                    max: new Date(),
+                    max: new Date(parseInt(canvas.dataset.end)),
                     border: {display: false},
                     grid: {color: function(context) { return context.tick?.major ? this.color.major() : this.color.grid(); }.bind(this)},
                 }
@@ -469,17 +480,24 @@ class Recorder
     {
         fetch('html/recorder/itemInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            let start = localStorage.getItem('recorderStart');
+            let end = localStorage.getItem('recorderEnd');
             let id = 'chart-' + randomString(8);
             let name;
+            let datepicker;
             let chart;
 
             this.content.innerHTML = html;
             handleArrowButtons(this.content, Object.keys(this.status.items), this.status.items.indexOf(this.data), function(index) { this.controller.showPage('recorder?index=' + index); }.bind(this));
 
             name = this.content.querySelector('.name');
+            datepicker = this.content.querySelector('.datepicker');
             chart = this.content.querySelector('.chart');
-            name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
 
+            name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
+            datepicker.querySelector('input[name="start"]').value = start;
+            datepicker.querySelector('input[name="end"]').value = end;
+            
             this.content.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showItemRemove(); }.bind(this));
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + this.data.debounce + '</span> seconds';
@@ -487,15 +505,41 @@ class Recorder
 
             this.content.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
             {
+                datepicker.style.display = element.innerHTML == 'custom' ? 'block' : 'none';
+
+                if (datepicker.style.display == 'block')
+                    return;
+
+                localStorage.setItem('recorderInterval', element.innerHTML);
+
                 this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
                 this.chartQuery(this.data, chart, element.innerHTML);
 
             }.bind(this)));
 
+            datepicker.querySelector('.apply').addEventListener('click', function()
+            {
+                let start = datepicker.querySelector('input[name="start"]').value;
+                let end = datepicker.querySelector('input[name="end"]').value;
+
+                if (!start || !end)
+                    return;
+
+                datepicker.style.display = 'none';
+
+                localStorage.setItem('recorderInterval', 'custom');
+                localStorage.setItem('recorderStart', start);
+                localStorage.setItem('recorderEnd', end);
+
+                this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                this.chartQuery(this.data, chart, 'custom', new Date(start).getTime(), new Date(end).getTime());
+
+            }.bind(this));
+
             this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
 
             this.devicePromise(this.data, name);
-            this.chartQuery(this.data, chart);
+            this.chartQuery(this.data, chart, localStorage.getItem('recorderInterval'), start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
         });
     }
 

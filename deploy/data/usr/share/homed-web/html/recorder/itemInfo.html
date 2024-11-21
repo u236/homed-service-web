@@ -13,8 +13,19 @@
         <tr><td>Threshold</td><td class="threshold"></td></tr>
     </table>
     <div class="title">
-        <div class="interval"><span>2h</span> | <span>8h</span> | <span>24h</span> | <span>week</span> | <span>month</span></div>
+        <div class="interval"><span>2h</span>|<span>8h</span>|<span>24h</span>|<span>week</span>|<span>month</span>|<span>custom</span></div>
         <div class="status" id="data"><div class="dataLoader"></div></div>
+    </div>
+    <div class="datepicker">
+        <form>
+            <label>Start</label>
+            <input type="datetime-local" name="start">
+            <label>End</label>
+            <input type="datetime-local" name="end">
+        </form>
+        <div class="buttons">
+            <button class="apply"><i class="icon-true"></i> Apply</button>
+        </div>
     </div>
     <div class="chart">
         <canvas id="data"></canvas>

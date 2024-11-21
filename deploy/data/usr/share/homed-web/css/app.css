@@ -86,7 +86,7 @@ input[type="checkbox"] {
     margin-right: 5px;
 }
 
-input[type="number"], input[type="password"], input[type="text"], select, textarea {
+input[type="datetime-local"], input[type="number"], input[type="password"], input[type="text"], select, textarea {
     width: 100%;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
@@ -98,7 +98,7 @@ input[type="number"], input[type="password"], input[type="text"], select, textar
     -webkit-appearance: none;
 }
 
-input[type="number"], input[type="password"], input[type="text"], select {
+input[type="datetime-local"], input[type="number"], input[type="password"], input[type="text"], select {
     height: 30px;
     margin-bottom: 10px;
     padding: 0 5px;
@@ -810,6 +810,15 @@ td.remove:hover {
 
 .title .interval span {
     cursor: pointer;
+    margin: 0px 2px;
+}
+
+.title .interval span:first-child {
+    margin-left: 0;
+}
+
+.title .interval span:last -child {
+    margin-right: 0;
 }
 
 .title .interval span:hover {
@@ -819,6 +828,11 @@ td.remove:hover {
 .title .status {
     font-size: 0.8125rem;
     color: var(--color-shade);
+}
+
+.datepicker {
+    display: none;
+    padding: 0 5px 10px 5px;
 }
 
 th:first-child, td:first-child {
