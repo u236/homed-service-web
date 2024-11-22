@@ -796,6 +796,14 @@ function addDropdown(element, options, callback, separator, trigger)
     list.classList.add('list');
     element.append(list);
 
+    if (!options.length)
+    {
+        let item = document.createElement('div');
+        item.innerHTML = 'list is empty';
+        item.classList.add('empty');
+        list.append(item);
+    }
+
     if (options.length > 10)
     {
         search = document.createElement('input');

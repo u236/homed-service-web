@@ -356,6 +356,12 @@ td.remove:hover {
     box-shadow: var(--box-shadow);
 }
 
+.dropdown .empty {
+    text-align: center;
+    padding: 1px 0;
+    color: var(--color-shade);
+}
+
 .dropdown .item {
     padding: 2px 0;
     white-space: nowrap;
