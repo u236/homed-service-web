@@ -156,6 +156,7 @@ label {
     display: flex;
     align-items: center;
     margin-bottom: 2px;
+    margin-left: 1px;
     font-size: 0.8125rem;
     text-transform: uppercase;
 }
@@ -244,11 +245,11 @@ td.remove:hover {
 }
 
 .fade-in {
-    animation: homedFadeIn linear 0.25s;
+    animation: fadeIn linear 0.25s;
 }
 
 .fade-out {
-    animation: homedFadeOut linear 0.25s;
+    animation: fadeOut linear 0.25s;
 }
 
 .shade {
@@ -305,7 +306,7 @@ td.remove:hover {
     border: 2px solid var(--border-main);
     border-top: 2px solid var(--border-loader);
     border-radius: 50%;
-    animation: homedSpin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 .dataLoader {
@@ -314,7 +315,7 @@ td.remove:hover {
     border: 2px solid var(--border-main);
     border-top: 2px solid var(--border-loader);
     border-radius: 50%;
-    animation: homedSpin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 .placeholder {
@@ -1022,17 +1023,17 @@ tr:first-child td {
     color: var(--color-main);
 }
 
-@keyframes homedSpin {
+@keyframes spin {
     0%   { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-@keyframes homedFadeIn {
+@keyframes fadeIn {
     0%   { max-height: 0; opacity: 0; }
     100% { max-height: 100px; opacity: 1; }
 }
 
-@keyframes homedFadeOut {
+@keyframes fadeOut {
     0%   { max-height: 100px; opacity: 1; }
     100% { max-height: 0; opacity: 0; }
 }

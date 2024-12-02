@@ -144,7 +144,7 @@ void Controller::socketConnected(void)
     QTcpSocket *socket = m_tcpServer->nextPendingConnection();
     connect(socket, &QTcpSocket::disconnected, this, &Controller::socketDisconnected);
     connect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
-    m_sockets.push_back(socket);
+    m_sockets.append(socket);
 }
 
 void Controller::socketDisconnected(void)
