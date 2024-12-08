@@ -1283,7 +1283,7 @@ class Automation
         fetch('html/automation/delayAction.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('input[name="delay"]').value = action.delay ?? 1;
+            modal.querySelector('textarea[name="delay"]').value = action.delay ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
