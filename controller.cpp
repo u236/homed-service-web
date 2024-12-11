@@ -254,6 +254,10 @@ void Controller::clientConnected(void)
     QWebSocket *client = m_webSocket->nextPendingConnection();
     connect(client, &QWebSocket::disconnected, this, &Controller::clientDisconnected);
     connect(client, &QWebSocket::textMessageReceived, this, &Controller::textMessageReceived);
+
+    if (!mqttStatus())
+        client->sendTextMessage(QJsonDocument({{"topic", "error"}, {"message", "mqtt disconnected"}}).toJson(QJsonDocument::Compact));
+
     m_clients.insert(client, QStringList());
 }
 

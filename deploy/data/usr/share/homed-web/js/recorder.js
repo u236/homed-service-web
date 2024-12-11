@@ -602,7 +602,7 @@ class Recorder
                 this.data.threshold = form.threshold;
 
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
-                this.controller.clearPage(); // TODO: handle events
+                this.controller.clearPage();
 
             }.bind(this));
 

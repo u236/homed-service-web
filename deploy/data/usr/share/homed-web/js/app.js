@@ -85,6 +85,12 @@ class Controller
     {
         let list = topic.split('/');
 
+        if (topic == "error")
+        {
+            this.clearPage(message);
+            return;
+        }
+
         if (list[0] == 'service')
         {
             let service = list[2] ? list[1] + '/' + list[2] : list[1];
