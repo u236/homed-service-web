@@ -63,15 +63,15 @@ class Recorder
         return data;
     }
 
-    devicePromise(item, cell)
+    devicePromise(data, cell, table)
     {
-        let list = item.endpoint.split('/');
+        let list = data.endpoint.split('/');
         let endpoint = list[2] ?? 'common';
         let device;
 
         function wait(resolve)
         {
-            device = this.controller.findDevice(item);
+            device = this.controller.findDevice(data);
 
             if (!device.endpoints?.[endpoint]?.exposes)
             {
@@ -82,7 +82,26 @@ class Recorder
             resolve();
         }
 
-        new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(item.property, endpoint); }.bind(this));
+        new Promise(wait.bind(this)).then(function()
+        { 
+            let title = exposeTitle(data.property, endpoint);
+
+            this.status.items.forEach(item =>
+            {
+                if (item.endpoint != data.endpoint || item.property != data.property || item.name)
+                    return;
+
+                item.name = device.info.name + ' - ' + title; 
+            });
+
+            cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title; 
+
+            if (!table)
+                return;
+
+            sortTable(table, 0);
+
+        }.bind(this));
     }
 
     dataRequest(canvas)
@@ -461,7 +480,7 @@ class Recorder
                     {
                         case 0:
                             cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="icon-right"></i> ' + item.property + '</span>';
-                            this.devicePromise(item, cell);
+                            this.devicePromise(item, cell, table);
                             break;
 
                         case 1: cell.innerHTML = '<span class="value">' + item.debounce + '</span>'; cell.classList.add('center'); break;
@@ -483,12 +502,25 @@ class Recorder
             let start = localStorage.getItem('recorderStart');
             let end = localStorage.getItem('recorderEnd');
             let id = 'chart-' + randomString(8);
+            let items = new Array();
+            let list = new Array();
+            let current;
             let name;
             let datepicker;
             let chart;
 
             this.content.innerHTML = html;
-            handleArrowButtons(this.content, Object.keys(this.status.items), this.status.items.indexOf(this.data), function(index) { this.controller.showPage('recorder?index=' + index); }.bind(this));
+            this.status.items.forEach((item, index) => { items.push([index, item.name ? item.name.toLowerCase() : item.endpoint + ' - ' + item.property]); });
+
+            items.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
+            {
+                if (item[1] == this.data.name?.toLowerCase() || item[1] == this.data.endpoint + ' - ' + this.data.property)
+                    current = index;
+
+                list.push(item[0]);
+            });
+
+            handleArrowButtons(this.content, list, current, function(index) { this.controller.showPage('recorder?index=' + index); }.bind(this));
 
             name = this.content.querySelector('.name');
             datepicker = this.content.querySelector('.datepicker');
@@ -519,8 +551,8 @@ class Recorder
 
             datepicker.querySelector('.apply').addEventListener('click', function()
             {
-                let start = datepicker.querySelector('input[name="start"]').value;
-                let end = datepicker.querySelector('input[name="end"]').value;
+                start = datepicker.querySelector('input[name="start"]').value;
+                end = datepicker.querySelector('input[name="end"]').value;
 
                 if (!start || !end)
                     return;
