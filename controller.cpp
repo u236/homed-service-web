@@ -173,11 +173,11 @@ void Controller::readyRead(void)
         if (header.count() < 2)
             continue;
 
-        headers.insert(header.value(0).trimmed(), header.value(1).trimmed());
+        headers.insert(header.value(0).toLower().trimmed(), header.value(1).trimmed());
         logDebug(m_debug) << "Header received:" << head.at(i);
     }
 
-    cookieList = headers.value("Cookie").split(';');
+    cookieList = headers.value("cookie").split(';');
 
     for (int i = 0; i < cookieList.count(); i++)
     {
@@ -190,7 +190,7 @@ void Controller::readyRead(void)
         logDebug(m_debug) << "Cookie received:" << cookieList.at(i);
     }
 
-    if (method == "POST" && headers.value("Content-Length").toInt() > content.length())
+    if (method == "POST" && headers.value("content-length").toInt() > content.length())
     {
         socket->read(request.length());
         socket->waitForReadyRead();
@@ -221,7 +221,7 @@ void Controller::readyRead(void)
                 buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
 
             token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
+            httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
             m_database->tokens().insert(token);
             m_database->store(true);
         }
@@ -235,7 +235,7 @@ void Controller::readyRead(void)
 
     if (url == "/logout")
     {
-        httpResponse(socket, 301, {{"Location", QString(headers.value("X-Ingress-Path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
+        httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
 
         if (items.value("session") == "all")
         {
@@ -257,7 +257,7 @@ void Controller::readyRead(void)
         return;
     }
 
-    if (headers.value("Upgrade") == "websocket")
+    if (headers.value("upgrade") == "websocket")
     {
         m_webSocket->handleConnection(socket);
         return;
