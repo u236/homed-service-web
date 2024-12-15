@@ -12,6 +12,7 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_databas
     m_username = getConfig()->value("server/username").toString();
     m_password = getConfig()->value("server/password").toString();
 
+    m_debug = getConfig()->value("server/debug", false).toBool();
     m_auth = m_username.isEmpty() || m_password.isEmpty() ? false : true;
 
     m_retained = {"device", "expose", "service", "status"};
@@ -163,11 +164,17 @@ void Controller::readyRead(void)
     QMap <QString, QString> headers, cookies, items;
 
     disconnect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
+    logDebug(m_debug) << "Request" << head.value(0) << "received from" << socket->peerAddress().toString();
 
     for (int i = 1; i < head.count(); i++)
     {
         QList <QString> header = head.at(i).split(':');
+
+        if (header.count() < 2)
+            continue;
+
         headers.insert(header.value(0).trimmed(), header.value(1).trimmed());
+        logDebug(m_debug) << "Header received:" << head.at(i);
     }
 
     cookieList = headers.value("Cookie").split(';');
@@ -175,7 +182,12 @@ void Controller::readyRead(void)
     for (int i = 0; i < cookieList.count(); i++)
     {
         QList <QString> cookie = cookieList.at(i).split('=');
+
+        if (cookie.count() < 2)
+            continue;
+
         cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
+        logDebug(m_debug) << "Cookie received:" << cookieList.at(i);
     }
 
     if (method == "POST" && headers.value("Content-Length").toInt() > content.length())
@@ -190,7 +202,12 @@ void Controller::readyRead(void)
     for (int i = 0; i < itemList.count(); i++)
     {
         QList <QString> item = itemList.at(i).split('=');
+
+        if (item.count() < 2)
+            continue;
+
         items.insert(item.value(0), QUrl::fromPercentEncoding(item.value(1).toUtf8()));
+        logDebug(m_debug) << "Data received:" << itemList.at(i);
     }
 
     if (m_auth && !m_database->tokens().contains(cookies.value("homed-auth-token")) && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
