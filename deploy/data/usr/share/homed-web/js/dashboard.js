@@ -222,6 +222,9 @@ class Dashboard
 
                             if (device.items(endpoint).includes(item.expose))
                                 row.querySelector('td.name').addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this));
+                            
+                            if (option.type == 'binary' && option.class)
+                                row.querySelector("td.value").dataset.class = option.class;
 
                             if (!isNaN(option.round))
                                 row.querySelector("td.value").dataset.round = option.round;

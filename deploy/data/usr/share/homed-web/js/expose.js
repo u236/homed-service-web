@@ -237,6 +237,13 @@ function addExpose(table, device, endpoint, expose)
             {
                 switch (option.type)
                 {
+                    case 'binary':
+                        
+                        if (option.class)
+                            valueCell.dataset.class = option.class;
+
+                        break;
+                        
                     case 'button':
                         controlCell.innerHTML = '<span>trigger</span>';
                         controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpoint, {[name]: true}); });
@@ -282,7 +289,7 @@ function addExpose(table, device, endpoint, expose)
                         if (!isNaN(option.round))
                             valueCell.dataset.round = option.round;
 
-                        if (option.unit != undefined)
+                        if (option.unit)
                             valueCell.dataset.unit = option.unit;
 
                         break;
@@ -370,6 +377,19 @@ function updateExpose(device, endpoint, name, value)
                     break;
 
                 default:
+
+                    if (cell.dataset.class)
+                    {
+                        switch (cell.dataset.class)
+                        {
+                            case 'battery':   value = value ? 'low' : 'normal'; break;
+                            case 'door':      value = value ? 'open' : 'closed'; break;
+                            case 'occupancy': value = value ? 'occupied' : 'clear'; break;
+                            case 'tamper':    value = value ? 'on' : 'off'; break;
+                            case 'moisture':  value = value ? 'wet' : 'dry'; break;
+                            default:          value = value ? 'detected' : 'clear'; break;
+                        }
+                    }
 
                     if (cell.dataset.type == 'number')
                     {
