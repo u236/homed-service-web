@@ -622,6 +622,23 @@ class DeviceService
 
             table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+
+            if (this.service != 'custom')
+                return;
+
+            this.content.querySelector('.export').addEventListener('click', function()
+            {
+                let data = {exposes: device.info.exposes, real: device.info.real};
+                let item = document.createElement("a");
+
+                if (device.info.options)
+                    data.options = device.info.options;
+                
+                item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+                item.download = device.info.name + '.json';
+                item.click();
+
+            }.bind(this));
         });
     }
 

@@ -74,10 +74,22 @@ class Custom extends DeviceService
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
+        menu.querySelector('#import').addEventListener('click', function()
+        {
+            loadFile(function(data)
+            {
+                let random = randomString(4);
+                this.serviceCommand({action: 'updateDevice', data: {cloud: false, discovery: false, name: 'Device ' + random, id: 'device_' + random, ...data}});
+                
+            }.bind(this));
+
+        }.bind(this));
+        
         if (list[0] == 'device')
             device = this.devices[list[1]];
 
