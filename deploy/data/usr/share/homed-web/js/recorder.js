@@ -309,7 +309,7 @@ class Recorder
             };
             options.scales.y =
             {
-                grace: '50%',
+                grace: '10%',
                 border: {display: false},
                 grid: {color: function() { return this.color.grid(); }.bind(this)}
             };
