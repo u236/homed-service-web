@@ -45,12 +45,6 @@ class Modbus extends DeviceService
                     check = true;
                 }
 
-                // TODO: remove it
-                device.active = true;
-                device.discovery = true;
-                device.cloud = true;
-                //
-
                 this.devices[device.id].info = device;
 
                 if (this.controller.service != this.service || this.devices[device.id] != this.device)
