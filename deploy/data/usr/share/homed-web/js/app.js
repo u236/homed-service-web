@@ -719,11 +719,11 @@ document.onkeydown = function(event)
     {
         switch (key)
         {
-            case 'arrowleft':  document.querySelector('.title .previous')?.click(); break;
-            case 'arrowright': document.querySelector('.title .next')?.click(); break;
-            case 'e':          document.querySelector('.title .edit')?.click(); break;
-            case 'r':          document.querySelector('.title .remove')?.click(); break;
-            case 's':          document.querySelector('.title .save')?.click(); break;
+            case 'arrowleft':  document.querySelector('button.previous')?.click(); break;
+            case 'arrowright': document.querySelector('button.next')?.click(); break;
+            case 'e':          document.querySelector('button.edit')?.click(); break;
+            case 'r':          document.querySelector('button.remove')?.click(); break;
+            case 's':          document.querySelector('button.save')?.click(); break;
         }
 
         return;
@@ -737,14 +737,15 @@ document.onkeydown = function(event)
                 break;
 
             event.preventDefault();
-            modal.querySelector('.save')?.click();
-            modal.querySelector('.send')?.click();
+            modal.querySelector('button.remove')?.click();
+            modal.querySelector('button.save')?.click();
+            modal.querySelector('button.send')?.click();
             break;
 
         case 'esc':
         case 'escape':
-            modal.querySelector('.cancel')?.click();
-            modal.querySelector('.close')?.click();
+            modal.querySelector('button.cancel')?.click();
+            modal.querySelector('button.close')?.click();
             break;
     }
 };

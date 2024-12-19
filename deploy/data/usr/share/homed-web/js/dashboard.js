@@ -1,7 +1,7 @@
 class Dashboard
 {
     content = document.querySelector('.content .container');
-    index = localStorage.getItem('dashboard');
+    index = parseInt(localStorage.getItem('dashboard'));
     status = new Object();
 
     constructor(controller)
@@ -153,6 +153,8 @@ class Dashboard
                 item.click();
 
             }.bind(this));
+
+            handleArrowButtons(this.content, Array.from(this.status.dashboards.keys()), this.index, function(index) { this.setIndex(index); this.showDashboard(); }.bind(this));
 
             this.status.dashboards.forEach((dashboard, index) =>
             {
