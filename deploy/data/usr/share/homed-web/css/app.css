@@ -586,6 +586,15 @@ td.remove:hover {
     max-height: 150px;
 }
 
+.dashboardBlock .label td {
+    padding-bottom: 0;
+}
+
+.dashboardBlock .chart {
+    padding-top: 0;
+    border: none;
+}
+
 .dashboardBlock .value {
     width: 1%;
     text-align: right;

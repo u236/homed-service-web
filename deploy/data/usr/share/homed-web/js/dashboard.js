@@ -50,46 +50,91 @@ class Dashboard
         this.controller.clearPage();
     }
 
-    addBlockExpose(table, item)
+    addBlockItem(table, item)
     {
         let row = table.insertRow();
         let titleCell = row.insertCell();
         let valueCell = row.insertCell();
-        let part = item.expose.split('_');
-
+        
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
 
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
 
-        switch (part[0])
+        if (item.expose)
         {
-            case 'light':
-            case 'switch':
-                let name = part[1] ? 'status_' + part[1] : 'status';
-                valueCell.dataset.property = name;
-                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
-                break;
+            let part = item.expose.split('_');
 
-            case 'cover':
-                valueCell.dataset.property = 'position';
-                valueCell.dataset.unit = '%';
-                break;
+            switch (part[0])
+            {
+                case 'light':
+                case 'switch':
+                    let name = part[1] ? 'status_' + part[1] : 'status';
+                    row.dataset.type = 'status';
+                    valueCell.dataset.property = name;
+                    valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
+                    break;
+    
+                case 'cover':
+                    valueCell.dataset.property = 'position';
+                    valueCell.dataset.unit = '%';
+                    break;
+    
+                case 'thermostat':
+                    valueCell.dataset.property = 'temperature';
+                    valueCell.dataset.unit = '°C';
+                    break;
+    
+                default:
+                    valueCell.dataset.property = item.expose;
+                    break;
+            }
+        }
+        else
+        {
+            valueCell.dataset.property = item.property;
 
-            case 'thermostat':
-                valueCell.dataset.property = 'temperature';
-                valueCell.dataset.unit = '°C';
-                break;
-
-            default:
-                valueCell.dataset.property = item.expose;
-                break;
+            if (item.property.split('_')[0] == 'status')
+            {
+                row.dataset.type = 'status';
+                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[item.property]: 'toggle'}); }.bind(this));
+            }
         }
 
         return row;
     }
 
+    addChart(table, item)
+    {
+        let row = table.insertRow();
+        let cell = row.insertCell();
+
+        cell.innerHTML = '<div class="placeholder"></div>';
+        cell.classList.add('chart');
+        cell.colSpan = 2;
+
+        function wait(resolve)
+        {
+            if (!this.controller.services.recorder)
+            {
+                setTimeout(wait.bind(this, resolve), 10);
+                return;
+            }
+
+            resolve();
+        }
+
+        new Promise(wait.bind(this)).then(function()
+        {
+            row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
+            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+            cell.querySelector('div').classList.remove('placeholder');
+            this.controller.services.recorder.chartQuery(item, cell);
+
+        }.bind(this));
+    }
+    
     showPage()
     {
         let menu = document.querySelector('.menu');
@@ -192,81 +237,55 @@ class Dashboard
 
                 block.items.forEach(item =>
                 {
-                    if (item.hasOwnProperty('expose'))
+                    let row = this.addBlockItem(table, item);
+                    let list = item.endpoint.split('/');
+                    let endpoint = list[2] ?? 'common';
+                    let device;
+
+                    row.classList.add('inactive');
+
+                    function wait(resolve)
                     {
-                        let row = this.addBlockExpose(table, item);
-                        let list = item.endpoint.split('/');
-                        let endpoint = list[2] ?? 'common';
-                        let device;
+                        device = this.controller.findDevice(item);
 
-                        row.classList.add('inactive');
-
-                        function wait(resolve)
+                        if (!device.endpoints?.[endpoint]?.exposes)
                         {
-                            device = this.controller.findDevice(item);
-
-                            if (!device.endpoints?.[endpoint]?.exposes)
-                            {
-                                setTimeout(wait.bind(this, resolve), 10);
-                                return;
-                            }
-
-                            resolve();
+                            setTimeout(wait.bind(this, resolve), 10);
+                            return;
                         }
 
-                        new Promise(wait.bind(this)).then(function()
-                        {
-                            let option = device.options(endpoint)[item.expose] ?? new Object();
-                            let properties = device.properties(endpoint);
-
-                            row.dataset.device = device.service + '/' + device.id;
-                            row.dataset.endpoint = endpoint;
-
-                            if (device.items(endpoint).includes(item.expose))
-                                row.querySelector('td.name').addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this));
-                            
-                            if (option.type == 'binary' && option.class)
-                                row.querySelector("td.value").dataset.class = option.class;
-
-                            if (!isNaN(option.round))
-                                row.querySelector("td.value").dataset.round = option.round;
-
-                            if (option.unit)
-                                row.querySelector("td.value").dataset.unit = option.unit;
-
-                            Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
-
-                        }.bind(this));
+                        resolve();
                     }
-                    else
+
+                    new Promise(wait.bind(this)).then(function()
                     {
-                        let row = table.insertRow();
-                        let cell = row.insertCell();
+                        let cell = row.querySelector("td.value");
+                        let option = device.options(endpoint)[item.expose ?? item.property] ?? new Object();
+                        let properties = device.properties(endpoint);
 
-                        cell.innerHTML = item.name + '<div class="placeholder"></div>';
-                        cell.classList.add('chart');
-                        cell.colSpan = 2;
+                        row.dataset.device = device.service + '/' + device.id;
+                        row.dataset.endpoint = endpoint;
+                        
+                        row.querySelectorAll(row.dataset.type == 'status' ? 'td.name' : 'td.name, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this)));
 
-                        function wait(resolve)
-                        {
-                            if (!this.controller.services.recorder)
-                            {
-                                setTimeout(wait.bind(this, resolve), 10);
-                                return;
-                            }
+                        if (option.type == 'binary' && option.class)
+                            cell.dataset.class = option.class;
 
-                            resolve();
-                        }
+                        if (!isNaN(option.round))
+                            cell.dataset.round = option.round;
 
-                        new Promise(wait.bind(this)).then(function()
-                        {
-                            row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
-                            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
-                            cell.querySelector('div').classList.remove('placeholder');
-                            this.controller.services.recorder.chartQuery(item, cell);
+                        if (option.unit)
+                            cell.dataset.unit = option.unit;
 
-                        }.bind(this));
-                    }
+                        Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
+
+                    }.bind(this));
+
+                    if (item.expose)
+                        return;
+                    
+                    row.classList.add('label');
+                    this.addChart(table, item);
                 });
 
                 this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
@@ -639,7 +658,7 @@ class Dashboard
             modal.querySelector('.note').innerHTML = this.itemString(item, false);
 
             table = modal.querySelector('table.exposes');
-            addExpose(table, device, endpoint, item.expose);
+            addExpose(table, device, endpoint, item.expose ?? item.property);
 
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);
