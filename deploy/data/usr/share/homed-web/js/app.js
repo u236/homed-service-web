@@ -657,6 +657,7 @@ class DeviceService
 
 window.onload = function()
 {
+    let date = new Date();
     let logout = document.querySelector('#logout');
 
     modal = document.querySelector('#modal');
@@ -680,6 +681,9 @@ window.onload = function()
 
     setTheme();
     setWide();
+
+    if (date > new Date(date.getFullYear() + '-12-23') || date < new Date(date.getFullYear() + '-01-15'))
+        document.querySelector('.header img').src = 'img/xmas.svg';
 
     if (!logout)
         return;
