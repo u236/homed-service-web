@@ -378,7 +378,7 @@ function updateExpose(device, endpoint, name, value)
 
                 default:
 
-                    if (cell.dataset.class)
+                    if (cell.dataset.class && typeof value == 'boolean')
                     {
                         switch (cell.dataset.class)
                         {
