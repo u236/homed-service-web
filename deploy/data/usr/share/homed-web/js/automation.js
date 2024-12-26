@@ -49,13 +49,13 @@ class Automation
         {
             case 'status':
 
-                let check = this.status.automations ? this.status.automations.map(automation => automation.name) : null;
+                let check = this.status.automations?.map(automation => automation.name);
 
                 this.status = message;
 
                 if (this.controller.service == 'automation')
                 {
-                    if (JSON.stringify(check) != JSON.stringify(this.status.automations.map(automation => automation.name)))
+                    if (JSON.stringify(check) != JSON.stringify(this.status.automations?.map(automation => automation.name)))
                         this.controller.showPage('automation');
 
                     this.updatePage();
@@ -469,7 +469,7 @@ class Automation
 
         if (automation)
         {
-            this.data = automation;
+            this.data = {...automation};
             this.name = automation.name;
             this.showAutomationInfo(false);
         }
@@ -595,7 +595,7 @@ class Automation
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
             this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
-            this.content.querySelector('.copy').addEventListener('click', function() { this.data = {...this.data}; delete this.data.active; this.data.name += ' (copy)'; delete this.name; this.showAutomationInfo(); }.bind(this));
+            this.content.querySelector('.copy').addEventListener('click', function() { delete this.data.active; this.data.name += ' (copy)'; delete this.name; this.showAutomationInfo(); }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
             {

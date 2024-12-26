@@ -22,6 +22,9 @@ class Dashboard
 
                 this.status = message;
 
+                if (!this.status.dashboards)
+                    this.status.dashboards = new Array();
+
                 if (this.controller.service == 'dashboard')
                 {
                     this.controller.showPage('dashboard');
@@ -167,7 +170,7 @@ class Dashboard
 
     showDashboard()
     {
-        if (!this.status.dashboards?.length)
+        if (!this.status.dashboards.length)
         {
             this.content.innerHTML = '<div class="emptyList">dashboards list is empty</div>';
             return;
