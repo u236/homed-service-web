@@ -19,8 +19,13 @@ public:
     Database(QSettings *config, QObject *parent);
     ~Database(void);
 
+    inline QString adminToken(void) { return m_adminToken; }
+    inline void resetAdminToken(void) { m_adminToken = randomData(32).toHex(); }
+
+    inline QString guestToken(void) { return m_guestToken; }
+    inline void resetGuestToken(void) { m_guestToken = randomData(32).toHex(); }
+
     inline void update(const QJsonArray &data) { m_dashboards = data; }
-    inline QSet <QString> &tokens(void) { return m_tokens; }
 
     void init(void);
     void store(bool sync = false);
@@ -29,11 +34,12 @@ private:
 
     QTimer *m_timer;
     QFile m_file;
-
-    QJsonArray m_dashboards;
-    QSet <QString> m_tokens;
-
     bool m_sync;
+
+    QString m_adminToken, m_guestToken;
+    QJsonArray m_dashboards;
+
+    QByteArray randomData(int length);
 
 private slots:
 

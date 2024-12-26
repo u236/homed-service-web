@@ -1,5 +1,4 @@
 #include <QFile>
-#include <QRandomGenerator>
 #include "controller.h"
 #include "logger.h"
 
@@ -11,6 +10,7 @@ Controller::Controller(const QString &configFile) : HOMEd(configFile), m_databas
     m_frontend = getConfig()->value("server/frontend", "/usr/share/homed-web").toString();
     m_username = getConfig()->value("server/username").toString();
     m_password = getConfig()->value("server/password").toString();
+    m_guest = getConfig()->value("server/guest").toString();
 
     m_debug = getConfig()->value("server/debug", false).toBool();
     m_auth = m_username.isEmpty() || m_password.isEmpty() ? false : true;
@@ -105,6 +105,11 @@ void Controller::mqttConnected(void)
     mqttPublishStatus();
 }
 
+void Controller::mqttDisconnected(void)
+{
+    m_messages.clear();
+}
+
 void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
     QString subTopic = topic.name().replace(mqttTopic(), QString());
@@ -162,6 +167,7 @@ void Controller::readyRead(void)
     QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(0x20), cookieList, itemList;
     QString method = target.value(0), url = target.value(1), content = list.value(1);
     QMap <QString, QString> headers, cookies, items;
+    bool guest = false;
 
     disconnect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
     logDebug(m_debug) << "Request" << head.value(0) << "received from" << socket->peerAddress().toString();
@@ -210,25 +216,34 @@ void Controller::readyRead(void)
         logDebug(m_debug) << "Data received:" << itemList.at(i);
     }
 
-    if (m_auth && !m_database->tokens().contains(cookies.value("homed-auth-token")) && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
+    if (m_auth)
     {
-        if (method == "POST" && items.value("username") == m_username && items.value("password") == m_password)
+        QString token = cookies.value("homed-auth-token");
+
+        if (token != m_database->adminToken() && token != m_database->guestToken() && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
         {
-            QByteArray buffer;
-            QString token;
+            if (method == "POST")
+            {
+                QString username = items.value("username"), password = items.value("password");
 
-            for (int i = 0; i < 32; i++)
-                buffer.append(static_cast <char> (QRandomGenerator::global()->generate()));
+                if (username == m_username && password == m_password)
+                {
+                    httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(m_database->adminToken()).arg(COOKIE_MAX_AGE)}});
+                    return;
+                }
 
-            token = buffer.toHex();
-            httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
-            m_database->tokens().insert(token);
-            m_database->store(true);
-        }
-        else
+                if (username == "guest" && password == m_guest)
+                {
+                    httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(m_database->guestToken()).arg(COOKIE_MAX_AGE)}});
+                    return;
+                }
+            }
+
             fileResponse(socket, "/login.html");
+            return;
+        }
 
-        return;
+        guest = token != m_database->adminToken() ? true : false;
     }
 
     url = url.mid(0, url.indexOf('?'));
@@ -237,16 +252,14 @@ void Controller::readyRead(void)
     {
         httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
 
-        if (items.value("session") == "all")
-        {
-            for (auto it = m_clients.begin(); it != m_clients.end(); it++)
-                it.key()->deleteLater();
+        if (guest || items.value("session") != "all")
+            return;
 
-            m_database->tokens().clear();
-        }
-        else
-            m_database->tokens().remove(cookies.value("homed-auth-token"));
+        for (auto it = m_clients.begin(); it != m_clients.end(); it++)
+            it.key()->deleteLater();
 
+        m_database->resetAdminToken();
+        m_database->resetGuestToken();
         m_database->store(true);
         return;
     }
@@ -259,6 +272,7 @@ void Controller::readyRead(void)
 
     if (headers.value("upgrade") == "websocket")
     {
+        socket->setProperty("guest", guest);
         m_webSocket->handleConnection(socket);
         return;
     }
@@ -272,7 +286,9 @@ void Controller::clientConnected(void)
     connect(client, &QWebSocket::disconnected, this, &Controller::clientDisconnected);
     connect(client, &QWebSocket::textMessageReceived, this, &Controller::textMessageReceived);
 
-    if (!mqttStatus())
+    if (mqttStatus())
+        client->sendTextMessage(QJsonDocument({{"topic", "setup"}, {"message", QJsonObject {{"guest", client->parent() ? client->parent()->property("guest").toBool() : false}}}}).toJson(QJsonDocument::Compact));
+    else
         client->sendTextMessage(QJsonDocument({{"topic", "error"}, {"message", "mqtt disconnected"}}).toJson(QJsonDocument::Compact));
 
     m_clients.insert(client, QStringList());
@@ -312,7 +328,17 @@ void Controller::textMessageReceived(const QString &message)
         mqttSubscribe(mqttTopic(subTopic));
     }
     else if (action == "publish")
-        mqttPublish(mqttTopic(subTopic), json.value("message").toObject());
+    {
+        QJsonObject message = json.value("message").toObject();
+
+        if (subTopic.startsWith("command/") && !message.value("action").toString().startsWith("get") && it.key()->parent() ? it.key()->parent()->property("guest").toBool() : false)
+        {
+            it.key()->sendTextMessage(QJsonDocument({{"topic", "error"}, {"message", "access denied"}}).toJson(QJsonDocument::Compact));
+            return;
+        }
+
+        mqttPublish(mqttTopic(subTopic), message);
+    }
     else if (action == "unsubscribe")
         it.value().removeAll(subTopic);
 }
