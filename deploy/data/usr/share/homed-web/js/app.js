@@ -1,4 +1,4 @@
-let modal, controller, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
+let modal, controller, guest = true, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -60,11 +60,6 @@ class Controller
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
     services = {dashboard: new Dashboard(this)};
 
-    constructor()
-    {
-        this.showPage(localStorage.getItem('page') ?? 'dashboard');
-    }
-
     onopen()
     {
         console.log('socket successfully connected');
@@ -74,8 +69,8 @@ class Controller
 
     onclose()
     {
-        document.querySelector('.services').innerHTML = null;
-        document.querySelector('.menu').innerHTML = '<span><i class="icon-false"></i> DISCONNECTED</span>';
+        document.querySelector('.services').innerHTML = '<span><i class="icon-false"></i> DISCONNECTED</span>';
+        document.querySelector('.menu').innerHTML = null;
         this.clearPage('socket closed, reconnecting...');
         this.socket.subscriptions = new Array();
         Object.keys(this.services).forEach(service => { if (service != 'dashboard') this.removeService(service); });
@@ -88,6 +83,20 @@ class Controller
         if (topic == "error")
         {
             this.clearPage(message);
+            return;
+        }
+
+        if (topic == "setup")
+        {
+            guest = message.guest;
+
+            if (guest)
+            {
+                document.querySelector('.header img').classList.remove('mobileHidden');
+                document.querySelector('#footerData').style.display = 'none';
+            }
+
+            this.showPage(localStorage.getItem('page') ?? 'dashboard');
             return;
         }
 
@@ -158,11 +167,14 @@ class Controller
             let services = Object.keys(this.services);
             let list = new Array();
 
-            menu.innerHTML = '';
+            menu.innerHTML = null;
             services.sort();
 
             names.forEach(name =>
             {
+                if (guest && name != 'dashboard')
+                    return;
+                
                 services.filter(service => { return service.startsWith(name); }).forEach(service =>
                 {
                     let item = document.createElement('span');
@@ -179,7 +191,7 @@ class Controller
                 });
             });
 
-            if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 275)
+            if (!guest && menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 275)
             {
                 let item = document.createElement('span');
                 let dropdown = document.createElement('div');
@@ -189,7 +201,7 @@ class Controller
 
                 addDropdown(dropdown, list, function(service) { this.showPage(service); }.bind(this), 0, item);
 
-                menu.innerHTML = '';
+                menu.innerHTML = null;
                 menu.append(item, dropdown);
             }
         }
@@ -216,6 +228,9 @@ class Controller
     {
         let list = page.split('?');
         let service = list[0];
+
+        if (guest && service != 'dashboard')
+            return;
 
         if (this.services.automation?.updated)
         {
@@ -694,7 +709,12 @@ window.onload = function()
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.current').addEventListener('click', function() { window.location.href = 'logout?session=current'; }.bind(this));
-            modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
+
+            if (!guest)
+                modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
+            else
+                modal.querySelector('.all').style.display = 'none';
+            
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });

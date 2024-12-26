@@ -142,24 +142,29 @@ class Dashboard
     {
         let menu = document.querySelector('.menu');
 
-        menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
-        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
-
-        menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
-
-        menu.querySelector('#import').addEventListener('click', function()
+        if (!guest)
         {
-            loadFile(function(data)
+            menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
+            menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+            menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
+
+            menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
+            menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
+
+            menu.querySelector('#import').addEventListener('click', function()
             {
-                this.status.dashboards.push(data);
-                this.setIndex(this.status.dashboards.length - 1);
-                this.storeData();
+                loadFile(function(data)
+                {
+                    this.status.dashboards.push(data);
+                    this.setIndex(this.status.dashboards.length - 1);
+                    this.storeData();
+
+                }.bind(this));
 
             }.bind(this));
-
-        }.bind(this));
+        }
+        else
+            menu.innerHTML = null;
 
         if (!this.status.version)
             return;
@@ -179,7 +184,8 @@ class Dashboard
         if (!this.status.dashboards[this.index])
             this.index = 0;
 
-        document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
+        if (!guest)
+            document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
 
         fetch('html/dashboard/dashboard.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -190,17 +196,22 @@ class Dashboard
             list = this.content.querySelector('.dashboardList');
             dashboard = this.status.dashboards[this.index];
 
-            this.content.querySelector('.edit').addEventListener('click', function() { this.showDashboardEdit(dashboard); }.bind(this));
-            this.content.querySelector('.remove').addEventListener('click', function() { this.showDashboardRemove(dashboard); }.bind(this));
-
-            this.content.querySelector('.export').addEventListener('click', function()
+            if (!guest)
             {
-                let item = document.createElement("a");
-                item.href = URL.createObjectURL(new Blob([JSON.stringify(dashboard, null, 2)], {type: 'application/json'}));
-                item.download = dashboard.name + '.json';
-                item.click();
+                this.content.querySelector('.edit').addEventListener('click', function() { this.showDashboardEdit(dashboard); }.bind(this));
+                this.content.querySelector('.remove').addEventListener('click', function() { this.showDashboardRemove(dashboard); }.bind(this));
 
-            }.bind(this));
+                this.content.querySelector('.export').addEventListener('click', function()
+                {
+                    let item = document.createElement("a");
+                    item.href = URL.createObjectURL(new Blob([JSON.stringify(dashboard, null, 2)], {type: 'application/json'}));
+                    item.download = dashboard.name + '.json';
+                    item.click();
+
+                }.bind(this));
+            }
+            else
+                this.content.querySelectorAll('.edit, .remove, .export').forEach(element => element.style.display = 'none');
 
             handleArrowButtons(this.content, Array.from(this.status.dashboards.keys()), this.index, function(index) { this.setIndex(index); this.showDashboard(); }.bind(this));
 
@@ -233,10 +244,16 @@ class Dashboard
                 let element = document.createElement('div');
                 let table = document.createElement('table');
 
-                element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span><span class="edit"><i class="icon-edit"></i></span></div>';
+                element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span></div>';
+
+                if (!guest)
+                {
+                    element.querySelector('.title').innerHTML += '<span class="edit"><i class="icon-edit"></i></span>';
+                    element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
+                }
+
                 element.append(table);
                 element.classList.add('dashboardBlock');
-                element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
 
                 block.items.forEach(item =>
                 {
@@ -666,7 +683,11 @@ class Dashboard
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);
 
-            modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
+            if (!guest)
+                modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
+            else
+                modal.querySelector('.device').style.display = 'none';
+
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });

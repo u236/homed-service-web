@@ -1054,7 +1054,6 @@ tr:first-child td {
 @media (max-width: 680px) {
     .header, .footer, .content { padding: 0 5px; }
     .header .dropdown .list { left: 13px; padding-right: 10px;}
-    .footer .container { justify-content: end; }
     .automationInfo td span { max-width: 150px; }
     .mobileHidden { display: none; }
 }
