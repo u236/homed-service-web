@@ -427,11 +427,16 @@ class Recorder
         let list = data ? data.split('=') : new Array();
         let item;
 
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
-        menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
+        if (!guest)
+        {
+            menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
+            menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
 
-        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
-        menu.querySelector('#add').addEventListener('click', function() { this.showItemEdit(true); }.bind(this));
+            menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
+            menu.querySelector('#add').addEventListener('click', function() { this.showItemEdit(true); }.bind(this));
+        }
+        else
+            menu.innerHTML = null;
 
         if (!this.status.version)
             return;
@@ -530,8 +535,14 @@ class Recorder
             datepicker.querySelector('input[name="start"]').value = start;
             datepicker.querySelector('input[name="end"]').value = end;
             
-            this.content.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(); }.bind(this));
-            this.content.querySelector('.remove').addEventListener('click', function() { this.showItemRemove(); }.bind(this));
+            if (!guest)
+            {
+                this.content.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(); }.bind(this));
+                this.content.querySelector('.remove').addEventListener('click', function() { this.showItemRemove(); }.bind(this));
+            }
+            else
+                this.content.querySelectorAll('.edit, .remove').forEach(element => element.style.display = 'none');
+
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + this.data.debounce + '</span> seconds';
             this.content.querySelector('.threshold').innerHTML = '<span class="value">' + this.data.threshold + '</span>';
 

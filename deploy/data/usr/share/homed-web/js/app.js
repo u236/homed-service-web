@@ -172,7 +172,7 @@ class Controller
 
             names.forEach(name =>
             {
-                if (guest && name != 'dashboard')
+                if (guest && !['dashboard', 'recorder'].includes(name))
                     return;
                 
                 services.filter(service => { return service.startsWith(name); }).forEach(service =>
@@ -229,7 +229,7 @@ class Controller
         let list = page.split('?');
         let service = list[0];
 
-        if (guest && service != 'dashboard')
+        if (guest && !['dashboard', 'recorder'].includes(service))
             return;
 
         if (this.services.automation?.updated)
