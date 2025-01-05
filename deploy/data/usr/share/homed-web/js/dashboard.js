@@ -108,7 +108,7 @@ class Dashboard
         return row;
     }
 
-    addChart(table, item)
+    addChart(table, item, interval)
     {
         let row = table.insertRow();
         let cell = row.insertCell();
@@ -130,10 +130,10 @@ class Dashboard
 
         new Promise(wait.bind(this)).then(function()
         {
-            row.addEventListener('click', function() { this.showRecorderInfo(item); }.bind(this));
+            row.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
             cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
-            this.controller.services.recorder.chartQuery(item, cell);
+            this.controller.services.recorder.chartQuery(item, cell, interval);
 
         }.bind(this));
     }
@@ -305,7 +305,7 @@ class Dashboard
                         return;
                     
                     row.classList.add('label');
-                    this.addChart(table, item);
+                    this.addChart(table, item, block.interval);
                 });
 
                 this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
@@ -527,11 +527,13 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
+            modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
             modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 block.name = modal.querySelector('input[name="name"]').value;
+                block.interval = modal.querySelector('select[name="interval"]').value;
 
                 if (block.add)
                 {
@@ -693,7 +695,7 @@ class Dashboard
         });
     }
 
-    showRecorderInfo(item)
+    showRecorderInfo(item, interval)
     {
         fetch('html/dashboard/recorderInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
@@ -734,7 +736,7 @@ class Dashboard
             modal.querySelectorAll('#data').forEach(item => { item.id = id; });
 
             if (this.controller.services.recorder)
-                this.controller.services.recorder.chartQuery(item, chart);
+                this.controller.services.recorder.chartQuery(item, chart, interval);
 
             showModal(true);
         });
