@@ -38,7 +38,7 @@ class Dashboard
     itemString(item, edit = true)
     {
         let device = this.controller.findDevice(item);
-        return (edit ? (item.hasOwnProperty('expose') ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
+        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
     }
 
     setIndex(index)
@@ -671,16 +671,39 @@ class Dashboard
 
     showExposeInfo(item, device, endpoint)
     {
+        let expose = item.expose;
+
+        if (item.property)
+        {
+            let part = item.property.split('_');
+            let list =
+            {
+                cover:      ['cover', 'position'],
+                light:      ['status', 'level', 'color', 'colorTemperature', 'colorMode'],
+                lock:       ['status'],
+                switch:     ['status'],
+                thermostat: ['systemMode', 'operationMode', 'targetTemperature', 'temperature', 'running']
+            };
+
+            Object.keys(list).forEach(key => { if (list[key].includes(part[0]) && device.items(endpoint).includes(key)) expose = key; });
+
+            if (!expose)
+                expose = item.property;
+
+            if (part[1])
+                expose += '_' + part[1];
+        }
+
         fetch('html/dashboard/exposeInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = item.name;
-            modal.querySelector('.note').innerHTML = this.itemString(item, false);
+            modal.querySelector('.note').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
 
             table = modal.querySelector('table.exposes');
-            addExpose(table, device, endpoint, item.expose ?? item.property);
+            addExpose(table, device, endpoint, expose);
 
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);
