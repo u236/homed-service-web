@@ -72,6 +72,7 @@ class Dashboard
             switch (part[0])
             {
                 case 'light':
+                case 'lock':
                 case 'switch':
                     let name = part[1] ? 'status_' + part[1] : 'status';
                     row.dataset.type = 'status';
