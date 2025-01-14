@@ -833,7 +833,7 @@ function sortTable(table, index, first = true, once = false)
     if (once)
         return;
 
-    table.querySelector('th[data-index="' + index + '"]').classList.add('warning');
+    table.querySelector('th[data-index="' + index + '"]')?.classList.add('warning');
 }
 
 function addDropdown(element, options, callback, separator, trigger)

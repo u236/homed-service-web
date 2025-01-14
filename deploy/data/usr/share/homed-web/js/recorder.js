@@ -365,14 +365,18 @@ class Recorder
 
                 if (!row)
                 {
-                    let row = table.insertRow(0);
-                    let circleCell = row.insertCell();
-                    let recordCell = row.insertCell();
+                    let circleCell;
+                    let recordCell;
 
+                    row = table.insertRow(0);
                     row.dataset.timestamp = record.timestamp;
+
+                    circleCell = row.insertCell();
                     circleCell.innerHTML = '<div class="circle"></div>';
-                    recordCell.innerHTML = record.label + '<div class="timestamp">' + timestamp + '</div>';
                     circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
+
+                    recordCell = row.insertCell();
+                    recordCell.innerHTML = record.label + '<div class="timestamp">' + timestamp + '</div>';
 
                     row.addEventListener('mouseover', function()
                     {

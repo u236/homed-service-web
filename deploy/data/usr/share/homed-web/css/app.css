@@ -956,15 +956,15 @@ tr:first-child td {
     font-size: 0.8125rem;
 }
 
-#modal .legend, #modal .log {
+#modal .legend, #modal .log, #modal .states {
     border: none;
 }
 
-#modal .legend td:first-child {
+#modal .legend td:first-child, #modal .states td:first-child {
     width: 120px;
 }
 
-#modal .legend td:last-child, #modal .log td:last-child {
+#modal .legend td:last-child, #modal .log td:last-child, #modal .states td:last-child {
     text-align: left;
 }
 

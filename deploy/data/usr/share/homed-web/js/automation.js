@@ -38,6 +38,53 @@ class Automation
         });
     }
 
+    updateStates()
+    {
+        let list = Object.keys(this.status.states ?? new Object());
+        let table = modal.querySelector('table.states');
+
+        if (!table)
+            return;
+
+        list.forEach(state =>
+        {
+            let row = table.querySelector('tr[data-state="' + state + '"');
+
+            if (row)
+            {
+                row.querySelector('.value').innerHTML = this.status.states[state];
+                return;
+            }
+
+            row = table.insertRow();
+            row.dataset.state = state;
+
+            for (let i = 0; i < 3; i++)
+            {
+                let cell = row.insertCell();
+
+                switch (i)
+                {
+                    case 0: cell.innerHTML = state; break;
+                    case 1: cell.innerHTML = '<span class="value">' + this.status.states[state] + '</span>'; break;
+
+                    case 2:
+                        cell.innerHTML = '<i class="icon-trash"></i>';
+                        cell.classList.add('remove');
+                        cell.addEventListener('click', function() { cell.innerHTML = '<div class="dataLoader"></div>'; this.controller.socket.publish('command/automation', {action: 'removeState', state: state}); this.removeState = true; }.bind(this));
+                        break;
+                }
+            }
+        });
+
+        table.querySelectorAll('tr').forEach(row => { if (!list.includes(row.dataset.state)) row.remove(); });
+
+        modal.querySelector('.empty').style.display = list.length ? 'none' : 'block';
+        table.style.display = list.length ? 'table' : 'none';
+        
+        sortTable(table, 0);
+    }
+
     updatePage()
     {
         document.querySelector('#serviceVersion').innerHTML = 'Automation ' + this.status.version;
@@ -52,6 +99,7 @@ class Automation
                 let check = this.status.automations?.map(automation => automation.name);
 
                 this.status = message;
+                this.updateStates();
 
                 if (this.controller.service == 'automation')
                 {
@@ -442,10 +490,12 @@ class Automation
         let list = data ? data.split('=') : new Array();
         let automation;
 
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
+        menu.innerHTML  = '<span id="states"><i class="icon-settings"></i> States</span>';
+        menu.innerHTML += '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
         menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
 
+        menu.querySelector('#states').addEventListener('click', function() { this.showStates(); }.bind(this));
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('automation'); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(false, true); }.bind(this));
 
@@ -479,6 +529,17 @@ class Automation
         this.updatePage();
     }
 
+    showStates()
+    {
+        fetch('html/automation/states.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            this.updateStates();
+            showModal(true);
+        });
+    }
+    
     showAutomationList()
     {
         if (!this.status.automations?.length)
