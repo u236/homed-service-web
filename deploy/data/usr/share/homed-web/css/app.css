@@ -186,6 +186,7 @@ span.value {
     margin: 1px 0;
     padding: 0 6px 1px 6px;
     border-radius: var(--border-radius);
+    border: 1px solid var(--background-hover);
     background-color: var(--background-shade);
     font-family: 'Roboto Mono';
     font-size: 0.8125rem;
