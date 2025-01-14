@@ -147,7 +147,7 @@ class Dashboard
         {
             menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
             menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-            menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
+            menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
 
             menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
             menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));

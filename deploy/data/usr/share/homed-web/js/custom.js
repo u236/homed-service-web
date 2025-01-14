@@ -74,7 +74,7 @@ class Custom extends DeviceService
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
+        menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
@@ -178,7 +178,7 @@ class Custom extends DeviceService
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
             modal.querySelector('input[name="id"]').value = device.info.id;
             modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
-            modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options) : '';
+            modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options, null, 2) : '';
             modal.querySelector('input[name="real"]').checked = device.info.real;
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;

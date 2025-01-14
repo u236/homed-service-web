@@ -444,7 +444,7 @@ class Automation
 
         menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-        menu.innerHTML += '<span id="import"><i class="icon-upload"></i> Import</span>';
+        menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('automation'); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(false, true); }.bind(this));

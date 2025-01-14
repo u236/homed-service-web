@@ -619,7 +619,7 @@ td.remove:hover {
 }
 
 .automationInfo td:first-child, .itemInfo td:first-child {
-    width: 100px;
+   width: 150px;
 }
 
 .automationInfo td {
@@ -1055,5 +1055,6 @@ tr:first-child td {
     .header, .footer, .content { padding: 0 5px; }
     .header .dropdown .list { left: 13px; padding-right: 10px;}
     .automationInfo td span { max-width: 150px; }
+    .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
     .mobileHidden { display: none; }
 }
