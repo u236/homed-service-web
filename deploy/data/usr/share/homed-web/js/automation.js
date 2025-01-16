@@ -5,7 +5,7 @@ class Automation
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
 
-    conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'AND', 'OR', 'NOT'];
+    conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
 
     actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay'];
@@ -262,7 +262,8 @@ class Automation
                     return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="icon-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + statement + ' <span class="value">' + value + '</span>';
 
                 case 'state':
-                    return '<span class="value">' + condition.name + '</span> ' + statement + ' <span class="value">' + value + '</span>';
+                case 'pattern':   
+                    return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + statement + ' <span class="value">' + value + '</span>';
 
                 case 'date':
                     return statement + ' <span class="value">' + value + '</span>';
@@ -358,7 +359,7 @@ class Automation
                         {
                             cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
                             cell.classList.add('right');
-                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 6);
+                            addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 7);
                             automation.conditionList(automation, condition.conditions, table, level + 1, colSpan);
                             break;
                         }
@@ -433,7 +434,7 @@ class Automation
                             {
                                 case 0:
                                     nameCell.innerHTML += '<span class="value">IF</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 6);
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 7);
                                     automation.conditionList(automation, action.conditions, table, level + 2, 3);
                                     break;
 
@@ -684,7 +685,7 @@ class Automation
             actions = this.content.querySelector('.actions');
 
             addDropdown(this.content.querySelector('.addTrigger'), this.triggerType, function(type) { this.showTrigger({'type': type}, true); }.bind(this));
-            addDropdown(this.content.querySelector('.addCondition'), this.conditionType, function(type) { this.conditionDropdown(this, this.data.conditions, type); }.bind(this), 6);
+            addDropdown(this.content.querySelector('.addCondition'), this.conditionType, function(type) { this.conditionDropdown(this, this.data.conditions, type); }.bind(this), 7);
             addDropdown(this.content.querySelector('.addAction'), this.actionType, function(type) { this.actionDropdown(this, this.data.actions, type); }.bind(this), 5);
 
             this.data.triggers.forEach((trigger, index) =>
@@ -782,10 +783,11 @@ class Automation
         {
             case 'property': this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition'); break;
             case 'mqtt':     this.showMqttItem(condition, list, this.conditionStatement, append, 'condition'); break;
-            case 'state':    this.showStateCondition(condition, list, append); break;
-            case 'date':     this.showDateTimeCondition(condition, list, 'date', append); break;
-            case 'time':     this.showDateTimeCondition(condition, list, 'time', append); break;
+            case 'state':    this.showStatePatternCondition(condition, list, append, condition.type); break;
+            case 'date':     this.showDateTimeCondition(condition, list, append, condition.type); break;
+            case 'time':     this.showDateTimeCondition(condition, list, append, condition.type); break;
             case 'week':     this.showWeekCondition(condition, list, append); break;
+            case 'pattern':  this.showStatePatternCondition(condition, list, append, condition.type); break;
         }
     }
 
@@ -1053,12 +1055,12 @@ class Automation
         });
     }
 
-    showStateCondition(condition, list, append)
+    showStatePatternCondition(condition, list, append, type)
     {
-        fetch('html/automation/stateCondition.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/automation/' + type + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('input[name="name"]').value = condition.name ?? '';
+            modal.querySelector(type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]').value = condition[type == 'state' ? 'name' : 'pattern'] ?? '';
 
             this.conditionStatement.forEach(statement =>
             {
@@ -1086,10 +1088,11 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+                let item = type == 'state' ? 'name' : 'pattern';
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
-                condition.name = form.name;
+                condition[item] = form[item];
                 condition[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
 
                 if (append)
@@ -1107,9 +1110,9 @@ class Automation
         });
     }
 
-    showDateTimeCondition(condition, list, name, append)
+    showDateTimeCondition(condition, list, append, type)
     {
-        fetch('html/automation/' + name + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/automation/' + type + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
 
