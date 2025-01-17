@@ -2,6 +2,7 @@ class Modbus extends DeviceService
 {
     deviceType =
     {
+        customController:      'Custom Modbus Device',
         homedRelayController:  'HOMEd Relay Controller',
         homedSwitchController: 'HOMEd Switch Controller',
         wbMap3e:               'Wiren Board WB-MAP3E',
@@ -192,6 +193,9 @@ class Modbus extends DeviceService
                 if (device.info.type != key)
                     return;
 
+                if (key != 'customController')
+                    modal.querySelector('.custom').style.display = 'none';
+    
                 modal.querySelector('select[name="type"]').value = key;
             });
 
@@ -199,10 +203,33 @@ class Modbus extends DeviceService
             modal.querySelector('input[name="slaveId"]').value = device.info.slaveId;
             modal.querySelector('input[name="baudRate"]').value = device.info.baudRate;
             modal.querySelector('input[name="pollInterval"]').value = device.info.pollInterval;
+            modal.querySelector('textarea[name="items"]').value = device.info.items ? JSON.stringify(device.info.items, null, 2) : '';
+            modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options, null, 2) : '';
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-            modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: formData(modal.querySelector('form'))}); }.bind(this));
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                if (form.type == 'customController' && form.items)
+                    try { form.items = JSON.parse(form.items); } catch { modal.querySelector('textarea[name="items"]').classList.add('error'); return; }
+                else
+                    delete form.items;
+
+                if (form.type == 'customController' && form.options)
+                    try { form.options = JSON.parse(form.options); } catch { modal.querySelector('textarea[name="options"]').classList.add('error'); return; }
+                else
+                    delete form.options;
+
+                this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
+
+            }.bind(this));
+            
+            modal.querySelector('select[name="type"]').addEventListener('change', function(event) { modal.querySelector('.custom').style.display = event.target.value == 'customController' ? 'block' : 'none'; });
+            modal.querySelector('textarea[name="items"]').addEventListener('input', function() { this.classList.remove('error'); });
+            modal.querySelector('textarea[name="options"]').addEventListener('input', function() { this.classList.remove('error'); });
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true, 'input[name="name"]');
         });
