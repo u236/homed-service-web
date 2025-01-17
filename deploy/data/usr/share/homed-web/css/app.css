@@ -107,11 +107,12 @@ input[type="datetime-local"], input[type="number"], input[type="password"], inpu
 }
 
 textarea {
-    height: 72px;
+    height: 75px;
     margin-bottom: 5px;
     padding: 5px;
     font-family: 'Roboto Mono';
     font-size: 0.8125rem;
+    resize: vertical;
 }
 
 input[type="range"] {
@@ -154,6 +155,7 @@ input.level {
 
 label {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 2px;
     margin-left: 1px;
@@ -163,9 +165,19 @@ label {
 
 label.checkbox {
     cursor: pointer;
+    justify-content: start;
 }
 
 label.checkbox:hover {
+    color: var(--color-highlight);
+}
+
+label .extend {
+    cursor: pointer;
+    color: var(--color-shade);
+}
+
+label .extend:hover {
     color: var(--color-highlight);
 }
 

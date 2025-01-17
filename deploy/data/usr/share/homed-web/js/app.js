@@ -902,6 +902,7 @@ function showModal(show, focus)
     if (show)
     {
         modal.style.display = 'block';
+        modal.querySelectorAll('form .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
         modal.querySelector(focus)?.focus();
         return;
     }
@@ -984,7 +985,7 @@ function loadFile(callback)
         reader.onload = function()
         {
             let data;
-            try { data = JSON.parse(reader.result); } catch { controller.showToast('File <b>' + input.files[0].name + '</b> is not valid json file', 'error'); }
+            try { data = JSON.parse(reader.result); } catch { controller.showToast('File <b>' + input.files[0].name + '</b> is not valid json file', 'error'); return; }
             callback(data);
         };
 

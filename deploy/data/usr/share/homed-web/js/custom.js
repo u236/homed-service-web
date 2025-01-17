@@ -194,7 +194,7 @@ class Custom extends DeviceService
                     delete form.exposes;
 
                 if (form.options)
-                    form.options = JSON.parse(form.options);
+                    try { form.options = JSON.parse(form.options); } catch { modal.querySelector('textarea[name="options"]').classList.add('error'); return; }
                 else
                     delete form.options;
 
@@ -202,6 +202,7 @@ class Custom extends DeviceService
 
             }.bind(this));
 
+            modal.querySelector('textarea[name="options"]').addEventListener('input', function() { this.classList.remove('error'); });
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true, 'input[name="name"]');
         });
