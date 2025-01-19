@@ -598,6 +598,16 @@ class DeviceService
             case 'supported':
                 return value != undefined ? '<i class="icon-' + (value ? 'true' : 'false') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
 
+            case 'baudRate':
+            case 'portId':
+            case 'slaveId':
+                return '<span class="value">' + value + '</span>';
+
+            case 'pollInterval':
+            case 'replyTimeout':
+            case 'requestTimeout':
+                return '<span class="value">' + value + '</span> ms';
+
             default: return value;
         }
     }
