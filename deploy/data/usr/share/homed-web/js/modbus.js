@@ -170,7 +170,7 @@ class Modbus extends DeviceService
         if (!device)
         {
             let random = randomString(4);
-            device = {info: {name: 'Device ' + random, id: 'device_' + random, portId: 1, slaveId: 1, baudRate: 9600, pollInterval: 1000, active: true}};
+            device = {info: {name: 'Device ' + random, id: 'device_' + random, active: true}};
             add = true;
         }
 
@@ -199,10 +199,12 @@ class Modbus extends DeviceService
                 modal.querySelector('select[name="type"]').value = key;
             });
 
-            modal.querySelector('input[name="portId"]').value = device.info.portId;
-            modal.querySelector('input[name="slaveId"]').value = device.info.slaveId;
-            modal.querySelector('input[name="baudRate"]').value = device.info.baudRate;
-            modal.querySelector('input[name="pollInterval"]').value = device.info.pollInterval;
+            modal.querySelector('input[name="portId"]').value = device.info.portId ?? 1;
+            modal.querySelector('input[name="slaveId"]').value = device.info.slaveId ?? 1;
+            modal.querySelector('input[name="baudRate"]').value = device.info.baudRate ?? 9600;
+            modal.querySelector('input[name="pollInterval"]').value = device.info.pollInterval ?? 1000;
+            modal.querySelector('input[name="requestTimeout"]').value = device.info.requestTimeout ?? 1000;
+            modal.querySelector('input[name="replyTimeout"]').value = device.info.replyTimeout ?? 20;
             modal.querySelector('textarea[name="items"]').value = device.info.items ? JSON.stringify(device.info.items, null, 2) : '';
             modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options, null, 2) : '';
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;

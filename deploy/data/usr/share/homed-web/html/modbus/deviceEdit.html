@@ -14,8 +14,12 @@
     <input type="number" name="slaveId" min="1">
     <label>Baud rate:</label>
     <input type="number" name="baudRate" min="1">
-    <label>Poll interval:</label>
-    <input type="number" name="pollInterval" min="1">
+    <label>Poll interval (ms):</label>
+    <input type="number" name="pollInterval" min="0">
+    <label>Request timeout (ms):</label>
+    <input type="number" name="requestTimeout" min="0">
+    <label>Reply timeout (ms):</label>
+    <input type="number" name="replyTimeout" min="0">
     <span class="custom">
         <label><span>Items (JSON Array):</span><span><i id="items" class="icon-plus extend"></i></span></label>
         <textarea name="items"></textarea>
