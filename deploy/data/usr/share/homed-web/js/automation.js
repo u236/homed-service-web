@@ -1369,6 +1369,8 @@ class Automation
             }.bind(this));
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(action, this.data.actions, append);
             showModal(true, 'input[name="delay"]');
         });
     }
