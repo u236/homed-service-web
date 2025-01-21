@@ -244,12 +244,14 @@ class Dashboard
             {
                 let element = document.createElement('div');
                 let table = document.createElement('table');
+                let status = true;
+                let items = new Array();
 
                 element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span></div>';
 
                 if (!guest)
                 {
-                    element.querySelector('.title').innerHTML += '<span class="edit"><i class="icon-edit"></i></span>';
+                    element.querySelector('.title').innerHTML += '<span class="control"><span class="edit"><i class="icon-edit"></i></span></span>';
                     element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
                 }
 
@@ -265,6 +267,9 @@ class Dashboard
 
                     row.classList.add('inactive');
 
+                    if (row.dataset.type != 'status')
+                        status = false;
+                    
                     function wait(resolve)
                     {
                         device = this.controller.findDevice(item);
@@ -286,8 +291,10 @@ class Dashboard
 
                         row.dataset.device = device.service + '/' + device.id;
                         row.dataset.endpoint = endpoint;
-                        
                         row.querySelectorAll(row.dataset.type == 'status' ? 'td.name' : 'td.name, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this)));
+
+                        if (status)
+                            items.push({device: device, endpoint: endpoint});
 
                         if (option.type == 'binary' && option.class)
                             cell.dataset.class = option.class;
@@ -308,6 +315,31 @@ class Dashboard
                     row.classList.add('label');
                     this.addChart(table, item, block.interval);
                 });
+
+                if (status)
+                {
+                    let toggle = document.createElement('span');
+
+                    toggle.innerHTML = '<i class="icon-enable shade"></i>';
+                    toggle.classList.add('toggle');
+
+                    toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpoint, {status: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
+                    element.querySelector('.control').append(toggle);
+                    
+                    setInterval(function()
+                    {
+                        let status = 'off'
+
+                        items.forEach(item => { if (item.device.properties(item.endpoint).status == 'on') status = 'on'; });
+
+                        if (toggle.dataset.status == status)
+                            return;
+
+                        toggle.dataset.status = status;
+                        toggle.querySelector('i').className = 'icon-enable ' + (status == 'on' ? 'warning' : 'shade');
+                        
+                    }, 100);
+                }
 
                 this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
             });

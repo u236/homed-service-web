@@ -622,6 +622,11 @@ td.remove:hover {
     color: var(--color-warning);
 }
 
+.dashboardBlock .toggle {
+    cursor: pointer;
+    margin-left: 8px;
+}
+
 .dashboardBlock .offline {
     background-color: var(--background-shade);
     color: var(--color-shade);
