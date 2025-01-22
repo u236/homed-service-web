@@ -405,16 +405,14 @@ function updateExpose(device, endpoint, name, value)
                             input.value = value;
                     }
 
-                    if (typeof value == 'number')
-                    {
-                        if (cell.dataset.round)
+                    if (typeof value == 'number' && cell.dataset.round)
                             value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
 
-                        if (cell.dataset.unit)
-                            value += ' ' + cell.dataset.unit;
-                    }
-
                     cell.innerHTML = value;
+
+                    if (cell.dataset.unit)
+                        cell.innerHTML += ' ' + cell.dataset.unit;
+
                     break;
             }
 
