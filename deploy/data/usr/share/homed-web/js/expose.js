@@ -70,12 +70,14 @@ function exposeList(expose, options)
             switch (options.thermostatProgram)
             {
                 case 'daily':
+                case 'extended':
                 {
                     let types = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                    let count = options.thermostatProgram != 'extended' ? 4 : 6;
 
-                    for (let i = 0; i < 28; i++)
+                    for (let i = 0; i < count * 7; i++)
                     {
-                        let item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
+                        let item = types[parseInt(i / count)] + 'P' + parseInt(i % count + 1);
                         list.push(item + 'Time');
                         list.push(item + 'Temperature');
                         options[item + 'Temperature'] = option;
