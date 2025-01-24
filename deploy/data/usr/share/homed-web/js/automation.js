@@ -1267,6 +1267,7 @@ class Automation
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
+            modal.querySelector('textarea[name="file"]').value = action.file ?? '';
             modal.querySelector('input[name="photo"]').value = action.photo ?? '';
             modal.querySelector('textarea[name="keyboard"]').value = action.keyboard ?? '';
             modal.querySelector('input[name="thread"]').value = action.thread ? action.thread : '';
@@ -1280,6 +1281,7 @@ class Automation
                 let chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 action.message = form.message.trim();
+                action.file = form.file.trim();
                 action.photo = form.photo.trim();
                 action.keyboard = form.keyboard.trim();
                 action.chats = chats.length ? chats : null;
