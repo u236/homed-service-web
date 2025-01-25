@@ -237,6 +237,9 @@ class Automation
         if (trigger.name)
             data += ' <span>with name</span> <span class="value">' + trigger.name + '</span>';
 
+        if (trigger.force)
+            data += ' <span class="shade">[force]</span>';
+
         return data;
     }
 
@@ -303,7 +306,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = (action.photo ? 'photo' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' [silent]' : '');
+                data = (action.photo ? 'photo' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' <span class="shade">[silent]</span>' : '');
                 break;
 
             case 'shell':
@@ -849,6 +852,9 @@ class Automation
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
+            modal.querySelector('.force').style.display = type != 'trigger' ? 'none' : 'block';
+            modal.querySelector('input[name="force"]').checked = item.force ?? false;
+
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
@@ -872,6 +878,11 @@ class Automation
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
+
+                if (form.force && type == 'trigger')
+                    item.force = true;
+                else
+                    delete item.force;
 
                 if (append)
                     list.push(item);
@@ -923,6 +934,9 @@ class Automation
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
+            modal.querySelector('.force').style.display = type != 'trigger' ? 'none' : 'block';
+            modal.querySelector('input[name="force"]').checked = item.force ?? false;
+
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
@@ -938,6 +952,11 @@ class Automation
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
 
+                if (form.force && type == 'trigger')
+                    item.force = true;
+                else
+                    delete item.force;
+                
                 if (append)
                     list.push(item);
 
