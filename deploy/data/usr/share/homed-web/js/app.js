@@ -311,7 +311,7 @@ class Controller
         return device ?? new Object();
     }
 
-    propertiesList()
+    propertiesList(pattern)
     {
         let list = new Object();
 
@@ -337,7 +337,7 @@ class Controller
                             if (endpoint != 'common')
                                 value.endpoint += '/' + endpoint;
 
-                            list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = value;
+                            list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + value.property + ' }}' : value;
                         });
                     });
                 });
@@ -890,6 +890,9 @@ function addDropdown(element, options, callback, separator, trigger)
 
     trigger.addEventListener('click', function(event)
     {
+        if (event.target.nodeName == 'INPUT')
+            return;
+
         if (list.style.display == 'block' && event.target != search)
         {
             list.style.display = 'none';
@@ -911,8 +914,21 @@ function showModal(show, focus)
 {
     if (show)
     {
+        let list =
+        {
+            'Trigger name': '{{ triggerName }}',
+            'Shell output': '{{ shellOutput }}',
+            'File contents': '{{ file | /path/to/file }}',
+            'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}',
+            'State value': '{{ state | stateName }}',
+            'Color temperature': '{{ colorTemperature | 153 | 500 }}',
+            'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}',
+            ...controller.propertiesList(true)
+        };
+
         modal.style.display = 'block';
-        modal.querySelectorAll('form .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
+        modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
+        modal.querySelectorAll('label .dropdown').forEach(item => { addDropdown(item, Object.keys(list), function(key) {let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, 7); });
         modal.querySelector(focus)?.focus();
         return;
     }

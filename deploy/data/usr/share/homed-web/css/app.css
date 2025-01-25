@@ -172,15 +172,6 @@ label.checkbox:hover {
     color: var(--color-highlight);
 }
 
-label .extend {
-    cursor: pointer;
-    color: var(--color-shade);
-}
-
-label .extend:hover {
-    color: var(--color-highlight);
-}
-
 form label:last-child {
     margin-bottom: 10px;
 }
@@ -893,6 +884,23 @@ tr:first-child td {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+}
+
+#modal label .extend, #modal label .dropdown {
+    cursor: pointer;
+    color: var(--color-shade);
+}
+
+#modal label .extend:hover, #modal label .dropdown:hover {
+    color: var(--color-warning);
+}
+
+#modal label .dropdown {
+    margin-left: 3px;
+}
+
+#modal label .dropdown .item {
+    font-size: 1rem;
 }
 
 #modal pre {

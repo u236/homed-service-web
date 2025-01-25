@@ -849,6 +849,8 @@ class Automation
                 this.valueForm(modal, statement);
             });
 
+            modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
+            
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
@@ -930,6 +932,8 @@ class Automation
 
                 this.valueForm(modal, statement);
             });
+
+            modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
 
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
@@ -1125,7 +1129,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(condition, this.data.conditions, append);
-            showModal(true, 'input[name="name"]');
+            showModal(true, type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]');
         });
     }
 
@@ -1176,7 +1180,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(condition, this.data.conditions, append);
-            showModal(true, 'select[name="statement"]');
+            showModal(true, 'input[name="value"]');
         });
     }
 
@@ -1392,7 +1396,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, this.data.actions, append);
-            showModal(true, 'input[name="delay"]');
+            showModal(true, 'textarea[name="delay"]');
         });
     }
 
