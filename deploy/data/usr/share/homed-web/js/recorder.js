@@ -332,7 +332,7 @@ class Recorder
                 xAlign: 'center',
                 yAlign: 'top',
                 position: 'custom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label; }}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label + ', ' + timeInterval((context.raw[1] - context.dataset.timestamp) / 1000, false) + ' long'; }}
             };
             options.scales.y =
             {
@@ -358,10 +358,7 @@ class Recorder
                 let next = datasets[index + 1];
 
                 if (interval != 'now')
-                    timestamp += ' ago';
-
-                if (next)
-                    timestamp += ', ' + timeInterval((next.timestamp - record.timestamp) / 1000, false) + ' long';
+                    timestamp += ' ago, ' + (next ? timeInterval((next.timestamp - record.timestamp) / 1000, false) : interval) + ' long';
 
                 if (!row)
                 {
