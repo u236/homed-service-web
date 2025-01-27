@@ -240,12 +240,12 @@ function addExpose(table, device, endpoint, expose)
                 switch (option.type)
                 {
                     case 'binary':
-                        
+
                         if (option.class)
                             valueCell.dataset.class = option.class;
 
                         break;
-                        
+
                     case 'button':
                         controlCell.innerHTML = '<span>trigger</span>';
                         controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpoint, {[name]: true}); });

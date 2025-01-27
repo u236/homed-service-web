@@ -85,11 +85,11 @@ class Custom extends DeviceService
             {
                 let random = randomString(4);
                 this.serviceCommand({action: 'updateDevice', data: {cloud: false, discovery: false, name: 'Device ' + random, id: 'device_' + random, ...data}});
-                
+
             }.bind(this));
 
         }.bind(this));
-        
+
         if (list[0] == 'device')
             device = this.devices[list[1]];
 

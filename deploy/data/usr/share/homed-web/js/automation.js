@@ -87,7 +87,7 @@ class Automation
 
         modal.querySelector('.empty').style.display = list.length ? 'none' : 'block';
         table.style.display = list.length ? 'table' : 'none';
-        
+
         sortTable(table, 0);
     }
 
@@ -271,7 +271,7 @@ class Automation
                     return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="icon-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + statement + ' <span class="value">' + value + '</span>';
 
                 case 'state':
-                case 'pattern':   
+                case 'pattern':
                     return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + statement + ' <span class="value">' + value + '</span>';
 
                 case 'date':
@@ -572,7 +572,7 @@ class Automation
             showModal(true);
         });
     }
-    
+
     showAutomationList()
     {
         if (!this.status.automations?.length)
@@ -879,7 +879,7 @@ class Automation
             });
 
             modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
-            
+
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
@@ -989,7 +989,7 @@ class Automation
                     item.force = true;
                 else
                     delete item.force;
-                
+
                 if (append)
                     list.push(item);
 

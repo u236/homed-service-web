@@ -174,7 +174,7 @@ class Controller
             {
                 if (guest && !['dashboard', 'recorder'].includes(name))
                     return;
-                
+
                 services.filter(service => { return service.startsWith(name); }).forEach(service =>
                 {
                     let item = document.createElement('span');
@@ -410,7 +410,7 @@ class DeviceService
 
         if (!instance)
             return;
-        
+
         this.service += '/' + instance;
         this.instance = true;
     }
@@ -656,7 +656,7 @@ class DeviceService
 
                 if (device.info.options)
                     data.options = device.info.options;
-                
+
                 item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
                 item.download = device.info.name + '.json';
                 item.click();
@@ -722,7 +722,7 @@ window.onload = function()
                 modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
             else
                 modal.querySelector('.all').style.display = 'none';
-            
+
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });

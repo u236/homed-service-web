@@ -83,7 +83,7 @@ class Recorder
         }
 
         new Promise(wait.bind(this)).then(function()
-        { 
+        {
             let title = exposeTitle(data.property, endpoint);
 
             this.status.items.forEach(item =>
@@ -91,10 +91,10 @@ class Recorder
                 if (item.endpoint != data.endpoint || item.property != data.property || item.name)
                     return;
 
-                item.name = device.info.name + ' - ' + title; 
+                item.name = device.info.name + ' - ' + title;
             });
 
-            cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title; 
+            cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title;
 
             if (!table)
                 return;
@@ -138,7 +138,7 @@ class Recorder
             canvas.dataset.start = start;
             canvas.dataset.end = end;
         }
-        
+
         canvas.dataset.endpoint = item.endpoint;
         canvas.dataset.property = item.property;
         canvas.style.display = 'none';
@@ -535,7 +535,7 @@ class Recorder
             name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
             datepicker.querySelector('input[name="start"]').value = start;
             datepicker.querySelector('input[name="end"]').value = end;
-            
+
             if (!guest)
             {
                 this.content.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(); }.bind(this));

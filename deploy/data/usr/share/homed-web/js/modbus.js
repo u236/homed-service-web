@@ -195,7 +195,7 @@ class Modbus extends DeviceService
 
                 if (key != 'customController')
                     modal.querySelector('.custom').style.display = 'none';
-    
+
                 modal.querySelector('select[name="type"]').value = key;
             });
 
@@ -228,7 +228,7 @@ class Modbus extends DeviceService
                 this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
 
             }.bind(this));
-            
+
             modal.querySelector('select[name="type"]').addEventListener('change', function(event) { modal.querySelector('.custom').style.display = event.target.value == 'customController' ? 'block' : 'none'; });
             modal.querySelector('textarea[name="items"]').addEventListener('input', function() { this.classList.remove('error'); });
             modal.querySelector('textarea[name="options"]').addEventListener('input', function() { this.classList.remove('error'); });

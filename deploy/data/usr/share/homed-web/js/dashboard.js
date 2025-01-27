@@ -58,7 +58,7 @@ class Dashboard
         let row = table.insertRow();
         let titleCell = row.insertCell();
         let valueCell = row.insertCell();
-        
+
         titleCell.innerHTML = item.name;
         titleCell.classList.add('name');
 
@@ -79,17 +79,17 @@ class Dashboard
                     valueCell.dataset.property = name;
                     valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                     break;
-    
+
                 case 'cover':
                     valueCell.dataset.property = 'position';
                     valueCell.dataset.unit = '%';
                     break;
-    
+
                 case 'thermostat':
                     valueCell.dataset.property = 'temperature';
                     valueCell.dataset.unit = '°C';
                     break;
-    
+
                 default:
                     valueCell.dataset.property = item.expose;
                     break;
@@ -138,7 +138,7 @@ class Dashboard
 
         }.bind(this));
     }
-    
+
     showPage()
     {
         let menu = document.querySelector('.menu');
@@ -269,7 +269,7 @@ class Dashboard
 
                     if (row.dataset.type != 'status')
                         status = false;
-                    
+
                     function wait(resolve)
                     {
                         device = this.controller.findDevice(item);
@@ -311,7 +311,7 @@ class Dashboard
 
                     if (item.expose)
                         return;
-                    
+
                     row.classList.add('label');
                     this.addChart(table, item, block.interval);
                 });
@@ -325,7 +325,7 @@ class Dashboard
 
                     toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpoint, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
                     element.querySelector('.control').append(toggle);
-                    
+
                     setInterval(function()
                     {
                         let status = 'off'
@@ -337,7 +337,7 @@ class Dashboard
 
                         toggle.dataset.status = status;
                         toggle.querySelector('i').className = 'icon-enable ' + (status == 'on' ? 'warning' : 'shade');
-                        
+
                     }, 100);
                 }
 

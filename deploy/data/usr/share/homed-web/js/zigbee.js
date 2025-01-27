@@ -520,7 +520,7 @@ class ZigBee extends DeviceService
         fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let list;
-            
+
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             list = modal.querySelector('select[name="endpointId"]');
