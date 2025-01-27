@@ -997,7 +997,7 @@ tr:first-child td {
 #modal .dropdown .list {
     overflow: auto;
     min-width: min(400px, calc(100vw - 60px));
-    max-height: calc(100vh - 300px);
+    max-height: 300px;
 }
 
 #modal .dropdown .list input[type="text"] {

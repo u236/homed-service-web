@@ -347,7 +347,7 @@ class Automation
 
     conditionList(automation, list, table, level = 0, colSpan = 0)
     {
-        if (!list.length && level)
+        if (!list?.length && level)
             list = new Array(new Object());
 
         list?.forEach((condition, index) =>
@@ -415,7 +415,7 @@ class Automation
 
     actionList(automation, list, table, level = 0)
     {
-        if (!list.length && level)
+        if (!list?.length && level)
             list = new Array(new Object());
 
         list?.forEach((action, index) =>
