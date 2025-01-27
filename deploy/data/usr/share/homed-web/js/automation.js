@@ -347,6 +347,9 @@ class Automation
 
     conditionList(automation, list, table, level = 0, colSpan = 0)
     {
+        if (!list.length && level)
+            list = new Array(new Object());
+
         list?.forEach((condition, index) =>
         {
             let row = table.insertRow();
@@ -359,10 +362,13 @@ class Automation
                 {
                     case 0:
                         for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
-                        cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type;
+                        cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type ?? '<span class="shade"><i>no conditions</i></span>';
                         break;
 
                     case 1:
+
+                        if (!condition.type)
+                            break;
 
                         if (colSpan)
                             cell.colSpan = colSpan;
@@ -382,6 +388,10 @@ class Automation
                         break;
 
                     case 2:
+
+                        if (!condition.type)
+                            break;
+
                         cell.innerHTML = '<i class="icon-trash"></i>';
                         cell.classList.add('remove', 'right');
                         cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
@@ -405,6 +415,9 @@ class Automation
 
     actionList(automation, list, table, level = 0)
     {
+        if (!list.length && level)
+            list = new Array(new Object());
+
         list?.forEach((action, index) =>
         {
             let row = table.insertRow();
@@ -417,10 +430,13 @@ class Automation
                 {
                     case 0:
                         for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
-                        cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type;
+                        cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i><span>';
                         break;
 
                     case 1:
+
+                        if (!action.type)
+                            break;
 
                         if (action.type != 'condition')
                         {
@@ -469,7 +485,7 @@ class Automation
 
                     case 2:
 
-                        if (list.length < 2 || index == list.length - 1)
+                        if (!action.type || list.length < 2 || index == list.length - 1)
                             break;
 
                         cell.innerHTML = '<i class="icon-down"></i>';
@@ -479,7 +495,7 @@ class Automation
 
                     case 3:
 
-                        if (list.length < 2 || !index)
+                        if (!action.type || list.length < 2 || !index)
                             break;
 
                         cell.innerHTML = '<i class="icon-up"></i>';
@@ -488,6 +504,10 @@ class Automation
                         break;
 
                     case 4:
+
+                        if (!action.type)
+                            break;
+
                         cell.innerHTML = '<i class="icon-trash"></i>';
                         cell.classList.add('remove');
                         cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
