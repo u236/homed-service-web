@@ -111,10 +111,10 @@ class Controller
 
                 switch (list[1])
                 {
-                    case 'automation': this.services[service] = new Automation(this); break;
+                    case 'automation': this.services[service] = new Automation(this, list[2]); break;
                     case 'recorder':   this.services[service] = new Recorder(this); break;
-                    case 'custom':     this.services[service] = new Custom(this, list[2]); break;
-                    case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
+                    case 'custom':     this.services[service] = new Custom(this); break;
+                    case 'modbus':     this.services[service] = new Modbus(this); break;
                     case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
                     default:           return;
                 }

@@ -1,6 +1,7 @@
 class Automation
 {
     intervals = [setInterval(function() { this.updateLastTriggered(); }.bind(this), 100)];
+    service = 'automation';
 
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
@@ -15,14 +16,19 @@ class Automation
     status = new Object();
     data = new Object();
 
-    constructor(controller)
+    constructor(controller, instance)
     {
         this.controller = controller;
+
+        if (!instance)
+            return;
+
+        this.service += '/' + instance;
     }
 
     updateLastTriggered()
     {
-        if (this.controller.page != 'automation' || !this.status.automations)
+        if (this.controller.page != this.service || !this.status.automations)
             return;
 
         this.status.automations.forEach((item, index) =>
@@ -71,7 +77,7 @@ class Automation
                     case 2:
                         cell.innerHTML = '<i class="icon-trash"></i>';
                         cell.classList.add('remove');
-                        cell.addEventListener('click', function() { cell.innerHTML = '<div class="dataLoader"></div>'; this.controller.socket.publish('command/automation', {action: 'removeState', state: state}); this.removeState = true; }.bind(this));
+                        cell.addEventListener('click', function() { cell.innerHTML = '<div class="dataLoader"></div>'; this.controller.socket.publish('command/' + this.service, {action: 'removeState', state: state}); this.removeState = true; }.bind(this));
                         break;
                 }
             }
@@ -101,10 +107,10 @@ class Automation
                 this.status = message;
                 this.updateStates();
 
-                if (this.controller.service == 'automation')
+                if (this.controller.service == this.service)
                 {
                     if (JSON.stringify(check) != JSON.stringify(this.status.automations?.map(automation => automation.name)))
-                        this.controller.showPage('automation');
+                        this.controller.showPage(this.service);
 
                     this.updatePage();
                 }
@@ -115,7 +121,7 @@ class Automation
 
                 let html = 'Automation <b>' + message.automation + '</b> ';
 
-                if (this.controller.service != 'automation')
+                if (this.controller.service != this.service)
                     break;
 
                 switch (message.event)
@@ -500,7 +506,7 @@ class Automation
         menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
 
         menu.querySelector('#states').addEventListener('click', function() { this.showStates(); }.bind(this));
-        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('automation'); }.bind(this));
+        menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showAutomationInfo(false, true); }.bind(this));
 
         menu.querySelector('#import').addEventListener('click', function()
@@ -567,7 +573,7 @@ class Automation
                 if (!item.conditions)
                     item.conditions = new Array();
 
-                row.addEventListener('click', function() { this.controller.showPage('automation?index=' + index); }.bind(this));
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?index=' + index); }.bind(this));
                 row.dataset.index = index;
 
                 if (!item.active)
@@ -643,7 +649,7 @@ class Automation
                     list.push(item[0]);
                 });
 
-                handleArrowButtons(this.content, list, current, function(index) { this.controller.showPage('automation?index=' + index); }.bind(this));
+                handleArrowButtons(this.content, list, current, function(index) { this.controller.showPage(this.service + '?index=' + index); }.bind(this));
             }
             else
             {
@@ -659,7 +665,7 @@ class Automation
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
-            this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
+            this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
             this.content.querySelector('.copy').addEventListener('click', function() { delete this.data.active; this.data.name += ' (copy)'; delete this.name; this.showAutomationInfo(); }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
@@ -762,7 +768,7 @@ class Automation
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = this.data.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/automation', {action: 'removeAutomation', automation: this.name}); this.controller.clearPage(); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'removeAutomation', automation: this.name}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
