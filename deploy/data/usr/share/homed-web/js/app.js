@@ -399,8 +399,8 @@ class Device
 
 class DeviceService
 {
+    intervals = [setInterval(function() { this.updateDeviceData(); }.bind(this), 100)];
     content = document.querySelector('.content .container');
-    intervals = new Array();
     devices = new Object();
 
     constructor(controller, service, instance)
@@ -408,13 +408,11 @@ class DeviceService
         this.controller = controller;
         this.service = service;
 
-        if (instance)
-        {
-            this.service += '/' + instance;
-            this.instance = true;
-        }
-
-        this.intervals.push(setInterval(function() { this.updateDeviceData(); }.bind(this), 100));
+        if (!instance)
+            return;
+        
+        this.service += '/' + instance;
+        this.instance = true;
     }
 
     updateDeviceData()
