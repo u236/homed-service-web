@@ -294,7 +294,7 @@ class Dashboard
                         row.querySelectorAll(row.dataset.type == 'status' ? 'td.name' : 'td.name, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this)));
 
                         if (status)
-                            items.push({device: device, endpoint: endpoint});
+                            items.push({device: device, endpoint: endpoint, property: row.querySelector('td.value').dataset.property});
 
                         if (option.type == 'binary' && option.class)
                             cell.dataset.class = option.class;
@@ -323,7 +323,7 @@ class Dashboard
                     toggle.innerHTML = '<i class="icon-enable shade"></i>';
                     toggle.classList.add('toggle');
 
-                    toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpoint, {status: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
+                    toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpoint, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
                     element.querySelector('.control').append(toggle);
                     
                     setInterval(function()
