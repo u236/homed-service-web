@@ -105,13 +105,13 @@ class Automation
                 let check = this.status.automations?.map(automation => automation.name);
 
                 this.status = message;
-                this.updateStates();
 
                 if (this.controller.service == this.service)
                 {
                     if (JSON.stringify(check) != JSON.stringify(this.status.automations?.map(automation => automation.name)))
                         this.controller.showPage(this.service);
 
+                    this.updateStates();
                     this.updatePage();
                 }
 
@@ -312,7 +312,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = (action.photo ? 'photo' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '') + (action.silent ? ' <span class="shade">[silent]</span>' : '');
+                data = (action.photo ? 'photo' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
                 break;
 
             case 'shell':
@@ -326,6 +326,9 @@ class Automation
 
         if (action.triggerName)
             data += ' <span>when trigger is</span> <span class="value">' + action.triggerName + '</span>';
+
+        if (action.silent)
+            data += ' <span class="shade">[silent]</span>';
 
         return data;
     }

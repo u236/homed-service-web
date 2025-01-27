@@ -232,9 +232,9 @@ class Controller
         if (guest && !['dashboard', 'recorder'].includes(service))
             return;
 
-        if (this.services.automation?.updated)
+        if (this.services[this.service]?.updated)
         {
-            this.services.automation.showAlert(page);
+            this.services[this.service].showAlert(page);
             return;
         }
 
