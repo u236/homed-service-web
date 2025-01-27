@@ -9,12 +9,12 @@ class Recorder
         this.controller = controller;
         this.color =
         {
-            grid:  function() { return theme == 'dark' ? 'rgba(51, 51, 51, 1.0)' : 'rgba(221, 221, 221, 1.0)'; },
-            major: function() { return theme == 'dark' ? 'rgba(68, 68, 68, 1.0)' : 'rgba(204, 204, 204, 1.0)'; },
+            grid:  function() { return theme == 'dark' ? 'rgb(51, 51, 51)' : 'rgb(221, 221, 221)'; },
+            major: function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
             error: 'rgba(255, 0, 0, 0.5)',
-            line:  'rgba(54, 162, 235, 1.0)',
+            line:  'rgb(54, 162, 235)',
             area:  'rgba(54, 162, 235, 0.4)',
-            on:    'rgba(243, 168, 59, 1.0)',
+            on:    'rgb(243, 168, 59)',
             off:   'rgba(127, 127, 127, 0.2)',
             bar:
             [
