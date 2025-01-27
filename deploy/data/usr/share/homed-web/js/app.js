@@ -182,7 +182,7 @@ class Controller
                     if (menu.innerHTML)
                         menu.append('|');
 
-                    item.innerHTML = service;
+                    item.innerHTML = service.replace('automation/', 'auto/');
                     item.dataset.service = service;
                     item.addEventListener('click', function() { this.showPage(service); }.bind(this));
 
