@@ -246,6 +246,7 @@ class Dashboard
                 let table = document.createElement('table');
                 let status = true;
                 let items = new Array();
+                let column;
 
                 element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span></div>';
 
@@ -341,7 +342,14 @@ class Dashboard
                     }, 100);
                 }
 
-                this.content.querySelector('.column.' + (index < dashboard.blocks.length / 2 ? 'a' : 'b')).append(element);
+                switch (dashboard.columnPriority)
+                {
+                    case 'left':  column = index < dashboard.blocks.length / 4 ? 'b' : 'a'; break;
+                    case 'right': column = index < dashboard.blocks.length / 4 ? 'a' : 'b'; break;
+                    default:      column = index < dashboard.blocks.length / 2 ? 'a' : 'b'; break;
+                }
+
+                this.content.querySelector('.column.' + column).append(element);
             });
         });
     }
@@ -462,11 +470,13 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name;
             modal.querySelector('input[name="name"]').value = dashboard.name;
+            modal.querySelector('select[name="columnPriority"]').value = dashboard.columnPriority ?? 'equal';
             modal.querySelector('.add').addEventListener('click', function() { this.showBlockEdit(dashboard, null, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 dashboard.name = modal.querySelector('input[name="name"]').value;
+                dashboard.columnPriority = modal.querySelector('select[name="columnPriority"]').value;
 
                 if (dashboard.add)
                 {
