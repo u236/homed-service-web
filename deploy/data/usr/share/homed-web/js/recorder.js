@@ -587,10 +587,11 @@ class Recorder
         });
     }
 
-    showItemEdit(add = false)
+    showItemEdit(add)
     {
         fetch('html/recorder/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            let item;
             let name;
             let data;
 
@@ -601,7 +602,7 @@ class Recorder
             {
                 let properties = this.controller.propertiesList();
 
-                this.data = new Object();
+                item = new Object();
                 name.innerHTML = 'New item';
 
                 addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
@@ -614,13 +615,14 @@ class Recorder
             }
             else
             {
-                name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
-                this.devicePromise(this.data, name);
+                item = {...this.data};
+                name.innerHTML = item.endpoint + ' <i class="icon-right"></i> ' + item.property;
+                this.devicePromise(item, name);
             }
 
             modal.querySelector('.add').style.display = add ? 'block' : 'none';
-            modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
-            modal.querySelector('input[name="threshold"]').value = this.data.threshold ?? 0;
+            modal.querySelector('input[name="debounce"]').value = item.debounce ?? 0;
+            modal.querySelector('input[name="threshold"]').value = item.threshold ?? 0;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -630,21 +632,21 @@ class Recorder
                 {
                     if (data)
                     {
-                        this.data.endpoint = data.endpoint;
-                        this.data.property = data.property;
+                        item.endpoint = data.endpoint;
+                        item.property = data.property;
                     }
 
-                    if (!this.data.endpoint || !this.data.property)
+                    if (!item.endpoint || !item.property)
                     {
                         modal.querySelector('.property').classList.add('error');
                         return;
                     }
                 }
 
-                this.data.debounce = form.debounce;
-                this.data.threshold = form.threshold;
+                item.debounce = form.debounce;
+                item.threshold = form.threshold;
 
-                this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...this.data});
+                this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...item});
                 this.controller.clearPage();
 
             }.bind(this));
