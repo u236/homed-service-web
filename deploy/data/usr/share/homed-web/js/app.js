@@ -1,4 +1,4 @@
-let modal, controller, guest = true, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
+let modal, controller, dropdown, guest = true, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -194,15 +194,15 @@ class Controller
             if (!guest && menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 275)
             {
                 let item = document.createElement('span');
-                let dropdown = document.createElement('div');
+                let element = document.createElement('div');
 
                 item.classList.add('trigger');
-                dropdown.classList.add('dropdown');
+                element.classList.add('dropdown');
 
-                addDropdown(dropdown, list, function(service) { this.showPage(service); }.bind(this), 0, item);
+                addDropdown(element, list, function(service) { this.showPage(service); }.bind(this), 0, item);
 
                 menu.innerHTML = null;
-                menu.append(item, dropdown);
+                menu.append(item, element);
             }
         }
 
@@ -678,6 +678,70 @@ class DeviceService
     }
 }
 
+class Dropdown
+{
+    mouse = true;
+    index = -1;
+
+    constructor(list, trigger)
+    {
+        this.items = list.querySelectorAll('.item');
+        this.items.forEach((item, index) =>item.addEventListener('mouseover', function() { if (this.mouse) this.setIndex(index); }.bind(this)));
+
+        this.list = list;
+        this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
+        this.list.style.display = 'block';
+
+        this.trigger = trigger;
+    }
+
+    setIndex(index, scroll)
+    {
+        this.index = index;
+        this.items.forEach((item, index) => { if (index != this.index) item.classList.remove('current'); else item.classList.add('current'); });
+
+        if (index >= 0 && scroll)
+        {
+            var list = this.list.getBoundingClientRect();
+            var item = this.items[this.index].getBoundingClientRect();
+
+            if (list.top <= item.top && list.bottom >= item.bottom)
+                return;
+
+            this.items[this.index].scrollIntoView(list.top > item.top);
+        }
+    }
+
+    handleKey(event)
+    {
+        let key = event.key.toLocaleLowerCase();
+
+        if (['arrowdown', 'arrowup', 'enter'].includes(key))
+            event.preventDefault();
+
+        this.mouse = false;
+
+        switch (key)
+        {
+            case 'arrowdown': for (let i = this.index + 1; i < this.items.length; i++) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
+            case 'arrowup': for (let i = this.index - 1; i >= 0; i--) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
+            case 'enter': if (this.index >= 0 && this.index < this.items.length) this.items[this.index].click(); break;
+
+            case 'esc':
+            case 'escape':
+                this.close();
+                return false;
+        }
+
+        return true;
+    }
+
+    close()
+    {
+        this.list.style.display = 'none';
+    }
+}
+
 window.onload = function()
 {
     let date = new Date();
@@ -686,8 +750,8 @@ window.onload = function()
     modal = document.querySelector('#modal');
     controller = new Controller();
 
-    window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
     window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
+    document.addEventListener('click', function(event) { if (event.target == modal) showModal(false); if (dropdown && !dropdown.trigger.contains(event.target)) { dropdown.close(); dropdown = undefined; } });
 
     document.querySelector('#hotkeys').addEventListener('click', function()
     {
@@ -736,11 +800,17 @@ window.onresize = function()
 
 document.onkeydown = function(event)
 {
-    let key = event.key.toLocaleLowerCase();
+    if (dropdown)
+    {
+        if (!dropdown.handleKey(event))
+            dropdown = undefined;
+
+        return;
+    }
 
     if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
     {
-        switch (key)
+        switch (event.key.toLocaleLowerCase())
         {
             case 't': document.querySelector('#toggleTheme').click(); return;
             case 'w': document.querySelector('#toggleWide').click(); return;
@@ -749,7 +819,7 @@ document.onkeydown = function(event)
 
     if (modal.style.display != 'block')
     {
-        switch (key)
+        switch (event.key.toLocaleLowerCase())
         {
             case 'arrowleft':  document.querySelector('button.previous')?.click(); break;
             case 'arrowright': document.querySelector('button.next')?.click(); break;
@@ -761,7 +831,7 @@ document.onkeydown = function(event)
         return;
     }
 
-    switch (key)
+    switch (event.key.toLocaleLowerCase())
     {
         case 'enter':
 
@@ -850,6 +920,8 @@ function addDropdown(element, options, callback, separator, trigger)
     let search;
 
     list.classList.add('list');
+    list.addEventListener('mouseout', function() { if (dropdown?.mouse) dropdown.setIndex(-1); })
+
     element.append(list);
 
     if (!options.length)
@@ -865,7 +937,7 @@ function addDropdown(element, options, callback, separator, trigger)
         search = document.createElement('input');
         search.type = 'text';
         search.placeholder = 'Type to search';
-        search.addEventListener('input', function() { list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
+        search.addEventListener('input', function() { dropdown.setIndex(-1); list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
         list.append(search);
     }
 
@@ -891,21 +963,20 @@ function addDropdown(element, options, callback, separator, trigger)
         if (event.target.nodeName == 'INPUT')
             return;
 
-        if (list.style.display == 'block' && event.target != search)
+        if (dropdown && event.target != search)
         {
-            list.style.display = 'none';
+            dropdown.close();
+            dropdown = undefined;
             return;
         }
 
-        list.style.display = 'block';
+        dropdown = new Dropdown(list, trigger);
 
         if (!search)
             return;
 
         search.focus();
     });
-
-    document.addEventListener('click', function(event) { if (!trigger.contains(event.target)) list.style.display = 'none'; });
 }
 
 function showModal(show, focus)
