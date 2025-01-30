@@ -344,9 +344,9 @@ class Dashboard
 
                 switch (dashboard.columnPriority)
                 {
-                    case 'left':  column = index < dashboard.blocks.length / 4 ? 'b' : 'a'; break;
-                    case 'right': column = index < dashboard.blocks.length / 4 ? 'a' : 'b'; break;
-                    default:      column = index < dashboard.blocks.length / 2 ? 'a' : 'b'; break;
+                    case 'left':  column = index < dashboard.blocks.length / 1.5 ? 'a' : 'b'; break;
+                    case 'right': column = index < dashboard.blocks.length / 4.0 ? 'a' : 'b'; break;
+                    default:      column = index < dashboard.blocks.length / 2.0 ? 'a' : 'b'; break;
                 }
 
                 this.content.querySelector('.column.' + column).append(element);
@@ -508,7 +508,7 @@ class Dashboard
         });
     }
 
-    showBlockEdit(dashboard, index, callback)
+    showBlockEdit(dashboard, blockIndex, callback)
     {
         let showTable = function(table, dashboard, block)
         {
@@ -528,7 +528,7 @@ class Dashboard
                         case 0:
                             cell.innerHTML = item.name + '<div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, index, callback); }.bind(this)); }.bind(this));
+                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:
@@ -562,7 +562,7 @@ class Dashboard
 
         }.bind(this);
 
-        let block = isNaN(index) ? new Qbject() : dashboard.blocks[index];
+        let block = isNaN(blockIndex) ? new Qbject() : dashboard.blocks[blockIndex];
 
         if (!block)
             block = {name: 'New block', items: new Array(), add: true};
@@ -584,7 +584,7 @@ class Dashboard
             modal.querySelector('.edit').style.display = block.add ? 'none' : 'block'; // || callback
             modal.querySelector('select[name="dashboard"]').value = this.index;
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
-            modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, index, callback); }.bind(this)); }.bind(this));
+            modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -603,8 +603,8 @@ class Dashboard
                     if (!callback)
                         this.setIndex(form.dashboard);
 
-                    dashboard.blocks.splice(index, 1);
-                    this.status.dashboards[form.dashboard].blocks.push(block);
+                    dashboard.blocks.splice(blockIndex, 1);
+                    this.status.dashboards[form.dashboard].blocks.splice(blockIndex, 0, block);
                 }
 
                 if (callback)
