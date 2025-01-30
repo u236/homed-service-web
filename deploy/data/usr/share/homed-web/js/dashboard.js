@@ -253,7 +253,7 @@ class Dashboard
                 if (!guest)
                 {
                     element.querySelector('.title').innerHTML += '<span class="control"><span class="edit"><i class="icon-edit"></i></span></span>';
-                    element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, block); }.bind(this));
+                    element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
                 }
 
                 element.append(table);
@@ -428,7 +428,7 @@ class Dashboard
                         case 0:
                             cell.innerHTML = block.name;
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showBlockEdit(dashboard, block, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
+                            cell.addEventListener('click', function() { this.showBlockEdit(dashboard, index, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:
@@ -508,7 +508,7 @@ class Dashboard
         });
     }
 
-    showBlockEdit(dashboard, block, callback)
+    showBlockEdit(dashboard, index, callback)
     {
         let showTable = function(table, dashboard, block)
         {
@@ -528,7 +528,7 @@ class Dashboard
                         case 0:
                             cell.innerHTML = item.name + '<div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
+                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, index, callback); }.bind(this)); }.bind(this));
                             break;
 
                         case 1:
@@ -562,6 +562,8 @@ class Dashboard
 
         }.bind(this);
 
+        let block = isNaN(index) ? new Qbject() : dashboard.blocks[index];
+
         if (!block)
             block = {name: 'New block', items: new Array(), add: true};
 
@@ -570,18 +572,39 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
+
+            this.status.dashboards.forEach((dashboard, index) =>
+            {
+                let option = document.createElement('option');
+                option.innerHTML = dashboard.name;
+                option.value = index;
+                modal.querySelector('select[name="dashboard"]').append(option);
+            });
+
+            modal.querySelector('.edit').style.display = block.add ? 'none' : 'block'; // || callback
+            modal.querySelector('select[name="dashboard"]').value = this.index;
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
-            modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, block, callback); }.bind(this)); }.bind(this));
+            modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, index, callback); }.bind(this)); }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                block.name = modal.querySelector('input[name="name"]').value;
-                block.interval = modal.querySelector('select[name="interval"]').value;
+                let form = formData(modal.querySelector('form'));
+
+                block.name = form.name;
+                block.interval = form.interval;
 
                 if (block.add)
                 {
                     dashboard.blocks.push(block);
                     delete block.add;
+                }
+                else if (form.dashboard != this.index)
+                {
+                    if (!callback)
+                        this.setIndex(form.dashboard);
+
+                    dashboard.blocks.splice(index, 1);
+                    this.status.dashboards[form.dashboard].blocks.push(block);
                 }
 
                 if (callback)
