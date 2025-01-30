@@ -145,7 +145,7 @@ class Dashboard
 
         if (!guest)
         {
-            menu.innerHTML  = '<span id="sort" style="display: none;"><i class="icon-list"></i> Sort</span>';
+            menu.innerHTML  = '<span id="sort"><i class="icon-list"></i> Sort</span>';
             menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
             menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
 

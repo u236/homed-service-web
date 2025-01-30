@@ -611,8 +611,6 @@ class Recorder
                     modal.querySelector('.property').classList.remove('error');
 
                 }.bind(this));
-
-                modal.querySelector('.add').style.display = 'block';
             }
             else
             {
@@ -620,6 +618,7 @@ class Recorder
                 this.devicePromise(this.data, name);
             }
 
+            modal.querySelector('.add').style.display = add ? 'block' : 'none';
             modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
             modal.querySelector('input[name="threshold"]').value = this.data.threshold ?? 0;
 
