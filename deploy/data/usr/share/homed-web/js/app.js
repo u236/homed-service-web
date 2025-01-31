@@ -690,6 +690,7 @@ class Dropdown
 
         this.list = list;
         this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
+        this.list.addEventListener('mouseout', function() { if (this.mouse) dropdown.setIndex(-1); }.bind(this));
         this.list.style.display = 'block';
 
         this.trigger = trigger;
@@ -920,8 +921,6 @@ function addDropdown(element, options, callback, separator, trigger)
     let search;
 
     list.classList.add('list');
-    list.addEventListener('mouseout', function() { if (dropdown?.mouse) dropdown.setIndex(-1); })
-
     element.append(list);
 
     if (!options.length)

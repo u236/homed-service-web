@@ -475,8 +475,10 @@ class Dashboard
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                dashboard.name = modal.querySelector('input[name="name"]').value;
-                dashboard.columnPriority = modal.querySelector('select[name="columnPriority"]').value;
+                let form = formData(modal.querySelector('form'));
+
+                dashboard.name = form.name;
+                dashboard.columnPriority = form.columnPriority;
 
                 if (dashboard.add)
                 {
