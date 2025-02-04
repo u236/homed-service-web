@@ -37,7 +37,7 @@ html {
     --color-warning:    #fbb040;
     --color-error:      #ff4000;
     --border-radius:    5px;
-    --box-shadow:       0 0 20px rgba(127, 127, 127, 0.2);
+    --box-shadow:       0 2px 10px 0 rgba(127, 127, 127, 0.25);
     --header-height:    50px;
     --footer-height:    40px;
     scrollbar-width: thin;
@@ -827,6 +827,11 @@ td.remove:hover {
     font-size: 1.25rem;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.title .value {
+    position: relative;
+    bottom: 3px;
 }
 
 .title .interval {
