@@ -693,7 +693,7 @@ class Dropdown
 
         this.list = list;
         this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
-        this.list.addEventListener('mouseout', function() { if (this.mouse) dropdown.setIndex(-1); }.bind(this));
+        this.list.addEventListener('mouseout', function() { if (this.mouse) this.setIndex(-1); }.bind(this));
         this.list.style.display = 'block';
 
         this.trigger = trigger;
@@ -755,7 +755,9 @@ window.onload = function()
     controller = new Controller();
 
     window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
-    window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); if (dropdown && !dropdown.trigger.contains(event.target)) { dropdown.close(); dropdown = undefined; } });
+
+    document.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
+    document.addEventListener('click', function(event) { if (dropdown && !dropdown.trigger.contains(event.target)) { dropdown.close(); dropdown = undefined; } });
 
     document.querySelector('#hotkeys').addEventListener('click', function()
     {
