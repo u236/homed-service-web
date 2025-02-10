@@ -752,7 +752,7 @@ window.onload = function()
     controller = new Controller();
 
     window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
-    document.addEventListener('click', function(event) { if (event.target == modal) showModal(false); if (dropdown && !dropdown.trigger.contains(event.target)) { dropdown.close(); dropdown = undefined; } });
+    window.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); if (dropdown && !dropdown.trigger.contains(event.target)) { dropdown.close(); dropdown = undefined; } });
 
     document.querySelector('#hotkeys').addEventListener('click', function()
     {
