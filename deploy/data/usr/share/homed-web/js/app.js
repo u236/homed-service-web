@@ -657,6 +657,9 @@ class DeviceService
                 if (device.info.options)
                     data.options = device.info.options;
 
+                if (device.info.bindings)
+                    data.bindings = device.info.bindings;
+
                 item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
                 item.download = device.info.name + '.json';
                 item.click();

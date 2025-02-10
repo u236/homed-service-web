@@ -179,7 +179,13 @@ class Custom extends DeviceService
             modal.querySelector('input[name="id"]').value = device.info.id;
             modal.querySelector('input[name="exposes"]').value = device.info.exposes.join(', ');
             modal.querySelector('textarea[name="options"]').value = device.info.options ? JSON.stringify(device.info.options, null, 2) : '';
+
+            modal.querySelector('.real').style.display = device.info.real ? 'block' : 'none';
+            modal.querySelector('textarea[name="bindings"]').value = device.info.bindings ? JSON.stringify(device.info.bindings, null, 2) : '';
+
             modal.querySelector('input[name="real"]').checked = device.info.real;
+            modal.querySelector('input[name="real"]').addEventListener('click', function() { modal.querySelector('.real').style.display = this.checked ? 'block' : 'none'; });
+
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
@@ -198,11 +204,17 @@ class Custom extends DeviceService
                 else
                     delete form.options;
 
+                if (form.bindings)
+                    try { form.bindings = JSON.parse(form.bindings); } catch { modal.querySelector('textarea[name="bindings"]').classList.add('error'); return; }
+                else
+                    delete form.bindings;
+
                 this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
 
             }.bind(this));
 
             modal.querySelector('textarea[name="options"]').addEventListener('input', function() { this.classList.remove('error'); });
+            modal.querySelector('textarea[name="bindings"]').addEventListener('input', function() { this.classList.remove('error'); });
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true, 'input[name="name"]');
         });
