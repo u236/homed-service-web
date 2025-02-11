@@ -312,7 +312,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = (action.photo ? 'photo' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
+                data = (action.file ? '[file]' : action.photo ? '[photo]' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
                 break;
 
             case 'shell':

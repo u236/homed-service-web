@@ -176,6 +176,9 @@ class Dashboard
 
     showDashboard()
     {
+        if (!guest)
+            document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
+
         if (!this.status.dashboards.length)
         {
             this.content.innerHTML = '<div class="emptyList">dashboards list is empty</div>';
@@ -184,9 +187,6 @@ class Dashboard
 
         if (!this.status.dashboards[this.index])
             this.index = 0;
-
-        if (!guest)
-            document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
 
         fetch('html/dashboard/dashboard.html?' + Date.now()).then(response => response.text()).then(html =>
         {
