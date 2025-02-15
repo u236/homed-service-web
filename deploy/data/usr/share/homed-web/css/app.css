@@ -240,7 +240,7 @@ td.remove {
     text-align: right;
 }
 
-td.edit:hover, td.move:hover {
+td.edit:hover, td.move:hover, td.edit:hover .shade {
     color: var(--color-warning);
 }
 

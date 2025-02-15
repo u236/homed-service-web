@@ -40,18 +40,18 @@ class Socket
         if (!this.subscriptions.includes(topic))
             this.subscriptions.push(topic);
 
-        this.ws.send(JSON.stringify({'action': 'subscribe', 'topic': topic}));
+        this.ws.send(JSON.stringify({action: 'subscribe', topic: topic}));
     }
 
     publish(topic, message)
     {
-        this.ws.send(JSON.stringify({'action': 'publish', 'topic': topic, 'message': message}));
+        this.ws.send(JSON.stringify({action: 'publish', topic: topic, message: message}));
     }
 
     unsubscribe(topic)
     {
         this.subscriptions.splice(this.subscriptions.indexOf(topic), 1);
-        this.ws.send(JSON.stringify({'action': 'unsubscribe', 'topic': topic}));
+        this.ws.send(JSON.stringify({action: 'unsubscribe', topic: topic}));
     }
 }
 
@@ -816,7 +816,7 @@ document.onkeydown = function(event)
 
     if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
     {
-        switch (event.key.toLocaleLowerCase())
+        switch (event.key.toLowerCase())
         {
             case 't': document.querySelector('#toggleTheme').click(); return;
             case 'w': document.querySelector('#toggleWide').click(); return;
@@ -825,7 +825,7 @@ document.onkeydown = function(event)
 
     if (modal.style.display != 'block')
     {
-        switch (event.key.toLocaleLowerCase())
+        switch (event.key.toLowerCase())
         {
             case 'arrowleft':  document.querySelector('button.previous')?.click(); break;
             case 'arrowright': document.querySelector('button.next')?.click(); break;
@@ -837,7 +837,7 @@ document.onkeydown = function(event)
         return;
     }
 
-    switch (event.key.toLocaleLowerCase())
+    switch (event.key.toLowerCase())
     {
         case 'enter':
 
