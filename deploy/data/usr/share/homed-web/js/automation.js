@@ -319,6 +319,10 @@ class Automation
                 data = '<span class="value">' + action.command + '</span>';
                 break;
 
+            case 'condition':
+                data = action.triggerName ? '' : '<span class="shade"><i>any trigger</i></span>';
+                break;
+
             case 'delay':
                 data = '<span class="value">' + action.delay + '</span> seconds';
                 break;
@@ -337,12 +341,12 @@ class Automation
     {
         if (['AND', 'OR', 'NOT'].includes(type))
         {
-            list.push({'type': type, 'conditions': new Array()});
+            list.push({type: type, conditions: new Array()});
             automation.showAutomationInfo();
             return;
         }
 
-        automation.showCondition({'type': type}, list, true);
+        automation.showCondition({type: type}, list, true);
     }
 
     conditionList(automation, list, table, level = 0, colSpan = 0)
@@ -401,18 +405,6 @@ class Automation
         });
     }
 
-    actionDropdown(automation, list, type)
-    {
-        if (type == 'condition')
-        {
-            list.push({'type': type, 'conditions': new Array(), 'then': new Array(), 'else': new Array()});
-            automation.showAutomationInfo();
-            return;
-        }
-
-        automation.showAction({'type': type}, list, true);
-    }
-
     actionList(automation, list, table, level = 0)
     {
         if (!list?.length && level)
@@ -438,13 +430,12 @@ class Automation
                         if (!action.type)
                             break;
 
+                        cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>';
+                        cell.classList.add('edit');
+                        cell.addEventListener('click', function() { automation.showAction(action, list); });
+
                         if (action.type != 'condition')
-                        {
-                            cell.innerHTML = automation.actionInfo(action) ?? '<i>undefined</i>';
-                            cell.classList.add('edit');
-                            cell.addEventListener('click', function() { automation.showAction(action, list); });
                             break;
-                        }
 
                         for (let j = 0; j < 3; j++)
                         {
@@ -468,13 +459,13 @@ class Automation
 
                                 case 1:
                                     nameCell.innerHTML += '<span class="value">THEN</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.then, type); }, 5);
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.then, true); }, 5);
                                     automation.actionList(automation, action.then, table, level + 2);
                                     break;
 
                                 case 2:
                                     nameCell.innerHTML += '<span class="value">ELSE</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.actionDropdown(automation, action.else, type); }, 5);
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.else, true); }, 5);
                                     automation.actionList(automation, action.else, table, level + 2);
                                     break;
                             }
@@ -716,9 +707,9 @@ class Automation
             conditions = this.content.querySelector('.conditions');
             actions = this.content.querySelector('.actions');
 
-            addDropdown(this.content.querySelector('.addTrigger'), this.triggerType, function(type) { this.showTrigger({'type': type}, true); }.bind(this));
+            addDropdown(this.content.querySelector('.addTrigger'), this.triggerType, function(type) { this.showTrigger({type: type}, true); }.bind(this));
             addDropdown(this.content.querySelector('.addCondition'), this.conditionType, function(type) { this.conditionDropdown(this, this.data.conditions, type); }.bind(this), 7);
-            addDropdown(this.content.querySelector('.addAction'), this.actionType, function(type) { this.actionDropdown(this, this.data.actions, type); }.bind(this), 5);
+            addDropdown(this.content.querySelector('.addAction'), this.actionType, function(type) { this.showAction({type: type}, this.data.actions, true); }.bind(this), 5);
 
             this.data.triggers.forEach((trigger, index) =>
             {
@@ -801,11 +792,11 @@ class Automation
     {
         switch (trigger.type)
         {
-            case 'property': this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
-            case 'mqtt':     this.showMqttItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
-            case 'telegram': this.showTelegramTrigger(trigger, append); break;
-            case 'time':     this.showTimeTrigger(trigger, append); break;
-            case 'interval': this.showIntervalTrigger(trigger, append); break;
+            case 'property':  this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
+            case 'mqtt':      this.showMqttItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
+            case 'telegram':  this.showTelegramTrigger(trigger, append); break;
+            case 'time':      this.showTimeTrigger(trigger, append); break;
+            case 'interval':  this.showIntervalTrigger(trigger, append); break;
         }
     }
 
@@ -813,13 +804,13 @@ class Automation
     {
         switch (condition.type)
         {
-            case 'property': this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition'); break;
-            case 'mqtt':     this.showMqttItem(condition, list, this.conditionStatement, append, 'condition'); break;
-            case 'state':    this.showStatePatternCondition(condition, list, append, condition.type); break;
-            case 'date':     this.showDateTimeCondition(condition, list, append, condition.type); break;
-            case 'time':     this.showDateTimeCondition(condition, list, append, condition.type); break;
-            case 'week':     this.showWeekCondition(condition, list, append); break;
-            case 'pattern':  this.showStatePatternCondition(condition, list, append, condition.type); break;
+            case 'property':  this.showPropertyItem(condition, list, this.conditionStatement, append, 'condition'); break;
+            case 'mqtt':      this.showMqttItem(condition, list, this.conditionStatement, append, 'condition'); break;
+            case 'state':     this.showStatePatternCondition(condition, list, append, condition.type); break;
+            case 'date':      this.showDateTimeCondition(condition, list, append, condition.type); break;
+            case 'time':      this.showDateTimeCondition(condition, list, append, condition.type); break;
+            case 'week':      this.showWeekCondition(condition, list, append); break;
+            case 'pattern':   this.showStatePatternCondition(condition, list, append, condition.type); break;
         }
     }
 
@@ -827,12 +818,13 @@ class Automation
     {
         switch (action.type)
         {
-            case 'property': this.showPropertyItem(action, list, this.actionStatement, append, 'action'); break;
-            case 'mqtt':     this.showMqttAction(action, list, append); break;
-            case 'state':    this.showStateAction(action, list, append); break;
-            case 'telegram': this.showTelegramAction(action, list, append); break;
-            case 'shell':    this.showShellAction(action, list, append); break;
-            case 'delay':    this.showDelayAction(action, list, append); break;
+            case 'property':  this.showPropertyItem(action, list, this.actionStatement, append, 'action'); break;
+            case 'mqtt':      this.showMqttAction(action, list, append); break;
+            case 'state':     this.showStateAction(action, list, append); break;
+            case 'telegram':  this.showTelegramAction(action, list, append); break;
+            case 'shell':     this.showShellAction(action, list, append); break;
+            case 'condition': this.showConditionAction(action, list, append); break;
+            case 'delay':     this.showDelayAction(action, list, append); break;
         }
     }
 
@@ -1393,6 +1385,41 @@ class Automation
 
             this.handleCopy(action, this.data.actions, append);
             showModal(true, 'textarea[name="command"]');
+        });
+    }
+
+    showConditionAction(action, list, append)
+    {
+        fetch('html/automation/conditionAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
+                else
+                    delete action.triggerName;
+
+                if (append)
+                {
+                    action.conditions = new Array();
+                    action.then = new Array();
+                    action.else = new Array();
+                    list.push(action);
+                }
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(action, this.data.actions, append);
+            showModal(true, 'input[name="triggerName"]');
         });
     }
 
