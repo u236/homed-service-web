@@ -407,6 +407,8 @@ class Automation
 
     actionList(automation, list, table, level = 0)
     {
+        let condition = false;
+
         if (!list?.length && level)
             list = new Array(new Object());
 
@@ -417,6 +419,9 @@ class Automation
             for (let i = 0; i < 5; i++)
             {
                 let cell = row.insertCell();
+
+                if (!level && (condition || (index && action.type == 'condition')))
+                    cell.classList.add('edge');
 
                 switch (i)
                 {
@@ -473,7 +478,6 @@ class Automation
 
                         break;
 
-
                     case 2:
 
                         if (!action.type || list.length < 2 || index == list.length - 1)
@@ -505,6 +509,8 @@ class Automation
                         break;
                 }
             }
+
+            condition = action.type == 'condition' ? true : false;
         });
     }
 
