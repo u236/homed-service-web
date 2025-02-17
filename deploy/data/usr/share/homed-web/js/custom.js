@@ -182,6 +182,8 @@ class Custom extends DeviceService
 
             modal.querySelector('.real').style.display = device.info.real ? 'block' : 'none';
             modal.querySelector('textarea[name="bindings"]').value = device.info.bindings ? JSON.stringify(device.info.bindings, null, 2) : '';
+            modal.querySelector('input[name="availabilityTopic"]').value = device.info.availabilityTopic ?? '';
+            modal.querySelector('input[name="availabilityPattern"]').value = device.info.availabilityPattern ?? '';
 
             modal.querySelector('input[name="real"]').checked = device.info.real;
             modal.querySelector('input[name="real"]').addEventListener('click', function() { modal.querySelector('.real').style.display = this.checked ? 'block' : 'none'; });
