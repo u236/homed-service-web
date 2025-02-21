@@ -58,7 +58,7 @@ function exposeList(expose, options)
             let controls = ['systemMode', 'operationMode', 'targetTemperature'];
             controls.forEach(function(item) { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
-            options['temperature'] = {type:'sensor', unit: '°C'};
+            options['temperature'] = {type: 'sensor', unit: '°C'};
             break;
 
         case 'thermostatProgram':
@@ -70,6 +70,27 @@ function exposeList(expose, options)
 
             switch (options.thermostatProgram)
             {
+                case 'aqara':
+                {
+                    let types = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+                    for (let i = 0; i < types.length; i++)
+                    {
+                        list.push('schedule' + types[i]);
+                        options['schedule' + types[i]] = {type: 'toggle'};
+                    }
+
+                    for (let i = 0; i < 4; i++)
+                    {
+                        let item = 'scheduleP' + parseInt(i + 1);
+                        list.push(item + 'Time');
+                        list.push(item + 'Temperature');
+                        options[item + 'Temperature'] = option;
+                    }
+
+                    break;
+                }
+
                 case 'daily':
                 case 'extended':
                 {
