@@ -23,11 +23,12 @@ function exposeTitle(name, endpoint = 'common')
         case 'pm1':    title[0] = 'PM1'; break;
         case 'pm10':   title[0] = 'PM10'; break;
         case 'pm25':   title[0] = 'PM2.5'; break;
+        case 'uv':     title[0] = 'UV'; break;
         case 'voc':    title[0] = 'VOC'; break;
         default:       title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
 
-    if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6'].includes(title[1]))
+    if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 't1', 't2', 't3', 't4'].includes(title[1]))
         title[1] = title[1].toUpperCase();
 
     return title.join(' ') + (endpoint != 'common' ? ' ' + endpoint.toLowerCase() : '');
