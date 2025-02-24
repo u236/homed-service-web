@@ -177,7 +177,7 @@ class Automation
             return;
         }
 
-        element.addEventListener('click', function() { list.push({...item}); this.showAutomationInfo(); }.bind(this));
+        element.addEventListener('click', function() { list.push(structuredClone(item)); this.showAutomationInfo(); }.bind(this));
     }
 
     valueForm(form, statement)
@@ -549,7 +549,7 @@ class Automation
 
         if (automation)
         {
-            this.data = {...automation};
+            this.data = structuredClone(automation);
             this.name = automation.name;
             this.showAutomationInfo(false);
         }
@@ -690,7 +690,7 @@ class Automation
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
-                let data = {...this.data};
+                let data = structuredClone(this.data);
                 let item = document.createElement("a");
 
                 delete data.active;

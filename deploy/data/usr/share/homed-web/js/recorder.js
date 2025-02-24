@@ -615,7 +615,7 @@ class Recorder
             }
             else
             {
-                item = {...this.data};
+                item = structuredClone(this.data);
                 name.innerHTML = item.endpoint + ' <i class="icon-right"></i> ' + item.property;
                 this.devicePromise(item, name);
             }
