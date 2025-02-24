@@ -154,7 +154,7 @@ class Automation
 
     parseValue(value)
     {
-        return value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value);
+        return value ? value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value) : null;
     }
 
     itemProperty(item, form = false)
