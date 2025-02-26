@@ -113,8 +113,8 @@ class Controller
                 {
                     case 'automation': this.services[service] = new Automation(this, list[2]); break;
                     case 'recorder':   this.services[service] = new Recorder(this); break;
-                    case 'custom':     this.services[service] = new Custom(this); break;
-                    case 'modbus':     this.services[service] = new Modbus(this); break;
+                    case 'custom':     this.services[service] = new Custom(this, list[2]); break;
+                    case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
                     case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
                     default:           return;
                 }
@@ -574,7 +574,7 @@ class DeviceService
 
                 if (device && message)
                 {
-                    let endpoint = list[3] ?? 'common';
+                    let endpoint = (this.instance ? list[4] : list[3]) ?? 'common';
                     device.setProperties(endpoint, message);
                     Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
                 }
@@ -625,7 +625,7 @@ class DeviceService
 
     showDeviceInfo(device)
     {
-        fetch('html/' + this.service + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/' + this.service.split('/')[0] + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
 
@@ -676,7 +676,7 @@ class DeviceService
 
     showDeviceRemove(device)
     {
-        fetch('html/' + this.service + '/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        fetch('html/' + this.service.split('/')[0] + '/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
