@@ -334,6 +334,9 @@ class Controller
                         {
                             let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
 
+                            if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
+                                return;
+
                             if (endpoint != 'common')
                                 value.endpoint += '/' + endpoint;
 

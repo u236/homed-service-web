@@ -651,6 +651,9 @@ class Dashboard
                     {
                         let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
 
+                        if (expose == 'thermostatProgram')
+                            return;
+
                         if (endpoint != 'common')
                             value.endpoint += '/' + endpoint;
 

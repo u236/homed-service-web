@@ -5,7 +5,7 @@ html[theme="light"] {
     --background-error: #ffdddd;
     --border-loader:    #888888;
     --border-main:      #cccccc;
-    --border-edge:      #dddddd;
+    --border-edge:      #e6e6e6;
     --border-shade:     #eeeeee;
     --color-main:       #444444;
     --color-shade:      #888888;
@@ -23,7 +23,7 @@ html[theme="dark"] {
     --background-error: #331111;
     --border-loader:    #888888;
     --border-main:      #444444;
-    --border-edge:      #333333;
+    --border-edge:      #2a2a2a;
     --border-shade:     #222222;
     --color-main:       #cccccc;
     --color-shade:      #888888;
@@ -227,7 +227,7 @@ td {
 }
 
 td.edge {
-    border-top: 1px solid var(--border-edge);
+    border-top: 2px solid var(--border-edge);
 }
 
 td.edit {
