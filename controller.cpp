@@ -77,7 +77,10 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
     data = file.readAll();
 
     if (fileName == "/index.html")
-        data = QString(data).arg(SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"icon-enable\"></i> LOGOUT</span>" : QString()).toUtf8();
+    {
+        QString css = "<link rel=\"stylesheet\" href=\"css/custom.css\">";
+        data = QString(data).arg(QFile::exists(QString(m_frontend).append("/css/custom.css")) ? css : QString("<!-- %1 -->").arg(css), SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"icon-enable\"></i> LOGOUT</span>" : QString()).toUtf8();
+    }
 
     httpResponse(socket, 200, {{"Content-Type", type}, {"Content-Length", QString::number(data.length())}}, data);
     file.close();
