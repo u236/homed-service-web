@@ -28,7 +28,7 @@ function exposeTitle(name, endpoint = 'common')
         default:       title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
 
-    if (['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 't1', 't2', 't3', 't4'].includes(title[1]))
+    if (title[1]?.match('^[pt][0-9]+$'))
         title[1] = title[1].toUpperCase();
 
     return title.join(' ') + (endpoint != 'common' ? ' ' + endpoint.toLowerCase() : '');
@@ -92,10 +92,9 @@ function exposeList(expose, options)
                 }
 
                 case 'daily':
-                case 'extended':
                 {
                     let types = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                    let count = options.thermostatProgram != 'extended' ? 4 : 6;
+                    let count = options.programTransitions ?? 4;
 
                     for (let i = 0; i < count * 7; i++)
                     {
@@ -318,6 +317,12 @@ function addExpose(table, device, endpoint, expose)
 
                         break;
 
+                    case 'time':
+                        valueCell.dataset.type = 'time';
+                        controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
+                        controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name]: value}); } });
+                        break;
+
                     case 'toggle':
                         controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
                         controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { let value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name]: value}); } }) );
@@ -325,7 +330,7 @@ function addExpose(table, device, endpoint, expose)
 
                     default:
 
-                        if (name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6'))
+                        if (name.match('^[a-z]+P[0-9]+Time$'))
                         {
                             controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
                             controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
@@ -348,7 +353,7 @@ function updateExpose(device, endpoint, name, value)
     {
         let cell;
 
-        if ((name.includes('P1') || name.includes('P2') || name.includes('P3') || name.includes('P4') || name.includes('P5') || name.includes('P6')) && (name.endsWith('Hour') || name.endsWith('Minute')))
+        if (name.match('^[a-z]+P[0-9]+(Hour|Minute)$'))
         {
             let item = name.replace('Hour', 'Time').replace('Minute', 'Time');
 
@@ -428,6 +433,9 @@ function updateExpose(device, endpoint, name, value)
                         if (input)
                             input.value = value;
                     }
+
+                    if (cell.dataset.type == 'time')
+                        row.querySelector('td.control input').value = value;
 
                     if (typeof value == 'number' && cell.dataset.round)
                             value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));

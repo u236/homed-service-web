@@ -226,6 +226,10 @@ td {
     white-space: nowrap;
 }
 
+td.edge {
+    border-top: 1px solid var(--border-edge);
+}
+
 td.edit {
     cursor: pointer;
 }
@@ -645,10 +649,6 @@ td.remove:hover {
     white-space: nowrap;
     vertical-align: bottom;
     text-overflow: ellipsis;
-}
-
-.automationInfo .edge {
-    border-top: 1px solid var(--border-edge);
 }
 
 .automationInfo .title, .itemInfo .title, .deviceInfo .title {
