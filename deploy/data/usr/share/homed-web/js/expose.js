@@ -159,6 +159,8 @@ function addExpose(table, device, endpoint, expose)
 
     list.forEach(name =>
     {
+        let last = table.rows[table.rows.length - 1]?.dataset.expose;
+        let edge = last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
         let option = options[name] ?? new Object();
         let item = name.split('_')[0];
         let row = table.insertRow();
@@ -168,6 +170,7 @@ function addExpose(table, device, endpoint, expose)
 
         row.dataset.device = device.service + '/' + device.id;
         row.dataset.endpoint = endpoint;
+        row.dataset.expose = expose;
 
         labelCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
         labelCell.classList.add('label');
@@ -209,7 +212,6 @@ function addExpose(table, device, endpoint, expose)
             {
                 let min = option.min ?? 150;
                 let max = option.max ?? 500;
-
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
                 controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
@@ -332,6 +334,9 @@ function addExpose(table, device, endpoint, expose)
 
                         if (name.match('^[a-z]+P[0-9]+Time$'))
                         {
+                            if (name.includes('P1'))
+                                edge = true;
+
                             controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
                             controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
                         }
@@ -342,6 +347,11 @@ function addExpose(table, device, endpoint, expose)
                 break;
             }
         }
+
+        if (!edge)
+            return;
+
+        row.querySelectorAll('td').forEach(item => item.classList.add('edge'));
     });
 
     Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
