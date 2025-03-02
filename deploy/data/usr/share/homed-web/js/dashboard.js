@@ -248,11 +248,11 @@ class Dashboard
                 let items = new Array();
                 let column;
 
-                element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span></div>';
+                element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span><span class="control"></span></div>';
 
                 if (!guest)
                 {
-                    element.querySelector('.title').innerHTML += '<span class="control"><span class="edit"><i class="icon-edit"></i></span></span>';
+                    element.querySelector('.control').innerHTML += '<span class="edit"><i class="icon-edit"></i></span>';
                     element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
                 }
 
