@@ -667,7 +667,7 @@ class DeviceService
                     data.availabilityTopic = device.info.availabilityTopic;
 
                 if (device.info.availabilityPattern)
-                    data.availabilityTopic = device.info.availabilityPattern;
+                    data.availabilityPattern = device.info.availabilityPattern;
 
                 item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
                 item.download = device.info.name + '.json';
