@@ -1367,6 +1367,7 @@ class Automation
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="command"]').value = action.command ?? '';
+            modal.querySelector('input[name="timeout"]').value = action.timeout ?? 30;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1374,6 +1375,7 @@ class Automation
                 let form = formData(modal.querySelector('form'));
 
                 action.command = form.command.trim();
+                action.timeout = form.timeout;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
