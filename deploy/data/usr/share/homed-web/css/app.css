@@ -204,13 +204,16 @@ table {
 }
 
 th {
-    padding: 5px 10px;
-    border-bottom: 1px solid var(--border-shade);
+    padding: 5px;
     font-size: 0.8125rem;
     font-weight: normal;
     text-transform: uppercase;
     text-align: left;
     color: var(--color-shade);
+}
+
+thead input[type="text"] {
+   margin-bottom: 5px;
 }
 
 tfoot th {
@@ -508,15 +511,29 @@ td.remove:hover {
     background-color: var(--background-hover);
 }
 
+.itemList tbody tr:first-child td {
+    border-top: 1px solid var(--border-shade);
+}
+
 .itemList td {
     overflow: hidden;
     max-width: 100px;
-    padding: 10px;
+    padding: 10px 5px;
     text-overflow: ellipsis;
 }
 
+.itemList .search {
+    cursor: pointer;
+    width: 12px;
+    padding-right: 0;
+}
+
+.itemList .search:hover {
+    color: var(--color-highlight);
+}
+
 .itemList .tiny {
-    width: 25px;
+    width: 35px;
 }
 
 .itemList .sort {

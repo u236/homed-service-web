@@ -266,7 +266,6 @@ class ZigBee extends DeviceService
         fetch('html/zigbee/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
-            let count = 0;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.deviceList table');
@@ -288,6 +287,7 @@ class ZigBee extends DeviceService
                         case 0:
 
                             cell.innerHTML = device.info.name;
+                            cell.colSpan = 2;
 
                             if (device.info.note)
                                 row.title = device.info.note;
@@ -311,14 +311,11 @@ class ZigBee extends DeviceService
                         case 6: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                     }
                 }
-
-                count++;
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, false, once); if (!once) localStorage.setItem('zigbeeSort', this.dataset.index); }) );
             sortTable(table, localStorage.getItem('zigbeeSort') ?? 0, false);
-
-            table.querySelector('tfoot').innerHTML='<tr><th colspan="10">' + count + (count > 1 ? ' devices ' : ' device ') + 'total</th></tr>';
+            addTableSearch(table, 'devices', 'device', 8, [0, 1]);
         });
     }
 

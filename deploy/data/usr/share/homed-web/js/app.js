@@ -815,6 +815,8 @@ window.onresize = function()
 
 document.onkeydown = function(event)
 {
+    let key = event.key.toLowerCase();
+
     if (dropdown)
     {
         if (!dropdown.handleKey(event))
@@ -825,7 +827,7 @@ document.onkeydown = function(event)
 
     if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
     {
-        switch (event.key.toLowerCase())
+        switch (key)
         {
             case 't': document.querySelector('#toggleTheme').click(); return;
             case 'w': document.querySelector('#toggleWide').click(); return;
@@ -834,8 +836,23 @@ document.onkeydown = function(event)
 
     if (modal.style.display != 'block')
     {
-        switch (event.key.toLowerCase())
+
+        switch (key)
         {
+            case '/':
+            case 'esc':
+            case 'escape':
+
+                let search = document.querySelector("#search");
+
+                if (search && ((key == '/' && search.style.display == 'none') || (key != '/' && search.style.display != 'none')))
+                {
+                    event.preventDefault();
+                    document.querySelector('th.search').click();
+                }
+
+                break;
+
             case 'arrowleft':  document.querySelector('button.previous')?.click(); break;
             case 'arrowright': document.querySelector('button.next')?.click(); break;
             case 'e':          document.querySelector('button.edit')?.click(); break;
@@ -846,7 +863,7 @@ document.onkeydown = function(event)
         return;
     }
 
-    switch (event.key.toLowerCase())
+    switch (key)
     {
         case 'enter':
 
@@ -887,11 +904,11 @@ function sortTable(table, index, first = true, once = false)
 
     while (check)
     {
-        let rows = table.rows;
+        let rows = table.querySelectorAll('tbody tr');
 
         check = false;
 
-        for (let i = first ? 1 : 2; i < rows.length - 1; i++)
+        for (let i = first ? 0 : 1; i < rows.length - 1; i++)
         {
             let current = rows[i].querySelectorAll('td')[index];
             let next = rows[i + 1].querySelectorAll('td')[index];
@@ -927,6 +944,50 @@ function sortTable(table, index, first = true, once = false)
         return;
 
     table.querySelector('th[data-index="' + index + '"]')?.classList.add('warning');
+}
+
+function showTableTotal(table, single, plural, colspan, count, total = true)
+{
+    table.querySelector('tfoot').innerHTML='<tr><th colspan="' + colspan + '">' + count + ' ' + (count == 1 ? single : plural) + ' ' + (total ? 'total' : 'found') + '</th></tr>';
+}
+
+function addTableSearch(table, plural, single, colspan, cells = [0])
+{
+    let total = table.querySelectorAll('tbody tr').length;
+    let search = table.querySelector('#search');
+    let input = search.querySelector('input');
+
+    showTableTotal(table, single, plural, colspan, total);
+
+    table.querySelector('th.search').addEventListener('click', function()
+    {
+        if (search.style.display == 'none')
+        {
+            search.style.display = 'table-row';
+            input.focus();
+            return;
+        }
+
+        table.querySelectorAll('tbody tr').forEach(row => { row.style.display = 'table-row'; });
+        search.style.display = 'none';
+        input.value = '';
+
+        showTableTotal(table, single, plural, colspan, total);
+    });
+
+    input.addEventListener('input', function()
+    {
+        let count = 0;
+
+        table.querySelectorAll('tbody tr').forEach(row =>
+        {
+            let check = false;
+            row.querySelectorAll('td').forEach((cell, index) => { if (!check && cells.includes(index) && cell.innerHTML.toLowerCase().includes(input.value.toLowerCase())) { count++; check = true; } });
+            row.style.display = check ? 'table-row' : 'none';
+        });
+
+        showTableTotal(table, single, plural, colspan, count, input.value ? false : true);
+    });
 }
 
 function addDropdown(element, options, callback, separator, trigger)

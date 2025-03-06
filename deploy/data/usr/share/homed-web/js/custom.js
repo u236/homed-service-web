@@ -113,7 +113,6 @@ class Custom extends DeviceService
         fetch('html/custom/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             let table;
-            let count = 0;
 
             this.content.innerHTML = html;
             table = this.content.querySelector('.deviceList table');
@@ -135,6 +134,7 @@ class Custom extends DeviceService
                         case 0:
 
                             cell.innerHTML = device.info.name;
+                            cell.colSpan = 2;
 
                             if (device.info.note)
                                 row.title = device.info.note;
@@ -148,14 +148,11 @@ class Custom extends DeviceService
                         case 5: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center', 'mobileHidden'); break;
                     }
                 }
-
-                count++;
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('customSort', this.dataset.index); }) );
             sortTable(table, localStorage.getItem('customSort') ?? 0);
-
-            table.querySelector('tfoot').innerHTML='<tr><th colspan="7">' + count + (count > 1 ? ' devices ' : ' device ') + 'total</th></tr>';
+            addTableSearch(table, 'devices', 'device', 7, [0, 1]);
         });
     }
 
