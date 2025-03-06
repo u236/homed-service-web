@@ -829,6 +829,7 @@ document.onkeydown = function(event)
     {
         switch (key)
         {
+            case 'h': document.querySelector('#hotkeys').click(); return;
             case 't': document.querySelector('#toggleTheme').click(); return;
             case 'w': document.querySelector('#toggleWide').click(); return;
         }

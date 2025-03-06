@@ -57,3 +57,4 @@
 .icon-enter::before   { content: '\e818'; }
 .icon-chart::before   { content: '\e819'; }
 .icon-refresh::before { content: '\e81a'; }
+.icon-search::before  { content: '\e81b'; }
