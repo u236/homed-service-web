@@ -649,7 +649,7 @@ class DeviceService
             table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
 
-            if (this.service != 'custom')
+            if (!this.service.startsWith('custom'))
                 return;
 
             this.content.querySelector('.export').addEventListener('click', function()
