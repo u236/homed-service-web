@@ -837,6 +837,7 @@ document.onkeydown = function(event)
 
     if (modal.style.display != 'block')
     {
+        let search = document.querySelector("#search");
 
         switch (key)
         {
@@ -844,13 +845,18 @@ document.onkeydown = function(event)
             case 'esc':
             case 'escape':
 
-                let search = document.querySelector("#search");
-
                 if (search && ((key == '/' && search.style.display == 'none') || (key != '/' && search.style.display != 'none')))
                 {
                     event.preventDefault();
                     document.querySelector('th.search').click();
                 }
+
+                break;
+
+            case 'l':
+
+                if (!search)
+                    document.querySelector('#list')?.click();
 
                 break;
 
