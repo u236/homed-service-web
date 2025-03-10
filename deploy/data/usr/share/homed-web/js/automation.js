@@ -3,7 +3,7 @@ class Automation
     intervals = [setInterval(function() { this.updateLastTriggered(); }.bind(this), 100)];
     service = 'automation';
 
-    triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval'];
+    triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval', 'startup'];
     triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
@@ -238,6 +238,10 @@ class Automation
             case 'interval':
                 data = 'every <span class="value">' + trigger.interval + '</span> ' + (trigger.interval != 1 ? 'minutes' : 'minute');
                 break;
+
+            case 'startup':
+                data = trigger.name ? '' : '<span class="shade"><i>without name</i></span>';
+                break;
         }
 
         if (trigger.name)
@@ -246,7 +250,7 @@ class Automation
         if (trigger.force)
             data += ' <span class="shade">[force]</span>';
 
-        return data;
+        return data.trim();
     }
 
     conditionInfo(condition)
@@ -334,7 +338,7 @@ class Automation
         if (action.silent)
             data += ' <span class="shade">[silent]</span>';
 
-        return data;
+        return data.trim();
     }
 
     conditionDropdown(automation, list, type)
@@ -800,6 +804,7 @@ class Automation
             case 'telegram':  this.showTelegramTrigger(trigger, append); break;
             case 'time':      this.showTimeTrigger(trigger, append); break;
             case 'interval':  this.showIntervalTrigger(trigger, append); break;
+            case 'startup':   this.showStartupTrigger(trigger, append); break;
         }
     }
 
@@ -1099,6 +1104,36 @@ class Automation
 
             this.handleCopy(trigger, this.data.triggers, append);
             showModal(true, 'input[name="interval"]');
+        });
+    }
+
+    showStartupTrigger(trigger, append)
+    {
+        fetch('html/automation/startupTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                if (form.name)
+                    trigger.name = form.name;
+                else
+                    delete trigger.name;
+
+                if (append)
+                    this.data.triggers.push(trigger);
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(trigger, this.data.triggers, append);
+            showModal(true, 'input[name="name"]');
         });
     }
 
