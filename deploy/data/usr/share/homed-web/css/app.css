@@ -1020,7 +1020,7 @@ tr:first-child td {
     border: none;
 }
 
-#modal .legend td:first-child, #modal .states td:first-child {
+#modal .groups td:first-child, #modal .legend td:first-child, #modal .states td:first-child {
     width: 120px;
 }
 

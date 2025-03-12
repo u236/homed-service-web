@@ -1,6 +1,49 @@
 class ZigBee extends DeviceService
 {
     logicalTypes = ['coordinator', 'router', 'end device'];
+    clusterNames =
+    {
+        0:    'basic',
+        1:    'powerConfiguration',
+        2:    'temperatureConfiguration',
+        3:    'identify',
+        4:    'groups',
+        5:    'scenes',
+        6:    'onOff',
+        7:    'switchConfiguration',
+        8:    'levelControl',
+        10:   'time',
+        12:   'analogInput',
+        13:   'analogOutput',
+        16:   'binaryOutput',
+        18:   'multistateInput',
+        20:   'multistateValue',
+        25:   'otaUpgrade',
+        26:   'powerProfile',
+        32:   'pollControl',
+        33:   'greenPower',
+        257:  'doorLock',
+        258:  'windowCovering',
+        513:  'thermostat',
+        514:  'fanControl',
+        516:  'uiConfiguration',
+        768:  'colorControl',
+        1024: 'illuminanceMeasurement',
+        1026: 'temperatureMeasurement',
+        1027: 'pressureMeasurement',
+        1029: 'humidityMeasurement',
+        1030: 'occupancySensing',
+        1032: 'moistureMeasurement',
+        1033: 'phMeasurement',
+        1037: 'co2Concentration',
+        1066: 'co2Concentration',
+        1280: 'iasZone',
+        1281: 'iasAce',
+        1282: 'iasWd',
+        1794: 'smartEnergyMetering',
+        2820: 'electricalMeasurement',
+        4096: 'touchLink'
+    };
 
     constructor(controller, instance)
     {
@@ -24,6 +67,117 @@ class ZigBee extends DeviceService
             cell.dataset.value = this.devices[id].lastSeen;
             cell.innerHTML = value;
         });
+    }
+
+    updateGroups(device)
+    {
+        let table = modal.querySelector('table.groups');
+        let list = new Array();
+
+        if (!table)
+            return;
+
+        device.info.endpoints?.forEach(item => { item.groups?.forEach(groupId =>
+        {
+            let id = item.endpointId + '/' + groupId;
+            let row = table.querySelector('tr[data-id="' + id + '"]');
+
+            list.push(id);
+
+            if (row)
+                return;
+
+            row = table.querySelector('tbody').insertRow();
+            row.dataset.id = id;
+
+            for (let i = 0; i < 3; i++)
+                {
+                    let cell = row.insertCell();
+
+                    switch (i)
+                    {
+                        case 0: cell.innerHTML = '<span class="value">' + item.endpointId + '</span>'; break;
+                        case 1: cell.innerHTML = '<span class="value">' + groupId + '</span>'; break;
+
+                        case 2:
+                            cell.innerHTML = '<i class="icon-trash"></i>';
+                            cell.classList.add('remove');
+                            cell.addEventListener('click', function() { cell.innerHTML = '<div class="dataLoader"></div>'; this.serviceCommand({action: 'removeGroup', device: device.id, endpointId: parseInt(item.endpointId), groupId: groupId}); }.bind(this));
+                            break;
+                    }
+                }
+
+        }); });
+
+        modal.querySelector('.dataLoader').style.display = 'none';
+        table.querySelectorAll('tr').forEach(row => { if (row.dataset.id && !list.includes(row.dataset.id)) row.remove(); });
+        table.style.display = list.length ? 'table' : 'none';
+        sortTable(table, 0);
+    }
+
+    updateBindings(device)
+    {
+        let table = modal.querySelector('table.bindings');
+        let list = new Array();
+
+        if (!table)
+            return;
+
+        device.info.endpoints?.forEach(item => { item.bindings?.forEach(binding =>
+        {
+            let id = item.endpointId + '/' + binding.clusterId + '/' + (isNaN(binding.groupId) ? binding.device + '/' + binding.endpointId : 'group/' + binding.groupId);
+            let row = table.querySelector('tr[data-id="' + id + '"]');
+
+            list.push(id);
+
+            if (row)
+                return;
+
+            row = table.querySelector('tbody').insertRow();
+            row.dataset.id = id;
+
+            for (let i = 0; i < 4; i++)
+            {
+                let cell = row.insertCell();
+
+                switch (i)
+                {
+                    case 0: cell.innerHTML = '<span class="value">' + item.endpointId + '</span>'; break;
+                    case 1: cell.innerHTML = '<span class="value">' + (this.clusterNames[binding.clusterId] ?? '[' + binding.clusterId + ']') + '</span>'; break;
+                    case 2: cell.innerHTML = isNaN(binding.groupId) ? (this.devices[binding.device]?.info.name ?? binding.device) + ' [' + binding.endpointId + ']' : 'Group ' + binding.groupId; break;
+
+                    case 3:
+
+                        cell.innerHTML = '<i class="icon-trash"></i>';
+                        cell.classList.add('remove');
+
+                        cell.addEventListener('click', function()
+                        {
+                            let request = {action: 'unbindDevice', device: device.id, endpointId: item.endpointId, clusterId: binding.clusterId};
+
+                            if (isNaN(binding.groupId))
+                            {
+                                request.dstDevice = binding.device;
+                                request.dstEndpointId = binding.endpointId;
+                            }
+                            else
+                                request.groupId = binding.groupId;
+
+                            cell.innerHTML = '<div class="dataLoader"></div>';
+                            this.serviceCommand(request);
+
+                        }.bind(this));
+
+                        break;
+                }
+            }
+
+        }); });
+
+        modal.querySelector('.dataLoader').style.display = 'none';
+        table.querySelectorAll('tr').forEach(row => { if (row.dataset.id && !list.includes(row.dataset.id)) row.remove(); });
+        table.style.display = list.length ? 'table' : 'none';
+        sortTable(table, 0);
     }
 
     updatePage()
@@ -145,10 +299,14 @@ class ZigBee extends DeviceService
                     case 'otaUpgradeFinished':  this.controller.showToast(html + 'OTA upgrade finished'); break;
                     case 'otaUpgradeError':     this.controller.showToast(html + 'OTA upgrade error', 'error'); break;
 
-
                     case 'deviceUpdated':
                         this.controller.showToast(html + 'successfully updated');
                         showModal(false);
+                        break;
+
+                    case 'groupRequest':
+                    case 'bindingRequest':
+                        this.controller.showToast(html + message.event.replace('Request', ' request ') + (message.success ? 'finished successfully' : 'faled'), message.success ? 'success' : 'error');
                         break;
 
                     case 'clusterRequest':
@@ -407,9 +565,13 @@ class ZigBee extends DeviceService
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
             this.content.querySelector('.upgrade').addEventListener('click', function() { this.showDeviceUpgrade(device); }.bind(this));
             this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(device); }.bind(this));
+            this.content.querySelector('.groups').addEventListener('click', function() { this.showDeviceGroups(device); }.bind(this));
+            this.content.querySelector('.bindings').addEventListener('click', function() { this.showDeviceBindings(device); }.bind(this));
             this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(device); }.bind(this));
 
             this.updateDeviceInfo(device);
+            this.updateGroups(device);
+            this.updateBindings(device);
 
             if (!device.info.logicalType)
             {
@@ -505,6 +667,191 @@ class ZigBee extends DeviceService
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.json').innerHTML = JSON.stringify(device.info, null, 2);
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            showModal(true);
+        });
+    }
+
+    showDeviceGroups(device)
+    {
+        fetch('html/zigbee/deviceGroups.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            let select;
+            let input;
+
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = device.info.name;
+
+            select = modal.querySelector('select[name="endpointId"]');
+            input = modal.querySelector('input[name="groupId"]');
+
+            device.info.endpoints?.forEach(item =>
+            {
+                let option = document.createElement('option');
+
+                if (!item.inClusters || !item.inClusters.includes(4))
+                    return;
+
+                option.innerHTML = item.endpointId;
+                select.append(option);
+            });
+
+            if (!select.innerHTML)
+            {
+                let option = document.createElement('option');
+
+                option.innerHTML = '-';
+                option.disabled = true;
+                select.append(option);
+
+                input.type = 'text';
+                input.value = '-';
+                input.disabled = true;
+
+                modal.querySelector('.add').disabled = true;
+            }
+
+            modal.querySelector('.add').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+                modal.querySelector('.dataLoader').style.display = 'block';
+                this.serviceCommand({action: 'addGroup', device: device.id, endpointId: parseInt(form.endpointId), groupId: parseInt(form.groupId)});
+
+            }.bind(this));
+
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            this.updateGroups(device);
+            showModal(true);
+        });
+    }
+
+    showDeviceBindings(device)
+    {
+        function updateClusterList(clusterNames, deviceList, endpointId)
+        {
+            let select = modal.querySelector('select[name="clusterId"]');
+            let exclude = [0, 3, 4, 5, 25, 33, 4096];
+
+            select.innerHTML = null;
+
+            device.info.endpoints?.filter(item => item.endpointId == endpointId)[0]?.outClusters?.filter(item => !exclude.includes(item)).forEach(item =>
+            {
+                let option = document.createElement('option');
+                option.innerHTML = clusterNames[item] ?? '[' + item + ']';
+                option.value = item;
+                select.append(option);
+            });
+
+            if (!select.innerHTML)
+            {
+                let option = document.createElement('option');
+                option.innerHTML = '-';
+                option.disabled = true;
+                select.append(option);
+            }
+
+            updateDestinationList(deviceList, select.value);
+        }
+
+        function updateDestinationList(deviceList, clusterId)
+        {
+            let select = modal.querySelector('select[name="destination"]');
+            let list = new Object();
+            let groups = new Array();
+            let disabled = false;
+
+            select.innerHTML = null;
+
+            Object.keys(deviceList).forEach(id =>
+            {
+                let info = deviceList[id].info;
+
+                if (id == device.id)
+                    return;
+
+                info.endpoints?.forEach(item =>
+                {
+                    if (item.inClusters?.includes(parseInt(clusterId)))
+                        list[id + '/' + item.endpointId] = info.name + ' [' + item.endpointId + ']';
+
+                    item.groups?.forEach(group => { if (!groups.includes(group)) groups.push(group); });
+                });
+            });
+
+            if (!isNaN(clusterId))
+                groups.sort().forEach(group => { list['group/' + group] = 'Group ' + group; });
+
+            Object.keys(list).forEach(item =>
+            {
+                let option = document.createElement('option');
+                option.innerHTML = list[item];
+                option.value = item;
+                select.append(option);
+            });
+
+            if (!select.innerHTML)
+            {
+                let option = document.createElement('option');
+                option.innerHTML = '-';
+                option.disabled = true;
+                select.append(option);
+                disabled = true;
+            }
+
+            modal.querySelector('.bind').disabled = disabled;
+        }
+
+        fetch('html/zigbee/deviceBinding.html?' + Date.now()).then(response => response.text()).then(html =>
+        {
+            let endpointList;
+            let clusterList;
+
+            modal.querySelector('.data').innerHTML = html;
+            modal.querySelector('.name').innerHTML = device.info.name;
+
+            endpointList = modal.querySelector('select[name="endpointId"]');
+            clusterList = modal.querySelector('select[name="clusterId"]');
+
+            device.info.endpoints?.forEach(item =>
+            {
+                let option = document.createElement('option');
+                option.innerHTML = item.endpointId;
+                endpointList.append(option);
+            });
+
+            if (!endpointList.innerHTML)
+            {
+                let option = document.createElement('option');
+                option.innerHTML = '-';
+                option.disabled = true;
+                endpointList.append(option);
+            }
+
+            endpointList.addEventListener('change', function() { updateClusterList(this.clusterNames, this.devices, endpointList.value); }.bind(this));
+            clusterList.addEventListener('change', function() { updateDestinationList(this.devices, clusterList.value); }.bind(this));
+
+            updateClusterList(this.clusterNames, this.devices, endpointList.value);
+
+            modal.querySelector('.bind').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+                let destination = form.destination.split('/');
+                let request = {action: 'bindDevice', device: device.id, endpointId: parseInt(form.endpointId), clusterId: parseInt(form.clusterId)};
+
+                if (destination[0] != 'group')
+                {
+                    request.dstDevice = destination[0];
+                    request.dstEndpointId = parseInt(destination[1]);
+                }
+                else
+                    request.groupId = parseInt(destination[1]);
+
+                modal.querySelector('.dataLoader').style.display = 'block';
+                this.serviceCommand(request);
+
+            }.bind(this));
+
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            this.updateBindings(device);
             showModal(true);
         });
     }

@@ -58,3 +58,5 @@
 .icon-chart::before   { content: '\e819'; }
 .icon-refresh::before { content: '\e81a'; }
 .icon-search::before  { content: '\e81b'; }
+.icon-group::before   { content: '\e81c'; }
+.icon-chain::before   { content: '\e81d'; }
