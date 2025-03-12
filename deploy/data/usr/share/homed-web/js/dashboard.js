@@ -645,21 +645,19 @@ class Dashboard
             {
                 let device = service.devices[id];
 
-                Object.keys(device.endpoints).forEach(endpoint =>
+                Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose =>
                 {
-                    device.items(endpoint).forEach(expose =>
-                    {
-                        let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
+                    let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
 
-                        if (expose == 'thermostatProgram')
-                            return;
+                    if (expose == 'thermostatProgram')
+                        return;
 
-                        if (endpoint != 'common')
-                            value.endpoint += '/' + endpoint;
+                    if (endpoint != 'common')
+                        value.endpoint += '/' + endpoint;
 
-                        list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpoint)] = value;
-                    });
-                });
+                    list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpoint)] = value;
+
+                }); });
             });
         });
 

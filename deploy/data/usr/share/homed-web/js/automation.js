@@ -46,15 +46,15 @@ class Automation
 
     updateStates()
     {
-        let list = Object.keys(this.status.states ?? new Object());
         let table = modal.querySelector('table.states');
+        let list = Object.keys(this.status.states ?? new Object());
 
         if (!table)
             return;
 
         list.forEach(state =>
         {
-            let row = table.querySelector('tr[data-state="' + state + '"');
+            let row = table.querySelector('tr[data-state="' + state + '"]');
 
             if (row)
             {

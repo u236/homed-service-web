@@ -939,7 +939,13 @@ tr:first-child td {
 #modal table {
     margin-top: 5px;
     margin-bottom: 20px;
+}
+
+#modal tbody tr:first-child td {
     border-top: 1px solid var(--border-shade);
+}
+
+#modal tbody tr:last-child td {
     border-bottom: 1px solid var(--border-shade);
 }
 

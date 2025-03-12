@@ -1,6 +1,6 @@
 class ZigBee extends DeviceService
 {
-    logicalType = ['coordinator', 'router', 'end device'];
+    logicalTypes = ['coordinator', 'router', 'end device'];
 
     constructor(controller, instance)
     {
@@ -210,7 +210,7 @@ class ZigBee extends DeviceService
     {
         switch (key)
         {
-            case 'logicalType': return this.logicalType[value];
+            case 'logicalType': return this.logicalTypes[value];
             case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' : empty;
 
             case 'currentVersion':
@@ -455,7 +455,7 @@ class ZigBee extends DeviceService
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
             modal.querySelector('input[name="active"]').checked = device.info.active;
-            modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({...{action: 'updateDevice', device: this.names ? device.info.name : device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
+            modal.querySelector('.save').addEventListener('click', function() { this.serviceCommand({...{action: 'updateDevice', device: device.id}, ...formData(modal.querySelector('form'))}); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true, 'input[name="name"]');
         });
@@ -468,11 +468,10 @@ class ZigBee extends DeviceService
 
         fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            let item = this.names ? device.info.name : device.id;
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.graceful').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: item}, true); }.bind(this));
-            modal.querySelector('.force').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: item, force: true}, true); }.bind(this));
+            modal.querySelector('.graceful').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: device.id}, true); }.bind(this));
+            modal.querySelector('.force').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: device.id, force: true}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
@@ -485,12 +484,10 @@ class ZigBee extends DeviceService
 
         fetch('html/zigbee/deviceUpgrade.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            let item = this.names ? device.info.name : device.id;
-
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.refresh').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; modal.querySelectorAll('.otaData').forEach(cell => { cell.innerHTML = empty; }); this.serviceCommand({action: 'otaRefresh', device: item}); }.bind(this));
-            modal.querySelector('.upgrade').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; this.serviceCommand({action: 'otaUpgrade', device: item}); }.bind(this));
+            modal.querySelector('.refresh').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; modal.querySelectorAll('.otaData').forEach(cell => { cell.innerHTML = empty; }); this.serviceCommand({action: 'otaRefresh', device: device.id}); }.bind(this));
+            modal.querySelector('.upgrade').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; this.serviceCommand({action: 'otaUpgrade', device: device.id}); }.bind(this));
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
             modal.dataset.ota = true;
@@ -516,38 +513,31 @@ class ZigBee extends DeviceService
     {
         fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
         {
-            let list;
+            let select;
 
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            list = modal.querySelector('select[name="endpointId"]');
+
+            select = modal.querySelector('select[name="endpointId"]');
 
             device.info.endpoints?.forEach(item =>
             {
                 let option = document.createElement('option');
                 option.innerHTML = item.endpointId;
-                list.append(option);
+                select.append(option);
             });
 
-            if (!list.innerHTML)
+            if (!select.innerHTML)
             {
                 let option = document.createElement('option');
                 option.innerHTML = '1';
-                list.append(option);
+                select.append(option);
             }
 
             modal.querySelector('.send').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
-                let request = new Object();
-
-                // TODO: use number inputs in form
-                request.action = form.clusterSpecific ? 'clusterRequest' : 'globalRequest';
-                request.device = this.names ? device.info.name : device.id;
-                request.endpointId = parseInt(form.endpointId);
-                request.clusterId = parseInt(form.clusterId) || 0;
-                request.commandId = parseInt(form.commandId) || 0;
-                request.payload = form.payload;
+                let request = {action: form.clusterSpecific ? 'clusterRequest' : 'globalRequest', device: device.id, endpointId: parseInt(form.endpointId), clusterId: parseInt(form.clusterId) || 0, commandId: parseInt(form.commandId) || 0, payload: form.payload};
 
                 if (form.manufacturerCode && !isNaN(form.manufacturerCode))
                     request.manufacturerCode = parseInt(form.manufacturerCode);

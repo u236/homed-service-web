@@ -326,24 +326,19 @@ class Controller
             {
                 let device = service.devices[id];
 
-                Object.keys(device.endpoints).forEach(endpoint =>
+                Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { exposeList(expose, device.options(endpoint)).forEach(property =>
                 {
-                    device.items(endpoint).forEach(expose =>
-                    {
-                        exposeList(expose, device.options(endpoint)).forEach(property =>
-                        {
-                            let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
+                    let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
 
-                            if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
-                                return;
+                    if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
+                        return;
 
-                            if (endpoint != 'common')
-                                value.endpoint += '/' + endpoint;
+                    if (endpoint != 'common')
+                        value.endpoint += '/' + endpoint;
 
-                            list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + value.property + ' }}' : value;
-                        });
-                    });
-                });
+                    list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + value.property + ' }}' : value;
+
+                }); }); });
             });
         });
 
@@ -880,7 +875,6 @@ document.onkeydown = function(event)
             event.preventDefault();
             modal.querySelector('button.remove')?.click();
             modal.querySelector('button.save')?.click();
-            modal.querySelector('button.send')?.click();
             break;
 
         case 'esc':
