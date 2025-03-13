@@ -305,8 +305,22 @@ function addExpose(table, device, endpoint, expose)
                         if (!items.length)
                             break;
 
-                        items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span>' + item + '</span>'; });
-                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); } }) );
+                        if (items.length <= 10)
+                        {
+                            items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span>' + item + '</span>'; });
+                            controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); } }) );
+                        }
+                        else
+                        {
+                            let select = document.createElement('select');
+
+                            valueCell.dataset.type = 'select';
+                            controlCell.append(select);
+
+                            items.forEach(item => { select.innerHTML += '<option>' + item + '</option>'; });
+                            select.addEventListener('change', function() { if (valueCell.dataset.value != this.value) { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; deviceCommand(device, endpoint, {[name]: this.value}); } });
+                        }
+
                         break;
 
                     case 'sensor':
@@ -430,25 +444,31 @@ function updateExpose(device, endpoint, name, value)
                         }
                     }
 
-                    if (cell.dataset.type == 'number')
+
+                    switch (cell.dataset.type)
                     {
-                        let input = row.querySelector('td.control input');
+                        case 'number':
+                        {
+                            let input = row.querySelector('td.control input');
 
-                        if (name == 'level')
-                            value = Math.round(value * 100 / 255);
+                            if (name == 'level')
+                                value = Math.round(value * 100 / 255);
 
-                        if (cell.dataset.value == value)
+                            if (cell.dataset.value == value)
+                                break;
+
+                            if (input)
+                                input.value = value;
+
                             break;
+                        }
 
-                        if (input)
-                            input.value = value;
+                        case 'select': row.querySelector('td.control select').value = value; break;
+                        case 'time':   row.querySelector('td.control input').value = value; break;
                     }
 
-                    if (cell.dataset.type == 'time')
-                        row.querySelector('td.control input').value = value;
-
                     if (typeof value == 'number' && cell.dataset.round)
-                            value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
+                        value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
 
                     cell.innerHTML = value;
 

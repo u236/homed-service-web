@@ -768,11 +768,19 @@ td.remove:hover {
 }
 
 .exposes input[type="number"] {
-    width: 100px;
-    height: 18px;
+    width: 150px;
+    height: 19px;
     margin-right: 5px;
     margin-bottom: 0;
     padding-right: 0;
+    font-size: 0.8125rem;
+}
+
+.exposes select {
+    width: 150px;
+    height: 19px;
+    margin-bottom: 0;
+    font-size: 0.8125rem;
 }
 
 .exposes input[type="time"] {
