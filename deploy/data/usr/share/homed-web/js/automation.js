@@ -1356,6 +1356,8 @@ class Automation
             modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
+            modal.querySelector('input[name="remove"]').checked = action.remove ?? false;
+            modal.querySelector('input[name="update"]').checked = action.update ?? false;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1368,6 +1370,8 @@ class Automation
                 action.keyboard = form.keyboard.trim();
                 action.chats = chats.length ? chats : null;
                 action.silent = form.silent;
+                action.remove = form.remove;
+                action.update = form.update;
 
                 if (form.thread)
                     action.thread = form.thread;
