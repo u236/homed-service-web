@@ -244,8 +244,11 @@ class Automation
                 break;
         }
 
+        if (trigger.offset)
+            data += ' with <span class="value">' + trigger.offset + '</span> ' + (trigger.offset != 1 ? 'minutes' : 'minute') + ' offset';
+
         if (trigger.name)
-            data += ' <span>with name</span> <span class="value">' + trigger.name + '</span>';
+            data += (trigger.offset ? ' and ' : ' with ') + 'name <span class="value">' + trigger.name + '</span>';
 
         if (trigger.force)
             data += ' <span class="shade">[force]</span>';
@@ -333,7 +336,7 @@ class Automation
         }
 
         if (action.triggerName)
-            data += ' <span>when trigger is</span> <span class="value">' + action.triggerName + '</span>';
+            data += ' when trigger is <span class="value">' + action.triggerName + '</span>';
 
         if (action.silent)
             data += ' <span class="shade">[silent]</span>';
@@ -431,7 +434,7 @@ class Automation
                 {
                     case 0:
                         for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
-                        cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i><span>';
+                        cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
                         break;
 
                     case 1:
@@ -1079,7 +1082,8 @@ class Automation
         fetch('html/automation/intervalTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('input[name="interval"]').value = trigger.interval ?? '10';
+            modal.querySelector('input[name="interval"]').value = trigger.interval ?? 10;
+            modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1087,6 +1091,7 @@ class Automation
                 let form = formData(modal.querySelector('form'));
 
                 trigger.interval = form.interval;
+                trigger.offset = form.offset;
 
                 if (form.name)
                     trigger.name = form.name;
