@@ -319,7 +319,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = (action.file ? '[file]' : action.photo ? '[photo]' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
+                data = (action.file ? '[file]' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
                 break;
 
             case 'shell':
@@ -1355,14 +1355,17 @@ class Automation
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             modal.querySelector('textarea[name="file"]').value = action.file ?? '';
-            modal.querySelector('input[name="photo"]').value = action.photo ?? '';
             modal.querySelector('textarea[name="keyboard"]').value = action.keyboard ?? '';
             modal.querySelector('input[name="thread"]').value = action.thread ? action.thread : '';
             modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
+
             modal.querySelector('input[name="remove"]').checked = action.remove ?? false;
+            modal.querySelector('input[name="remove"]').addEventListener('click', function() { modal.querySelector('input[name="update"]').checked = false });
+
             modal.querySelector('input[name="update"]').checked = action.update ?? false;
+            modal.querySelector('input[name="update"]').addEventListener('click', function() { modal.querySelector('input[name="remove"]').checked = false });
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1371,7 +1374,6 @@ class Automation
 
                 action.message = form.message.trim();
                 action.file = form.file.trim();
-                action.photo = form.photo.trim();
                 action.keyboard = form.keyboard.trim();
                 action.chats = chats.length ? chats : null;
                 action.silent = form.silent;
