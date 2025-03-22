@@ -115,7 +115,7 @@ void Controller::mqttDisconnected(void)
 
 void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
-    QString subTopic = topic.name().replace(mqttTopic(), QString());
+    QString subTopic = topic.name().replace(0, mqttTopic().length(), QString());
     QJsonObject json = QJsonDocument::fromJson(message).object();
 
     if (subTopic == "command/web" && json.value("action").toString() == "updateDashboards")
