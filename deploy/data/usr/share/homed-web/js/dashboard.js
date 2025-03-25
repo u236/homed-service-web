@@ -235,7 +235,7 @@ class Dashboard
             if (!dashboard.blocks.length)
             {
                 let element = this.content.querySelector('.dashboardData');
-                element.innerHTML = '<div class="emptyList">dashboard "' + dashboard.name + '" data is empty</div>';
+                element.innerHTML = '<div class="emptyList">dashboard is empty</div>';
                 element.style.display = 'block';
                 return;
             }
@@ -317,7 +317,13 @@ class Dashboard
                     this.addChart(table, item, block.interval);
                 });
 
-                if (status)
+                if (!table.rows.length)
+                {
+                    let cell = table.insertRow().insertCell();
+                    cell.innerHTML = '<i>block is empty<i>';
+                    cell.classList.add('center', 'shade');
+                }
+                else if (status)
                 {
                     let toggle = document.createElement('span');
 

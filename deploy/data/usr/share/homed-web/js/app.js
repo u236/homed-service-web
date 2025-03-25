@@ -1002,8 +1002,8 @@ function addDropdown(element, options, callback, separator, trigger)
     if (!options.length)
     {
         let item = document.createElement('div');
-        item.innerHTML = 'list is empty';
-        item.classList.add('empty');
+        item.innerHTML = '<i>list is empty</i>';
+        item.classList.add('center', 'shade');
         list.append(item);
     }
 

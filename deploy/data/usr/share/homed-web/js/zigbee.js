@@ -566,7 +566,7 @@ class ZigBee extends DeviceService
             this.content.querySelector('.upgrade').addEventListener('click', function() { this.showDeviceUpgrade(device); }.bind(this));
             this.content.querySelector('.data').addEventListener('click', function() { this.showDeviceData(device); }.bind(this));
             this.content.querySelector('.groups').addEventListener('click', function() { this.showDeviceGroups(device); }.bind(this));
-            this.content.querySelector('.bindings').addEventListener('click', function() { this.showDeviceBindings(device); }.bind(this));
+            this.content.querySelector('.bindings').addEventListener('click', function() { this.showDeviceBinding(device); }.bind(this));
             this.content.querySelector('.debug').addEventListener('click', function() { this.showDeviceDebug(device); }.bind(this));
 
             this.updateDeviceInfo(device);
@@ -632,6 +632,7 @@ class ZigBee extends DeviceService
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.graceful').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: device.id}, true); }.bind(this));
             modal.querySelector('.force').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: device.id, force: true}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
@@ -648,6 +649,7 @@ class ZigBee extends DeviceService
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
+            modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.refresh').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; modal.querySelectorAll('.otaData').forEach(cell => { cell.innerHTML = empty; }); this.serviceCommand({action: 'otaRefresh', device: device.id}); }.bind(this));
             modal.querySelector('.upgrade').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; this.serviceCommand({action: 'otaUpgrade', device: device.id}); }.bind(this));
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
@@ -718,13 +720,14 @@ class ZigBee extends DeviceService
 
             }.bind(this));
 
+            modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             this.updateGroups(device);
             showModal(true);
         });
     }
 
-    showDeviceBindings(device)
+    showDeviceBinding(device)
     {
         function updateClusterList(clusterNames, deviceList, endpointId)
         {
@@ -850,6 +853,7 @@ class ZigBee extends DeviceService
 
             }.bind(this));
 
+            modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             this.updateBindings(device);
             showModal(true);
@@ -894,6 +898,7 @@ class ZigBee extends DeviceService
 
             }.bind(this));
 
+            modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
