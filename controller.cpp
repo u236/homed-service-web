@@ -2,7 +2,7 @@
 #include "controller.h"
 #include "logger.h"
 
-Controller::Controller(const QString &configFile) : HOMEd(configFile), m_database(new Database(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this))
+Controller::Controller(const QString &configFile) : HOMEd(configFile), m_database(new Database(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this)), m_commands(QMetaEnum::fromType <Command> ())
 {
     logInfo << "Starting version" << SERVICE_VERSION;
     logInfo << "Configuration file is" << getConfig()->fileName();
@@ -118,19 +118,32 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
     QString subTopic = topic.name().replace(0, mqttTopic().length(), QString());
     QJsonObject json = QJsonDocument::fromJson(message).object();
 
-    if (subTopic == "command/web") // TODO: use command enum
+    if (subTopic == "command/web")
     {
-        QString action = json.value("action").toString();
+        switch (static_cast <Command> (m_commands.keyToValue(json.value("action").toString().toUtf8().constData())))
+        {
+            case Command::restartService:
+            {
+                logWarning << "Restart request received...";
+                mqttPublish(topic.name(), QJsonObject(), true);
+                QCoreApplication::exit(EXIT_RESTART);
+                break;
+            }
 
-        if (action == "updateDashboards")
-            m_database->updateDasboards(json.value("data").toArray());
-        else if (action == "updateNames")
-            m_database->updateNames(json.value("data").toObject());
-        else
-            return;
+            case Command::updateDashboards:
+            {
+                m_database->updateDasboards(json.value("data").toArray());
+                m_database->store(true);
+                break;
+            }
 
-        m_database->store(true);
-        return;
+            case Command::updateNames:
+            {
+                m_database->updateNames(json.value("data").toObject());
+                m_database->store(true);
+                break;
+            }
+        }
     }
 
     if (m_retained.contains(subTopic.split('/').value(0)))

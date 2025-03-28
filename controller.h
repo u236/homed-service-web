@@ -1,9 +1,10 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "2.5.3"
+#define SERVICE_VERSION     "2.6.0"
 #define COOKIE_MAX_AGE      31536000
 
+#include <QMetaEnum>
 #include <QTcpServer>
 #include <QWebSocket>
 #include <QWebSocketServer>
@@ -16,13 +17,24 @@ class Controller : public HOMEd
 
 public:
 
+    enum class Command
+    {
+        restartService,
+        updateDashboards,
+        updateNames
+    };
+
     Controller(const QString &configFile);
+
+    Q_ENUM(Command)
 
 private:
 
     Database *m_database;
     QTcpServer *m_tcpServer;
     QWebSocketServer *m_webSocket;
+
+    QMetaEnum m_commands;
 
     QString m_frontend, m_username, m_password, m_guest;
     bool m_debug, m_auth;
