@@ -25,6 +25,9 @@ class Dashboard
                 if (!this.status.dashboards)
                     this.status.dashboards = new Array();
 
+                if (!this.status.names)
+                    this.status.names = new Object();
+
                 if (this.controller.service == 'dashboard')
                 {
                     this.controller.showPage('dashboard');
@@ -47,10 +50,15 @@ class Dashboard
         localStorage.setItem('dashboard', this.index);
     }
 
-    storeData()
+    storeDashboards()
     {
         this.controller.socket.publish('command/web', {action: 'updateDashboards', data: this.status.dashboards});
         this.controller.clearPage();
+    }
+
+    storeNames()
+    {
+        this.controller.socket.publish('command/web', {action: 'updateNames', data: this.status.names});
     }
 
     addBlockItem(table, item)
@@ -158,7 +166,7 @@ class Dashboard
                 {
                     this.status.dashboards.push(data);
                     this.setIndex(this.status.dashboards.length - 1);
-                    this.storeData();
+                    this.storeDashboards();
 
                 }.bind(this));
 
@@ -405,7 +413,7 @@ class Dashboard
         fetch('html/dashboard/dashboardSort.html?' + Date.now()).then(response => response.text()).then(html =>
         {
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.save').addEventListener('click', function() { this.storeData(); }.bind(this));
+            modal.querySelector('.save').addEventListener('click', function() { this.storeDashboards(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             showTable(modal.querySelector('table.dashboards'));
@@ -492,7 +500,7 @@ class Dashboard
                     delete dashboard.add;
                 }
 
-                this.storeData();
+                this.storeDashboards();
 
             }.bind(this));
 
@@ -509,7 +517,7 @@ class Dashboard
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.status.dashboards.splice(this.index, 1); this.setIndex(0); this.storeData(); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.status.dashboards.splice(this.index, 1); this.setIndex(0); this.storeDashboards(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
@@ -620,7 +628,7 @@ class Dashboard
                     return;
                 }
 
-                this.storeData();
+                this.storeDashboards();
 
             }.bind(this));
 
@@ -734,7 +742,7 @@ class Dashboard
                     return;
                 }
 
-                this.storeData();
+                this.storeDashboards();
 
             }.bind(this));
 

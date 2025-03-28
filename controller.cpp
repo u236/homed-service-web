@@ -118,9 +118,17 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
     QString subTopic = topic.name().replace(0, mqttTopic().length(), QString());
     QJsonObject json = QJsonDocument::fromJson(message).object();
 
-    if (subTopic == "command/web" && json.value("action").toString() == "updateDashboards")
+    if (subTopic == "command/web") // TODO: use command enum
     {
-        m_database->update(json.value("data").toArray());
+        QString action = json.value("action").toString();
+
+        if (action == "updateDashboards")
+            m_database->updateDasboards(json.value("data").toArray());
+        else if (action == "updateNames")
+            m_database->updateNames(json.value("data").toObject());
+        else
+            return;
+
         m_database->store(true);
         return;
     }

@@ -12,11 +12,15 @@ function temperatureToColor(value)
     return color;
 }
 
-function exposeTitle(device, endpoint, property)
+function exposeTitle(device, endpoint, property, names = true)
 {
+    let propertyName = controller.propertyName(endpoint + '/' + property);
     let endpointId = endpoint.split('/')[2];
     let name = device.options(endpointId).name;
     let title = property.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
+
+    if (names && propertyName)
+        return propertyName;
 
     switch (title[0])
     {
@@ -153,7 +157,7 @@ function exposeList(expose, options)
     return list;
 }
 
-function addExpose(table, device, endpointId, expose)
+function addExpose(table, device, endpointId, expose, names = true)
 {
     let options = device.options(endpointId);
     let properties = device.properties(endpointId);
@@ -178,7 +182,7 @@ function addExpose(table, device, endpointId, expose)
         row.dataset.endpointId = endpointId;
         row.dataset.expose = expose;
 
-        labelCell.innerHTML = exposeTitle(device, endpoint, property);
+        labelCell.innerHTML = '<span>' + exposeTitle(device, endpoint, property) + '</span>';
         labelCell.classList.add('label');
 
         valueCell.dataset.property = property;
@@ -193,6 +197,33 @@ function addExpose(table, device, endpointId, expose)
             labelCell.innerHTML += ' <i class="icon-chart shade"></i>';
             labelCell.querySelector('i').addEventListener('click', function() { controller.showPage('recorder?index=' + index); showModal(false); });
         });
+
+        if (names)
+        {
+            labelCell.querySelector('span').addEventListener('click', function()
+            {
+                fetch('names.html?' + Date.now()).then(response => response.text()).then(html =>
+                {
+                    let title = exposeTitle(device, endpoint, property, false);
+                    let item = endpoint + '/' + property;
+
+                    modal.querySelector('.data').innerHTML = html;
+                    modal.querySelector('.name').innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title;
+                    modal.querySelector('input[name="name"]').placeholder = title;
+                    modal.querySelector('input[name="name"]').value = controller.propertyName(item) ?? '';
+
+                    modal.querySelector('.save').addEventListener('click', function()
+                    {
+                        controller.setPropertyName(item, modal.querySelector('input[name="name"]').value.trim());
+                        labelCell.querySelector('span').innerHTML = exposeTitle(device, endpoint, property);
+                        showModal(false);
+                    });
+
+                    modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+                    showModal(true, 'input[name="name"]');
+                });
+            });
+        }
 
         if (property != 'irCode')
         {

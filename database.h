@@ -25,7 +25,8 @@ public:
     inline QString guestToken(void) { return m_guestToken; }
     inline void resetGuestToken(void) { m_guestToken = randomData(32).toHex(); }
 
-    inline void update(const QJsonArray &data) { m_dashboards = data; }
+    inline void updateDasboards(const QJsonArray &data) { m_dashboards = data; }
+    inline void updateNames(const QJsonObject &data) { m_names = data; }
 
     void init(void);
     void store(bool sync = false);
@@ -38,6 +39,7 @@ private:
 
     QString m_adminToken, m_guestToken;
     QJsonArray m_dashboards;
+    QJsonObject m_names;
 
     QByteArray randomData(int length);
 

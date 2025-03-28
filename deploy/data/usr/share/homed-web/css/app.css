@@ -688,10 +688,6 @@ td.remove:hover {
     margin: 0 3px;
 }
 
-.deviceInfo .summary tr {
-    display: none;
-}
-
 .deviceInfo td:first-child {
     width: 25%;
     min-width: 150px;
@@ -700,6 +696,18 @@ td.remove:hover {
 .deviceInfo td:last-child {
     font-family: 'Roboto Mono';
     font-size: 13px;
+}
+
+.deviceInfo .summary tr {
+    display: none;
+}
+
+.deviceInfo .exposes .label span {
+    cursor: pointer;
+}
+
+.deviceInfo .exposes .label span:hover {
+    color: var(--color-highlight);
 }
 
 .deviceMap svg {

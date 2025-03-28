@@ -344,6 +344,26 @@ class Controller
 
         return list;
     }
+
+    propertyName(item)
+    {
+        return this.services.dashboard.status.names[item];
+    }
+
+    setPropertyName(item, name)
+    {
+        let names = this.services.dashboard.status.names;
+
+        if (names[item] == name)
+            return;
+
+        if (name)
+            names[item] = name;
+        else
+            delete names[item];
+
+        this.services.dashboard.storeNames();
+    }
 }
 
 class Device

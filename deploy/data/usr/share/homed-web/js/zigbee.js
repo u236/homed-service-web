@@ -612,7 +612,8 @@ class ZigBee extends DeviceService
         {
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('input[name="name"]').value = device.info.name;
+            modal.querySelector('input[name="name"]').placeholder = device.info.ieeeAddress;
+            modal.querySelector('input[name="name"]').value = device.info.name != device.info.ieeeAddress ? device.info.name : '';
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
             modal.querySelector('input[name="discovery"]').checked = device.info.discovery;
             modal.querySelector('input[name="cloud"]').checked = device.info.cloud;
