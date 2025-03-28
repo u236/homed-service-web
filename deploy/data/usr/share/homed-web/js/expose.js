@@ -12,7 +12,7 @@ function temperatureToColor(value)
     return color;
 }
 
-function exposeTitle(name, endpoint = 'common')
+function exposeTitle(name, endpointId = 'common')
 {
     let title = name.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
@@ -31,7 +31,7 @@ function exposeTitle(name, endpoint = 'common')
     if (title[1]?.match('^[pt][0-9]+$'))
         title[1] = title[1].toUpperCase();
 
-    return title.join(' ') + (endpoint != 'common' ? ' ' + endpoint.toLowerCase() : '');
+    return title.join(' ') + (endpointId != 'common' ? ' ' + endpointId.toLowerCase() : '');
 }
 
 function exposeList(expose, options)
@@ -151,31 +151,31 @@ function exposeList(expose, options)
     return list;
 }
 
-function addExpose(table, device, endpoint, expose)
+function addExpose(table, device, endpointId, expose)
 {
-    let options = device.options(endpoint);
-    let properties = device.properties(endpoint);
+    let options = device.options(endpointId);
+    let properties = device.properties(endpointId);
     let list = exposeList(expose, options);
 
-    list.forEach(name =>
+    list.forEach(property =>
     {
         let last = table.rows[table.rows.length - 1]?.dataset.expose;
         let edge = last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
-        let option = options[name] ?? new Object();
-        let item = name.split('_')[0];
+        let option = options[property] ?? new Object();
+        let name = property.split('_')[0];
         let row = table.insertRow();
         let labelCell = row.insertCell();
         let valueCell = row.insertCell();
         let controlCell;
 
         row.dataset.device = device.service + '/' + device.id;
-        row.dataset.endpoint = endpoint;
+        row.dataset.endpointId = endpointId;
         row.dataset.expose = expose;
 
-        labelCell.innerHTML = exposeTitle(name, options.name ?? endpoint);
+        labelCell.innerHTML = exposeTitle(property, options.name ?? endpointId);
         labelCell.classList.add('label');
 
-        valueCell.dataset.property = name;
+        valueCell.dataset.property = property;
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
 
@@ -183,28 +183,28 @@ function addExpose(table, device, endpoint, expose)
         {
             let item = device.service.split('/')[0] + '/' + device.id;
 
-            if (endpoint != 'common')
-                item += '/' + endpoint;
+            if (endpointId != 'common')
+                item += '/' + endpointId;
 
-            if (data.endpoint != item || data.property != name)
+            if (data.endpoint != item || data.property != property)
                 return;
 
             labelCell.innerHTML += ' <i class="icon-chart shade"></i>';
             labelCell.querySelector('i').addEventListener('click', function() { controller.showPage('recorder?index=' + index); showModal(false); });
         });
 
-        if (name != 'irCode')
+        if (property != 'irCode')
         {
             controlCell = row.insertCell();
             controlCell.classList.add('control');
         }
 
-        switch (item)
+        switch (name)
         {
             case 'color':
             {
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
-                colorPicker.on('input:end', function() { deviceCommand(device, endpoint, {[name]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
+                colorPicker.on('input:end', function() { deviceCommand(device, endpointId, {[property]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
             }
 
@@ -216,14 +216,14 @@ function addExpose(table, device, endpoint, expose)
                 controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
                 controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: parseInt(this.value)}); });
                 break;
             }
 
             case 'cover':
             {
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpointId, {[property]: item.innerHTML}); }) );
                 break;
             }
 
@@ -231,8 +231,8 @@ function addExpose(table, device, endpoint, expose)
             {
                 valueCell.innerHTML = '<textarea></textarea><div class "buttons"><button class="learn">Learn</button><button class="send">Send</button></div>';
                 valueCell.colSpan = 2;
-                valueCell.querySelector(".learn").addEventListener('click', function() { valueCell.querySelector('textarea').value = null; valueCell.dataset.mode = 'learn'; deviceCommand(device, endpoint, {learn: true}); });
-                valueCell.querySelector(".send").addEventListener('click', function() { valueCell.dataset.mode = 'send'; deviceCommand(device, endpoint, {irCode: valueCell.querySelector('textarea').value}); });
+                valueCell.querySelector(".learn").addEventListener('click', function() { valueCell.querySelector('textarea').value = null; valueCell.dataset.mode = 'learn'; deviceCommand(device, endpointId, {learn: true}); });
+                valueCell.querySelector(".send").addEventListener('click', function() { valueCell.dataset.mode = 'send'; deviceCommand(device, endpointId, {irCode: valueCell.querySelector('textarea').value}); });
                 break;
             }
 
@@ -245,16 +245,16 @@ function addExpose(table, device, endpoint, expose)
                     break;
 
                 valueCell.dataset.type = 'number';
-                controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + name + '">';
+                controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + property + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: item == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
                 break;
             }
 
             case 'status':
             {
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
-                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpoint, {[name]: item.innerHTML}); }) );
+                controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpointId, {[property]: item.innerHTML}); }) );
                 break;
             }
 
@@ -271,7 +271,7 @@ function addExpose(table, device, endpoint, expose)
 
                     case 'button':
                         controlCell.innerHTML = '<span>trigger</span>';
-                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpoint, {[name]: true}); });
+                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpointId, {[property]: true}); });
                         break;
 
                     case 'number':
@@ -288,12 +288,12 @@ function addExpose(table, device, endpoint, expose)
                         {
                             controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
                             controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
-                            controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpoint, {[name]: parseFloat(this.value)}); });
+                            controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: parseFloat(this.value)}); });
                         }
                         else
                         {
                             controlCell.innerHTML = '<input type="number" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '" value="0"><button>Set</button>';
-                            controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + (option.unit ? ' ' + option.unit : '') + '</span>'; deviceCommand(device, endpoint, {[name]: parseFloat(value)}); } });
+                            controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="number"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + (option.unit ? ' ' + option.unit : '') + '</span>'; deviceCommand(device, endpointId, {[property]: parseFloat(value)}); } });
                         }
 
                         break;
@@ -308,7 +308,7 @@ function addExpose(table, device, endpoint, expose)
                         if (items.length <= 10)
                         {
                             items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span>' + item + '</span>'; });
-                            controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpoint, {[name]: item.innerHTML}); } }) );
+                            controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpointId, {[property]: item.innerHTML}); } }) );
                         }
                         else
                         {
@@ -318,7 +318,7 @@ function addExpose(table, device, endpoint, expose)
                             controlCell.append(select);
 
                             items.forEach(item => { select.innerHTML += '<option>' + item + '</option>'; });
-                            select.addEventListener('change', function() { if (valueCell.dataset.value != this.value) { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; deviceCommand(device, endpoint, {[name]: this.value}); } });
+                            select.addEventListener('change', function() { if (valueCell.dataset.value != this.value) { valueCell.innerHTML = '<span class="shade">' + this.value + '</span>'; deviceCommand(device, endpointId, {[property]: this.value}); } });
                         }
 
                         break;
@@ -336,23 +336,23 @@ function addExpose(table, device, endpoint, expose)
                     case 'time':
                         valueCell.dataset.type = 'time';
                         controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
-                        controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name]: value}); } });
+                        controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property]: value}); } });
                         break;
 
                     case 'toggle':
                         controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { let value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name]: value}); } }) );
+                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { let value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property]: value}); } }) );
                         break;
 
                     default:
 
-                        if (name.match('^[a-z]+P[0-9]+Time$'))
+                        if (property.match('^[a-z]+P[0-9]+Time$'))
                         {
-                            if (name.includes('P1'))
+                            if (property.includes('P1'))
                                 edge = true;
 
                             controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
-                            controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpoint, {[name.replace('Time', 'Hour')]: parseInt(data[0]), [name.replace('Time', 'Minute')]: parseInt(data[1])}); } });
+                            controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property.replace('Time', 'Hour')]: parseInt(data[0]), [property.replace('Time', 'Minute')]: parseInt(data[1])}); } });
                         }
 
                         break;
@@ -368,18 +368,18 @@ function addExpose(table, device, endpoint, expose)
         row.querySelectorAll('td').forEach(item => item.classList.add('edge'));
     });
 
-    Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
+    Object.keys(properties).forEach(property => { updateExpose(device, endpointId, property, properties[property]); });
 }
 
-function updateExpose(device, endpoint, name, value)
+function updateExpose(device, endpointId, property, value)
 {
-    document.querySelectorAll('tr[data-device="' + device.service + '/' + device.id + '"][data-endpoint="' + endpoint + '"]').forEach(row =>
+    document.querySelectorAll('tr[data-device="' + device.service + '/' + device.id + '"][data-endpoint-id="' + endpointId + '"]').forEach(row =>
     {
         let cell;
 
-        if (name.match('^[a-z]+P[0-9]+(Hour|Minute)$'))
+        if (property.match('^[a-z]+P[0-9]+(Hour|Minute)$'))
         {
-            let item = name.replace('Hour', 'Time').replace('Minute', 'Time');
+            let item = property.replace('Hour', 'Time').replace('Minute', 'Time');
 
             cell = row.querySelector('td.value[data-property="' + item + '"]');
 
@@ -395,7 +395,7 @@ function updateExpose(device, endpoint, name, value)
                     value = '0' + value;
 
                 time = input.value.split(':');
-                input.value = name.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
+                input.value = property.endsWith('Hour') ? value + ':' + time[1] : time[0] + ':' + value;
 
                 cell.dataset.value = input.value;
                 cell.innerHTML = input.value;
@@ -404,11 +404,11 @@ function updateExpose(device, endpoint, name, value)
             return;
         }
 
-        cell = row.querySelector('td.value[data-property="' + name + '"]');
+        cell = row.querySelector('td.value[data-property="' + property + '"]');
 
         if (cell)
         {
-            switch (name.split('_')[0])
+            switch (property.split('_')[0])
             {
                 case 'color':
                     colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
@@ -451,7 +451,7 @@ function updateExpose(device, endpoint, name, value)
                         {
                             let input = row.querySelector('td.control input');
 
-                            if (name == 'level')
+                            if (property == 'level')
                                 value = Math.round(value * 100 / 255);
 
                             if (cell.dataset.value == value)

@@ -65,15 +65,14 @@ class Recorder
 
     devicePromise(data, cell, table)
     {
-        let list = data.endpoint.split('/');
-        let endpoint = list[2] ?? 'common';
+        let endpointId = data.endpoint.split('/')[2] ?? 'common';
         let device;
 
         function wait(resolve)
         {
             device = this.controller.findDevice(data);
 
-            if (!device.endpoints?.[endpoint]?.exposes)
+            if (!device.endpoints?.[endpointId]?.exposes)
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -84,7 +83,7 @@ class Recorder
 
         new Promise(wait.bind(this)).then(function()
         {
-            let title = exposeTitle(data.property, endpoint);
+            let title = exposeTitle(data.property, endpointId);
 
             this.status.items.forEach(item =>
             {

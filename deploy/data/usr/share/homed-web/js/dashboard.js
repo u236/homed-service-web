@@ -262,8 +262,7 @@ class Dashboard
                 block.items.forEach(item =>
                 {
                     let row = this.addBlockItem(table, item);
-                    let list = item.endpoint.split('/');
-                    let endpoint = list[2] ?? 'common';
+                    let endpointId = item.endpoint.split('/')[2] ?? 'common';
                     let device;
 
                     row.classList.add('inactive');
@@ -275,7 +274,7 @@ class Dashboard
                     {
                         device = this.controller.findDevice(item);
 
-                        if (!device.endpoints?.[endpoint]?.exposes)
+                        if (!device.endpoints?.[endpointId]?.exposes)
                         {
                             setTimeout(wait.bind(this, resolve), 10);
                             return;
@@ -287,15 +286,15 @@ class Dashboard
                     new Promise(wait.bind(this)).then(function()
                     {
                         let cell = row.querySelector("td.value");
-                        let option = device.options(endpoint)[item.expose ?? item.property] ?? new Object();
-                        let properties = device.properties(endpoint);
+                        let option = device.options(endpointId)[item.expose ?? item.property] ?? new Object();
+                        let properties = device.properties(endpointId);
 
                         row.dataset.device = device.service + '/' + device.id;
-                        row.dataset.endpoint = endpoint;
-                        row.querySelectorAll(row.dataset.type == 'status' ? 'td.name' : 'td.name, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpoint); }.bind(this)));
+                        row.dataset.endpointId = endpointId;
+                        row.querySelectorAll(row.dataset.type == 'status' ? 'td.name' : 'td.name, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
 
                         if (status)
-                            items.push({device: device, endpoint: endpoint, property: row.querySelector('td.value').dataset.property});
+                            items.push({device: device, endpointId: endpointId, property: row.querySelector('td.value').dataset.property});
 
                         if (option.type == 'binary' && option.class)
                             cell.dataset.class = option.class;
@@ -306,7 +305,7 @@ class Dashboard
                         if (option.unit)
                             cell.dataset.unit = option.unit;
 
-                        Object.keys(properties).forEach(name => { updateExpose(device, endpoint, name, properties[name]); });
+                        Object.keys(properties).forEach(property => { updateExpose(device, endpointId, property, properties[property]); });
 
                     }.bind(this));
 
@@ -330,14 +329,14 @@ class Dashboard
                     toggle.innerHTML = '<i class="icon-enable shade"></i>';
                     toggle.classList.add('toggle');
 
-                    toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpoint, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
+                    toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpointId, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
                     element.querySelector('.control').append(toggle);
 
                     setInterval(function()
                     {
                         let status = 'off'
 
-                        items.forEach(item => { if (item.device.properties(item.endpoint).status == 'on') status = 'on'; });
+                        items.forEach(item => { if (item.device.properties(item.endpointId).status == 'on') status = 'on'; });
 
                         if (toggle.dataset.status == status)
                             return;
@@ -651,17 +650,17 @@ class Dashboard
             {
                 let device = service.devices[id];
 
-                Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose =>
+                Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose =>
                 {
                     let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
 
                     if (expose == 'thermostatProgram')
                         return;
 
-                    if (endpoint != 'common')
-                        value.endpoint += '/' + endpoint;
+                    if (endpointId != 'common')
+                        value.endpoint += '/' + endpointId;
 
-                    list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpoint)] = value;
+                    list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpointId)] = value;
 
                 }); });
             });
@@ -744,7 +743,7 @@ class Dashboard
         });
     }
 
-    showExposeInfo(item, device, endpoint)
+    showExposeInfo(item, device, endpointId)
     {
         let expose = item.expose;
 
@@ -760,7 +759,7 @@ class Dashboard
                 thermostat: ['systemMode', 'operationMode', 'targetTemperature', 'temperature', 'running']
             };
 
-            Object.keys(list).forEach(key => { if (list[key].includes(part[0]) && device.items(endpoint).includes(key)) expose = key; });
+            Object.keys(list).forEach(key => { if (list[key].includes(part[0]) && device.items(endpointId).includes(key)) expose = key; });
 
             if (!expose)
                 expose = item.property;
@@ -778,7 +777,7 @@ class Dashboard
             modal.querySelector('.note').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
 
             table = modal.querySelector('table.exposes');
-            addExpose(table, device, endpoint, expose);
+            addExpose(table, device, endpointId, expose);
 
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);

@@ -326,17 +326,17 @@ class Controller
             {
                 let device = service.devices[id];
 
-                Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { exposeList(expose, device.options(endpoint)).forEach(property =>
+                Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { exposeList(expose, device.options(endpointId)).forEach(property =>
                 {
                     let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
 
                     if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
                         return;
 
-                    if (endpoint != 'common')
-                        value.endpoint += '/' + endpoint;
+                    if (endpointId != 'common')
+                        value.endpoint += '/' + endpointId;
 
-                    list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpoint)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + value.property + ' }}' : value;
+                    list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpointId)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + value.property + ' }}' : value;
 
                 }); }); });
             });
@@ -356,42 +356,42 @@ class Device
         this.id = id;
     }
 
-    endpoint(endpoint)
+    endpoint(endpointId)
     {
-        if (!this.endpoints[endpoint])
-            this.endpoints[endpoint] = {properties: new Object()};
+        if (!this.endpoints[endpointId])
+            this.endpoints[endpointId] = {properties: new Object()};
 
-        return this.endpoints[endpoint];
+        return this.endpoints[endpointId];
     }
 
-    exposes(endpoint)
+    exposes(endpointId)
     {
-        return this.endpoint(endpoint).exposes ?? new Object();
+        return this.endpoint(endpointId).exposes ?? new Object();
     }
 
-    items(endpoint)
+    items(endpointId)
     {
-        return this.exposes(endpoint).items ?? new Array();
+        return this.exposes(endpointId).items ?? new Array();
     }
 
-    options(endpoint)
+    options(endpointId)
     {
-        return this.exposes(endpoint).options ?? new Object();
+        return this.exposes(endpointId).options ?? new Object();
     }
 
-    properties(endpoint)
+    properties(endpointId)
     {
-        return this.endpoint(endpoint).properties;
+        return this.endpoint(endpointId).properties;
     }
 
-    setExposes(endpoint, exposes)
+    setExposes(endpointId, exposes)
     {
-        this.endpoint(endpoint).exposes = exposes;
+        this.endpoint(endpointId).exposes = exposes;
     }
 
-    setProperties(endpoint, data)
+    setProperties(endpointId, data)
     {
-        Object.keys(data).forEach(key => { this.endpoint(endpoint).properties[key] = data[key]; });
+        Object.keys(data).forEach(key => { this.endpoint(endpointId).properties[key] = data[key]; });
     }
 }
 
@@ -554,10 +554,10 @@ class DeviceService
                 {
                     let item = this.names ? device.info.name : device.id;
 
-                    Object.keys(message).forEach(endpoint =>
+                    Object.keys(message).forEach(endpointId =>
                     {
-                        this.controller.socket.subscribe('fd/' + this.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item));
-                        device.setExposes(endpoint, message[endpoint]);
+                        this.controller.socket.subscribe('fd/' + this.service + '/' + (endpointId != 'common' ? item + '/' + endpointId : item));
+                        device.setExposes(endpointId, message[endpointId]);
                     });
 
                     this.serviceCommand({action: 'getProperties', device: item, service: 'web'});
@@ -572,9 +572,9 @@ class DeviceService
 
                 if (device && message)
                 {
-                    let endpoint = (this.instance ? list[4] : list[3]) ?? 'common';
-                    device.setProperties(endpoint, message);
-                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+                    let endpointId = (this.instance ? list[4] : list[3]) ?? 'common';
+                    device.setProperties(endpointId, message);
+                    Object.keys(message).forEach(property => { updateExpose(device, endpointId, property, message[property]); });
                 }
 
                 break;
@@ -642,7 +642,7 @@ class DeviceService
             }
 
             table = this.content.querySelector('table.exposes');
-            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { addExpose(table, device, endpointId, expose); }); });
 
             if (!this.service.startsWith('custom'))
                 return;
@@ -1132,7 +1132,7 @@ function timeInterval(interval, round = true)
     return interval >= 5 ? parseInt(interval / 5) * 5 + ' sec' : 'now';
 }
 
-function deviceCommand(device, endpoint, data)
+function deviceCommand(device, endpointId, data)
 {
     let service = controller.services[device.service];
     let item;
@@ -1141,7 +1141,7 @@ function deviceCommand(device, endpoint, data)
         return;
 
     item = service.names ? device.info.name : device.id;
-    controller.socket.publish('td/' + device.service + '/' + (endpoint != 'common' ? item + '/' + endpoint : item), data);
+    controller.socket.publish('td/' + device.service + '/' + (endpointId != 'common' ? item + '/' + endpointId : item), data);
 }
 
 function loadFile(callback)

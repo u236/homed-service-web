@@ -342,10 +342,10 @@ class ZigBee extends DeviceService
 
                 if (device)
                 {
-                    let endpoint = (this.instance ? list[4] : list[3]) ?? 'common';
+                    let endpointId = (this.instance ? list[4] : list[3]) ?? 'common';
                     let row = document.querySelector('tr[data-device="' + this.service + '/' + device.id + '"]');
 
-                    device.setProperties(endpoint, message);
+                    device.setProperties(endpointId, message);
 
                     if (this.controller.page == this.service && message.linkQuality != undefined && row)
                     {
@@ -353,7 +353,7 @@ class ZigBee extends DeviceService
                         break;
                     }
 
-                    Object.keys(message).forEach(name => { updateExpose(device, endpoint, name, message[name]); });
+                    Object.keys(message).forEach(property => { updateExpose(device, endpointId, property, message[property]); });
                 }
 
                 break;
@@ -593,13 +593,13 @@ class ZigBee extends DeviceService
                 return;
             }
 
-            device.info.endpoints?.forEach(endpoint => { if (endpoint.outClusters?.includes(25)) ota = true; });
+            device.info.endpoints?.forEach(item => { if (item.outClusters?.includes(25)) ota = true; });
 
             if (!ota)
                 this.content.querySelector('.upgrade').style.display = 'none';
 
             table = this.content.querySelector('table.exposes');
-            Object.keys(device.endpoints).forEach(endpoint => { device.items(endpoint).forEach(expose => { addExpose(table, device, endpoint, expose); }); });
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { addExpose(table, device, endpointId, expose); }); });
         });
     }
 
