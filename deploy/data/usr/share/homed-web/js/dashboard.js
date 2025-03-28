@@ -38,6 +38,17 @@ class Dashboard
         }
     }
 
+    itemName(item)
+    {
+        if (!item.name && item.endpoint && (item.expose || item.property))
+        {
+            let device = this.controller.findDevice(item);
+            return device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        }
+
+        return item.name;
+    }
+
     itemString(item, edit = true)
     {
         let device = this.controller.findDevice(item);
@@ -67,7 +78,7 @@ class Dashboard
         let titleCell = row.insertCell();
         let valueCell = row.insertCell();
 
-        titleCell.innerHTML = item.name;
+        titleCell.innerHTML = this.itemName(item);
         titleCell.classList.add('name');
 
         valueCell.innerHTML = empty;
@@ -541,7 +552,7 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = item.name + '<div class="note">' + this.itemString(item) + '</div>';
+                            cell.innerHTML = this.itemName(item) + '<div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
                             break;
@@ -645,7 +656,7 @@ class Dashboard
         let list = new Object();
 
         if (!item)
-            item = {name: 'New item', add: true};
+            item = {add: true};
 
         Object.keys(this.controller.services).forEach(item =>
         {
@@ -692,8 +703,9 @@ class Dashboard
             let data;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> ' + item.name;
-            modal.querySelector('input[name="name"]').value = item.name;
+            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> ' + (this.itemName(item) ?? 'New item');
+            modal.querySelector('input[name="name"]').placeholder = 'Default name';
+            modal.querySelector('input[name="name"]').value = item.name ?? '';
             modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="icon-right"></i>' : this.itemString(item);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
@@ -707,6 +719,9 @@ class Dashboard
             modal.querySelector('.save').addEventListener('click', function()
             {
                 item.name = modal.querySelector('input[name="name"]').value;
+
+                if (!item.name)
+                    delete item.name;
 
                 if (data)
                 {
@@ -781,11 +796,11 @@ class Dashboard
             let table;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = item.name;
+            modal.querySelector('.name').innerHTML = this.itemName(item);
             modal.querySelector('.note').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
 
             table = modal.querySelector('table.exposes');
-            addExpose(table, device, endpointId, expose);
+            addExpose(table, device, endpointId, expose, false);
 
             if (table.rows.length == 1 && !table.querySelector('td.control').innerHTML)
                 table.querySelector('tr').deleteCell(2);
@@ -810,7 +825,7 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = item.name;
+            modal.querySelector('.name').innerHTML = this.itemName(item);
             modal.querySelector('.note').innerHTML = this.itemString(item, false);
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
