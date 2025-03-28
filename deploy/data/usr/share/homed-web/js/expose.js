@@ -12,9 +12,11 @@ function temperatureToColor(value)
     return color;
 }
 
-function exposeTitle(name, endpointId = 'common')
+function exposeTitle(device, endpoint, property)
 {
-    let title = name.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
+    let endpointId = endpoint.split('/')[2];
+    let name = device.options(endpointId).name;
+    let title = property.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
     switch (title[0])
     {
@@ -31,7 +33,7 @@ function exposeTitle(name, endpointId = 'common')
     if (title[1]?.match('^[pt][0-9]+$'))
         title[1] = title[1].toUpperCase();
 
-    return title.join(' ') + (endpointId != 'common' ? ' ' + endpointId.toLowerCase() : '');
+    return title.join(' ') + (endpointId ? ' ' + (name ? '(' + name.toLowerCase() + ')' : endpointId) : '');
 }
 
 function exposeList(expose, options)
@@ -161,6 +163,7 @@ function addExpose(table, device, endpointId, expose)
     {
         let last = table.rows[table.rows.length - 1]?.dataset.expose;
         let edge = last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
+        let endpoint = device.service.split('/')[0] + '/' + device.id;
         let option = options[property] ?? new Object();
         let name = property.split('_')[0];
         let row = table.insertRow();
@@ -168,11 +171,14 @@ function addExpose(table, device, endpointId, expose)
         let valueCell = row.insertCell();
         let controlCell;
 
+        if (endpointId != 'common')
+            endpoint += '/' + endpointId;
+
         row.dataset.device = device.service + '/' + device.id;
         row.dataset.endpointId = endpointId;
         row.dataset.expose = expose;
 
-        labelCell.innerHTML = exposeTitle(property, options.name ?? endpointId);
+        labelCell.innerHTML = exposeTitle(device, endpoint, property);
         labelCell.classList.add('label');
 
         valueCell.dataset.property = property;
@@ -181,12 +187,7 @@ function addExpose(table, device, endpointId, expose)
 
         controller.services.recorder?.status.items?.forEach((data, index) =>
         {
-            let item = device.service.split('/')[0] + '/' + device.id;
-
-            if (endpointId != 'common')
-                item += '/' + endpointId;
-
-            if (data.endpoint != item || data.property != property)
+            if (data.endpoint != endpoint || data.property != property)
                 return;
 
             labelCell.innerHTML += ' <i class="icon-chart shade"></i>';

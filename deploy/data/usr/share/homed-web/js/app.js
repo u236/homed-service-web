@@ -308,7 +308,7 @@ class Controller
             }
         });
 
-        return device ?? new Object();
+        return device ?? new Device();
     }
 
     propertiesList(pattern)
@@ -336,7 +336,7 @@ class Controller
                     if (endpointId != 'common')
                         value.endpoint += '/' + endpointId;
 
-                    list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(property, endpointId)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + value.property + ' }}' : value;
+                    list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
 
                 }); }); });
             });

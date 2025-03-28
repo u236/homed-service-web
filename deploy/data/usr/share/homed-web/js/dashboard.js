@@ -38,7 +38,7 @@ class Dashboard
     itemString(item, edit = true)
     {
         let device = this.controller.findDevice(item);
-        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(item.expose ?? item.property, item.endpoint.split('/')[2] ?? 'common');
+        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
     setIndex(index)
@@ -660,7 +660,7 @@ class Dashboard
                     if (endpointId != 'common')
                         value.endpoint += '/' + endpointId;
 
-                    list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(expose, endpointId)] = value;
+                    list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
 
                 }); });
             });
@@ -675,7 +675,7 @@ class Dashboard
                 if (!device.info)
                     return;
 
-                list['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(item.property, item.endpoint.split('/')[2] ?? 'common')] = {endpoint: item.endpoint, property: item.property};
+                list['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
             });
         }
 

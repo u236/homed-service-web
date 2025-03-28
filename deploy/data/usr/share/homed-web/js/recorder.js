@@ -65,14 +65,13 @@ class Recorder
 
     devicePromise(data, cell, table)
     {
-        let endpointId = data.endpoint.split('/')[2] ?? 'common';
         let device;
 
         function wait(resolve)
         {
             device = this.controller.findDevice(data);
 
-            if (!device.endpoints?.[endpointId]?.exposes)
+            if (!device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes)
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -83,7 +82,7 @@ class Recorder
 
         new Promise(wait.bind(this)).then(function()
         {
-            let title = exposeTitle(data.property, endpointId);
+            let title = exposeTitle(device, data.endpoint, data.property);
 
             this.status.items.forEach(item =>
             {
@@ -340,7 +339,7 @@ class Recorder
             };
 
             if (!chart)
-                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(canvas.dataset.property)]}});
+                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(this.controller.findDevice({endpoint: canvas.dataset.endpoint}), canvas.dataset.endpoint, canvas.dataset.property)]}});
         }
 
         chart.data.datasets = datasets;
