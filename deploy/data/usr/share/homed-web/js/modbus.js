@@ -5,6 +5,11 @@ class Modbus extends DeviceService
         customController:      'Custom Modbus Device',
         homedRelayController:  'HOMEd Relay Controller',
         homedSwitchController: 'HOMEd Switch Controller',
+        r4pin08m0:             'Eletechsup R4PIN08-8DI Controller',
+        r4pin08m1:             'Eletechsup R4PIN08-8DO Controller',
+        r4pin08m2:             'Eletechsup R4PIN08-4DI-4DO Controller',
+        r4pin08m3:             'Eletechsup R4PIN08-2DI-6DO Controller',
+        r4pin08m4:             'Eletechsup R4PIN08-6DI-2DO Controller',
         wbMap3e:               'Wiren Board WB-MAP3E',
         wbMap12h:              'Wiren Board WB-MAP12H'
     };
