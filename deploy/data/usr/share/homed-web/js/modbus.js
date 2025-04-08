@@ -11,7 +11,8 @@ class Modbus extends DeviceService
         r4pin08m3:             'Eletechsup R4PIN08-2DI-6DO Controller',
         r4pin08m4:             'Eletechsup R4PIN08-6DI-2DO Controller',
         wbMap3e:               'Wiren Board WB-MAP3E',
-        wbMap12h:              'Wiren Board WB-MAP12H'
+        wbMap12h:              'Wiren Board WB-MAP12H',
+        t13:                   'T13-750W-12-H Frequency Converter'
     };
 
     constructor(controller, instance)

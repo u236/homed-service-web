@@ -476,7 +476,6 @@ function updateExpose(device, endpointId, property, value)
                         }
                     }
 
-
                     switch (cell.dataset.type)
                     {
                         case 'number':
