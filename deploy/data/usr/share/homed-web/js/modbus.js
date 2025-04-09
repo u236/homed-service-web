@@ -2,7 +2,7 @@ class Modbus extends DeviceService
 {
     deviceType =
     {
-        customController:      'Custom Modbus Device',
+        customController:      'Custom Modbus Controller',
         homedRelayController:  'HOMEd Relay Controller',
         homedSwitchController: 'HOMEd Switch Controller',
         r4pin08m0:             'Eletechsup R4PIN08-8DI Controller',
@@ -10,8 +10,9 @@ class Modbus extends DeviceService
         r4pin08m2:             'Eletechsup R4PIN08-4DI-4DO Controller',
         r4pin08m3:             'Eletechsup R4PIN08-2DI-6DO Controller',
         r4pin08m4:             'Eletechsup R4PIN08-6DI-2DO Controller',
-        wbMap3e:               'Wiren Board WB-MAP3E',
-        wbMap12h:              'Wiren Board WB-MAP12H',
+        wbMap3e:               'Wiren Board WB-MAP3E Energy Meter',
+        wbMap6s:               'Wiren Board WB-MAP6S Energy Meter',
+        wbMap12h:              'Wiren Board WB-MAP12H Energy Meter',
         t13:                   'T13-750W-12-H Frequency Converter'
     };
 
