@@ -443,8 +443,13 @@ function updateExpose(device, endpointId, property, value)
             switch (property.split('_')[0])
             {
                 case 'color':
-                    colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
-                    cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+                    
+                    if (value[0] + value[1] + value[2] >= 255)
+                    {
+                        colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
+                        cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
+                    }
+                    
                     break;
 
                 case 'irCode':
