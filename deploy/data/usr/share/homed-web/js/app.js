@@ -1027,7 +1027,7 @@ function addDropdown(element, options, callback, separator, trigger)
         list.append(item);
     }
 
-    if (options.length > 10)
+    if (!trigger && options.length > 10)
     {
         search = document.createElement('input');
         search.type = 'text';
