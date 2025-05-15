@@ -12,7 +12,10 @@ class Modbus extends DeviceService
         r4pin08m4:             'Eletechsup R4PIN08-6DI-2DO Controller',
         wbMap3e:               'Wiren Board WB-MAP3E Energy Meter',
         wbMap6s:               'Wiren Board WB-MAP6S Energy Meter',
+        wbMap12e:              'Wiren Board WB-MAP12E Energy Meter',
         wbMap12h:              'Wiren Board WB-MAP12H Energy Meter',
+        neptunSmartPlus:       'Neptun Smart+ Controller',
+        jth2d1:                'JTH-2D1 Temperature and Humidity Sensor',
         t13:                   'T13-750W-12-H Frequency Converter'
     };
 
