@@ -309,6 +309,7 @@ td.remove:hover {
 
 .note {
     padding: 0 5px;
+    font-size: 0.875rem;
     color: var(--color-shade);
 }
 

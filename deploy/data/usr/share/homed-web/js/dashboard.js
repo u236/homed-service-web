@@ -274,7 +274,15 @@ class Dashboard
                     element.querySelector('.control').innerHTML += '<span class="edit"><i class="icon-edit"></i></span>';
                     element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
                 }
-
+                
+                if (block.note)
+                {
+                    let note = document.createElement('div');
+                    note.innerHTML += block.note;
+                    note.classList.add('note');
+                    element.append(note);
+                }
+                
                 element.append(table);
                 element.classList.add('dashboardBlock');
 
@@ -598,6 +606,7 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
+            modal.querySelector('textarea[name="note"]').value = block.note ?? '';
 
             this.status.dashboards.forEach((dashboard, index) =>
             {
@@ -618,6 +627,11 @@ class Dashboard
 
                 block.name = form.name;
                 block.interval = form.interval;
+                
+                if (form.note)
+                    block.note = form.note;
+                else
+                    delete block.note;
 
                 if (block.add)
                 {
