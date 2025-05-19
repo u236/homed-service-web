@@ -561,10 +561,6 @@ td.remove:hover {
     padding: 0 5px;
 }
 
-.dashboardList span:hover {
-    color: var(--color-highlight);
-}
-
 .dashboardData {
     display: flex;
     flex-wrap: wrap;
@@ -793,15 +789,6 @@ td.remove:hover {
 
 .exposes textarea {
     margin-bottom: 0;
-}
-
-.exposes .label i {
-    cursor: pointer;
-    color: var(--color-shade);
-}
-
-.exposes .label i:hover {
-    color: var(--color-main);
 }
 
 .exposes .value {
@@ -1121,6 +1108,10 @@ tr:first-child td {
 
 @media (max-width: 1030px) {
     .narrowHidden { display: none; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .dashboardList span:hover { color: var(--color-highlight); }
 }
 
 @media (max-width: 680px) {
