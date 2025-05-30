@@ -875,8 +875,8 @@ document.onkeydown = function(event)
 
                 break;
 
-            case 'arrowleft':  document.querySelector('button.previous')?.click(); break;
-            case 'arrowright': document.querySelector('button.next')?.click(); break;
+            case 'arrowleft':  document.querySelector(event.shiftKey ? '#left' : 'button.previous')?.click(); break;
+            case 'arrowright': document.querySelector(event.shiftKey ? '#right' : 'button.next')?.click(); break;
             case 'e':          document.querySelector('button.edit')?.click(); break;
             case 'r':          document.querySelector('button.remove')?.click(); break;
             case 's':          document.querySelector('button.save')?.click(); break;

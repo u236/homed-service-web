@@ -107,6 +107,7 @@ class Recorder
         if (canvas.dataset.interval != 'custom')
         {
             let date = new Date();
+            let offset = parseInt(canvas.dataset.offset) || 0;
 
             switch (canvas.dataset.interval)
             {
@@ -117,16 +118,18 @@ class Recorder
                 default:      date.setHours(date.getHours() - 24); break;
             }
 
-            canvas.dataset.start = date.getTime();
-            canvas.dataset.end = Date.now();
+            offset *= (Date.now() - date.getTime()) / 10;
+            canvas.dataset.start = date.getTime() - offset;
+            canvas.dataset.end = Date.now() - offset;
         }
 
         this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.start, end: canvas.dataset.end});
     }
 
-    chartQuery(item, element, interval, start, end)
+    chartQuery(item, element, interval, shift, start, end)
     {
         let canvas = element.querySelector('canvas');
+        let offset = parseInt(canvas.dataset.offset) || 0;
 
         if (interval)
             canvas.dataset.interval = interval;
@@ -137,9 +140,17 @@ class Recorder
             canvas.dataset.end = end;
         }
 
+        switch (shift)
+        {
+            case 'left': offset += 1; break;
+            case 'right': if (offset > 0) offset -= 1; break;
+            default: offset = 0; break;
+        }
+
+        canvas.dataset.offset = offset;
         canvas.dataset.endpoint = item.endpoint;
         canvas.dataset.property = item.property;
-        canvas.style.display = 'none';
+        // canvas.style.display = 'none';
 
         this.dataRequest(canvas);
     }
@@ -172,10 +183,11 @@ class Recorder
             return;
         }
 
-        if (table && (table.dataset.interval != canvas.dataset.interval || table.rows[0]?.querySelector('.placeholder')))
+        if (table && (table.dataset.interval != canvas.dataset.interval || table.dataset.offset != canvas.dataset.offset || table.rows[0]?.querySelector('.placeholder')))
         {
             canvas.closest('div').style.display = 'block';
             table.dataset.interval = canvas.dataset.interval;
+            table.dataset.offset = canvas.dataset.offset;
             table.innerHTML = null;
         }
 
@@ -397,7 +409,7 @@ class Recorder
             });
         }
 
-        canvas.style.display = 'block';
+        // canvas.style.display = 'block';
     }
 
     parseMessage(list, message)
@@ -556,6 +568,8 @@ class Recorder
                 this.chartQuery(this.data, chart, element.innerHTML);
 
             }.bind(this)));
+            
+            this.content.querySelector('.shift').querySelectorAll('span').forEach(element => element.addEventListener('click', function() { this.chartQuery(this.data, chart, chart.querySelector('canvas').dataset.interval, element.id); }.bind(this)));
 
             datepicker.querySelector('.apply').addEventListener('click', function()
             {
@@ -572,14 +586,14 @@ class Recorder
                 localStorage.setItem('recorderEnd', end);
 
                 this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                this.chartQuery(this.data, chart, 'custom', new Date(start).getTime(), new Date(end).getTime());
+                this.chartQuery(this.data, chart, 'custom', undefined, new Date(start).getTime(), new Date(end).getTime());
 
             }.bind(this));
 
             this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
 
             this.devicePromise(this.data, name);
-            this.chartQuery(this.data, chart, localStorage.getItem('recorderInterval'), start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
+            this.chartQuery(this.data, chart, localStorage.getItem('recorderInterval'), undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
         });
     }
 
