@@ -38,15 +38,29 @@ class Dashboard
         }
     }
 
-    itemName(item)
+    devicePromise(item, cell)
     {
-        if (!item.name && item.endpoint && (item.expose || item.property))
-        {
-            let device = this.controller.findDevice(item);
-            return device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
-        }
+        cell.innerHTML = item.name ?? (item.endpoint ? item.endpoint + ' <i class="icon-right"></i> ' + (item.expose ?? item.property) : 'New item');
 
-        return item.name;
+        if (!item.name)
+        {
+            let device;
+
+            function wait(resolve)
+            {
+                device = this.controller.findDevice(item);
+
+                if (!device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes)
+                {
+                    setTimeout(wait.bind(this, resolve), 10);
+                    return;
+                }
+
+                resolve();
+            }
+
+            new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property); }.bind(this));
+        }
     }
 
     itemString(item, edit = true)
@@ -78,7 +92,7 @@ class Dashboard
         let titleCell = row.insertCell();
         let valueCell = row.insertCell();
 
-        titleCell.innerHTML = this.itemName(item);
+        this.devicePromise(item, titleCell);
         titleCell.classList.add('name');
 
         valueCell.innerHTML = empty;
@@ -560,9 +574,10 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = this.itemName(item) + '<div class="note">' + this.itemString(item) + '</div>';
+                            cell.innerHTML = '<span></span><div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
+                            this.devicePromise(item, cell.querySelector('span'));
                             break;
 
                         case 1:
@@ -714,10 +729,15 @@ class Dashboard
 
         fetch('html/dashboard/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
         {
+            let name;
             let data;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> ' + (this.itemName(item) ?? 'New item');
+            name = modal.querySelector('.name');
+
+            name.innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> <span></span>';
+            this.devicePromise(item, name.querySelector('span'));
+
             modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
             modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="icon-right"></i>' : this.itemString(item);
@@ -810,7 +830,8 @@ class Dashboard
             let table;
 
             modal.querySelector('.data').innerHTML = html;
-            modal.querySelector('.name').innerHTML = this.itemName(item);
+
+            this.devicePromise(item, modal.querySelector('.name'));
             modal.querySelector('.note').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
 
             table = modal.querySelector('table.exposes');
@@ -839,7 +860,7 @@ class Dashboard
             modal.querySelector('.data').innerHTML = html;
             chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = this.itemName(item);
+            this.devicePromise(item, modal.querySelector('.name'));
             modal.querySelector('.note').innerHTML = this.itemString(item, false);
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
