@@ -26,7 +26,9 @@ function exposeTitle(device, endpoint, property, names = true)
     {
         case 'co2':    title[0] = 'CO2'; break;
         case 'eco2':   title[0] = 'eCO2'; break;
+        case 'pm':     title[0] = 'PM'; break;
         case 'pm1':    title[0] = 'PM1'; break;
+        case 'pm4':    title[0] = 'PM4'; break;
         case 'pm10':   title[0] = 'PM10'; break;
         case 'pm25':   title[0] = 'PM2.5'; break;
         case 'uv':     title[0] = 'UV'; break;
