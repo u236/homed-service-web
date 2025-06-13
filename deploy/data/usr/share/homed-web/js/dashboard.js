@@ -66,7 +66,12 @@ class Dashboard
     itemString(item, edit = true)
     {
         let device = this.controller.findDevice(item);
-        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        let property = item.expose ?? item.property;
+
+        if (['lock', 'switch'].includes(property))
+            property = 'status';
+        
+        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, property);
     }
 
     setIndex(index)
@@ -119,8 +124,7 @@ class Dashboard
                     break;
 
                 case 'thermostat':
-                    valueCell.dataset.property = 'temperature';
-                    valueCell.dataset.unit = '°C';
+                    valueCell.innerHTML = '<span data-property="temperature">' + empty + '</span> <i class="icon-right"></i> <span data-property="targetTemperature" data-unit="°C">' + empty + '</span>';
                     break;
 
                 default:

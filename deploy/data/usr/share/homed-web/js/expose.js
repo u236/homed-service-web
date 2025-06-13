@@ -438,7 +438,7 @@ function updateExpose(device, endpointId, property, value)
             return;
         }
 
-        cell = row.querySelector('td.value[data-property="' + property + '"]');
+        cell = row.querySelector('[data-property="' + property + '"]');
 
         if (cell)
         {
