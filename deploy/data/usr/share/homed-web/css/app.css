@@ -258,11 +258,19 @@ td.remove:hover {
 }
 
 .fade-in {
-    animation: fadeIn linear 0.25s;
+    animation: fadeIn linear 0.2s;
 }
 
 .fade-out {
-    animation: fadeOut linear 0.25s;
+    animation: fadeOut linear 0.2s;
+}
+
+.move-in {
+    animation: fadeIn linear 0.2s;
+}
+
+.move-out {
+    animation: fadeOut linear 0.2s;
 }
 
 .shade {
@@ -1109,13 +1117,23 @@ tr:first-child td {
 }
 
 @keyframes fadeIn {
-    0%   { max-height: 0; opacity: 0; }
-    100% { max-height: 100px; opacity: 1; }
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
 }
 
 @keyframes fadeOut {
-    0%   { max-height: 100px; opacity: 1; }
-    100% { max-height: 0; opacity: 0; }
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes moveIn {
+    0%   { max-height: 0; }
+    100% { max-height: 100px; }
+}
+
+@keyframes moveOut {
+    0%   { max-height: 100px; }
+    100% { max-height: 0; }
 }
 
 @media (max-width: 1030px) {

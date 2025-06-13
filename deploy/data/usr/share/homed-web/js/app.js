@@ -273,7 +273,7 @@ class Controller
         let element = document.createElement('div');
 
         element.innerHTML = '<div class="message">' + message + '</div>';
-        element.classList.add('item', 'fade-in', style);
+        element.classList.add('item', 'fade-in', 'move-in', style);
         element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
 
         setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
@@ -288,7 +288,7 @@ class Controller
             return;
 
         setTimeout(function() { toast?.removeChild(item); }, 200);
-        item.classList.add('fade-out');
+        item.classList.add('fade-out', 'move-out');
     }
 
     findDevice(item)
@@ -1074,6 +1074,13 @@ function addDropdown(element, options, callback, separator, trigger)
     });
 }
 
+function closeModal()
+{
+    modal.removeEventListener('animationend', closeModal);
+    modal.querySelector('.data').innerHTML = null;
+    modal.style.display = 'none';
+}
+
 function showModal(show, focus)
 {
     if (show)
@@ -1091,15 +1098,23 @@ function showModal(show, focus)
         };
 
         modal.style.display = 'block';
+        modal.classList.remove('fade-out');
+        modal.classList.add('fade-in');
+
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
         modal.querySelectorAll('label .dropdown').forEach(item => { addDropdown(item, Object.keys(list), function(key) {let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, 7); });
         modal.querySelector(focus)?.focus();
         return;
     }
 
+    if (modal.style.display != 'block')
+        return;
+
     Object.keys(modal.dataset).forEach(item => { delete modal.dataset[item]; });
-    modal.querySelector('.data').innerHTML = null;
-    modal.style.display = 'none';
+
+    modal.addEventListener('animationend', closeModal);
+    modal.classList.remove('fade-in');
+    modal.classList.add('fade-out');
 }
 
 function handleArrowButtons(element, list, index, callback)
