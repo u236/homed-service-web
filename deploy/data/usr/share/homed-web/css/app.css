@@ -912,6 +912,7 @@ tr:first-child td {
 }
 
 #modal {
+    backdrop-filter: blur(1px) grayscale(0.25);
     display: none;
     position: fixed;
     top: 0;
