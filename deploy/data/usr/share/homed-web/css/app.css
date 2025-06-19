@@ -958,9 +958,6 @@ tr:first-child td {
 }
 
 #modal table {
-    position: relative;
-    left:  -5px;
-    width: calc(100% + 10px);
     margin-top: 5px;
     margin-bottom: 20px;
 }
@@ -975,6 +972,12 @@ tr:first-child td {
 
 #modal table.select {
     margin-bottom: 10px;
+}
+
+#modal table.select td.item {
+    overflow: hidden;
+    max-width: 100px;
+    text-overflow: ellipsis;
 }
 
 #modal table.exposes td:first-child {
@@ -1002,7 +1005,6 @@ tr:first-child td {
 }
 
 #modal .data {
-    overflow-x: auto;
     max-width: min(600px, calc(100% - 40px));
     margin: 10px auto;
     padding: 10px;
@@ -1019,6 +1021,16 @@ tr:first-child td {
     gap: 10px;
     margin: 0;
     margin-bottom: 10px;
+}
+
+#modal .table {
+    position: relative;
+    left:  -5px;
+    width: calc(100% + 10px);
+}
+
+#modal .table.overflow {
+    overflow-x: auto;
 }
 
 #modal .copy {
@@ -1049,9 +1061,10 @@ tr:first-child td {
 }
 
 #modal .dropdown .list {
-    overflow: auto;
-    min-width: min(400px, calc(100vw - 60px));
-    max-height: 165px;
+    overflow-x: auto;
+    min-width: min(400px, calc(100vw - 50px));
+    max-width: calc(100vw - 50px);
+    max-height: 305px;
 }
 
 #modal .dropdown .list input[type="text"] {
