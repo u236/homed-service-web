@@ -1,6 +1,6 @@
 class Automation
 {
-    intervals = [setInterval(function() { this.updateLastTriggered(); }.bind(this), 100)];
+    intervals = [setInterval(function() { this.checkDevices(); this.updateLastTriggered(); }.bind(this), 100)];
     service = 'automation';
 
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval', 'startup'];
@@ -24,6 +24,28 @@ class Automation
             return;
 
         this.service += '/' + instance;
+    }
+
+    checkDevices()
+    {
+        if (this.controller.page != this.service || !this.status.automations)
+            return;
+
+        this.status.automations.forEach((item, index) =>
+        {
+            let row = document.querySelector('tr[data-index="' + index + '"]');
+
+            if (!row)
+                return;
+
+            Object.keys(item).forEach(key =>
+            { 
+                if (!Array.isArray(item[key])) 
+                    return;
+                
+                item[key].forEach(element => { if (element.type == 'property' && !this.controller.findDevice(element).info) row.classList.add('incomplete'); else row.classList.remove('incomplete'); });
+            });
+        });
     }
 
     updateLastTriggered()
