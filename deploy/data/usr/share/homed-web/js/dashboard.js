@@ -146,7 +146,7 @@ class Dashboard
         return row;
     }
 
-    addChart(table, item, interval)
+    addChart(table, item, interval, height)
     {
         let row = table.insertRow();
         let cell = row.insertCell();
@@ -169,7 +169,7 @@ class Dashboard
         new Promise(wait.bind(this)).then(function()
         {
             row.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
-            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '" class="' + (height ?? 'normal') + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
             this.controller.services.recorder.chartQuery(item, cell, interval);
 
@@ -358,7 +358,7 @@ class Dashboard
                         return;
 
                     row.classList.add('label');
-                    this.addChart(table, item, block.interval);
+                    this.addChart(table, item, block.interval, block.height);
                 });
 
                 if (!table.rows.length)
@@ -638,6 +638,7 @@ class Dashboard
             modal.querySelector('.edit').style.display = block.add ? 'none' : 'block'; // || callback
             modal.querySelector('select[name="dashboard"]').value = this.index;
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
+            modal.querySelector('select[name="height"]').value = block.height ?? 'normal';
             modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -646,6 +647,7 @@ class Dashboard
 
                 block.name = form.name;
                 block.interval = form.interval;
+                block.height = form.height;
                 
                 if (form.note)
                     block.note = form.note;
