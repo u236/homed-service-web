@@ -164,6 +164,7 @@ class Controller
         if (redraw)
         {
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
+            let shortNames = {automation: 'auto', zigbee: 'zbee', modbus: 'mbus'};
             let services = Object.keys(this.services);
             let list = new Array();
 
@@ -178,11 +179,15 @@ class Controller
                 services.filter(service => { return service.startsWith(name); }).forEach(service =>
                 {
                     let item = document.createElement('span');
+                    let itemName = service; 
 
+                    Object.keys(shortNames).forEach(key => { itemName = itemName.replace(key + '/', shortNames[key] + '/'); });
+                    
                     if (menu.innerHTML)
                         menu.append('|');
 
-                    item.innerHTML = service.replace('automation/', 'auto/');
+
+                    item.innerHTML = itemName;
                     item.dataset.service = service;
                     item.addEventListener('click', function() { this.showPage(service); }.bind(this));
 
