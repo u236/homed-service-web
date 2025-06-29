@@ -164,7 +164,7 @@ class Controller
         if (redraw)
         {
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
-            let shortNames = {automation: 'auto', zigbee: 'zbee', modbus: 'mbus'};
+            let shortNames = {automation: 'auto', zigbee: 'zbee', modbus: 'mbus', custom: 'cust'};
             let services = Object.keys(this.services);
             let list = new Array();
 
@@ -185,7 +185,6 @@ class Controller
                     
                     if (menu.innerHTML)
                         menu.append('|');
-
 
                     item.innerHTML = itemName;
                     item.dataset.service = service;

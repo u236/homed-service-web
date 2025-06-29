@@ -718,12 +718,16 @@ td.remove:hover {
     display: none;
 }
 
-.deviceInfo .exposes .label span {
+.deviceInfo .exposes .label span, .deviceInfo .exposes .label i {
     cursor: pointer;
 }
 
 .deviceInfo .exposes .label span:hover {
     color: var(--color-highlight);
+}
+
+.deviceInfo .exposes .label i:hover {
+    color: var(--color-main);
 }
 
 .deviceMap svg {
