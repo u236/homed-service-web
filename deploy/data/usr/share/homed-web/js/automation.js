@@ -127,6 +127,7 @@ class Automation
                 let check = this.status.automations?.map(automation => automation.name);
 
                 this.status = message;
+                this.status.automations?.forEach(item => { if (!item.conditions) item.conditions = new Array(); });
 
                 if (this.controller.service == this.service)
                 {
@@ -617,9 +618,6 @@ class Automation
             this.status.automations.forEach((item, index) =>
             {
                 let row = table.querySelector('tbody').insertRow();
-
-                if (!item.conditions)
-                    item.conditions = new Array();
 
                 row.addEventListener('click', function() { this.controller.showPage(this.service + '?index=' + index); }.bind(this));
                 row.dataset.index = index;

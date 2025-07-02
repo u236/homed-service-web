@@ -250,14 +250,18 @@ void Controller::readyRead(void)
                 if (username == m_username && password == m_password)
                 {
                     httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(m_database->adminToken()).arg(COOKIE_MAX_AGE)}});
+                    logInfo << "User" << username << "successfully logged in";
                     return;
                 }
 
                 if (!m_guest.isEmpty() && username == "guest" && password == m_guest)
                 {
                     httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(m_database->guestToken()).arg(COOKIE_MAX_AGE)}});
+                    logInfo << "Guest user successfully logged in";
                     return;
                 }
+
+                logWarning << "User" << (username.isEmpty() ? "(empty)" : username) << "login failed";
             }
 
             fileResponse(socket, "/login.html");
