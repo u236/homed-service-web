@@ -173,25 +173,30 @@ class Controller
 
             names.forEach(name =>
             {
+                let serviceList;
+
                 if (guest && !['dashboard', 'recorder'].includes(name))
                     return;
 
-                services.filter(service => { return service.startsWith(name); }).forEach(service =>
+                serviceList = services.filter(service => { return service.startsWith(name); });
+                list.push(...serviceList);
+
+                serviceList.forEach(service =>
                 {
                     let item = document.createElement('span');
-                    let itemName = service; 
-
-                    Object.keys(shortNames).forEach(key => { itemName = itemName.replace(key + '/', shortNames[key] + '/'); });
+                    let itemName = service;
                     
                     if (menu.innerHTML)
                         menu.append('|');
+
+                    if (serviceList.length > 1 || itemName.includes('/'))
+                        itemName = itemName.replace(name, shortNames[name]);
 
                     item.innerHTML = itemName;
                     item.dataset.service = service;
                     item.addEventListener('click', function() { this.showPage(service); }.bind(this));
 
                     menu.appendChild(item);
-                    list.push(service);
                 });
             });
 

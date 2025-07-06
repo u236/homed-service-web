@@ -437,7 +437,7 @@ td.remove:hover {
 
 .header span {
     cursor: pointer;
-    padding: 0 5px;
+    padding: 0 4px;
     text-transform: uppercase;
 }
 
