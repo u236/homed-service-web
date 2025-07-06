@@ -232,6 +232,9 @@ class Controller
     {
         let list = page.split('?');
         let service = list[0];
+    
+        if (!service)
+            service = 'dashboard';
 
         if (guest && !['dashboard', 'recorder'].includes(service))
             return;
