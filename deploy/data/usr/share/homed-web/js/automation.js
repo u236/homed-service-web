@@ -31,6 +31,16 @@ class Automation
         return statement == 'between' || statement == 'outside';
     }
 
+    statementString(statement)
+    {
+        switch (statement)
+        {
+            case 'outside': return 'is outside';
+            case 'changes': return 'changes for';
+            default: return statement;
+        }
+    }
+
     checkDevices()
     {
         if (this.controller.page != this.service || !this.status.automations)
@@ -246,7 +256,7 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="icon-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + statement;
+                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="icon-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + this.statementString(statement);
 
                     if (statement == 'updates')
                         break;
@@ -304,17 +314,17 @@ class Automation
             {
                 case 'property':
                 case 'mqtt':
-                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="icon-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + statement + ' <span class="value">' + value + '</span>';
+                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="icon-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + this.statementString(statement) + ' <span class="value">' + value + '</span>';
 
                 case 'state':
                 case 'pattern':
-                    return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + statement + ' <span class="value">' + value + '</span>';
+                    return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + this.statementString(statement) + ' <span class="value">' + value + '</span>';
 
                 case 'date':
-                    return statement + ' <span class="value">' + value + '</span>';
+                    return this.statementString(statement) + ' <span class="value">' + value + '</span>';
 
                 case 'time':
-                    return statement + ' <span class="value">' + value + '</span>';
+                    return this.statementString(statement) + ' <span class="value">' + value + '</span>';
             }
         }
     }
@@ -888,7 +898,8 @@ class Automation
             {
                 let option = document.createElement('option');
 
-                option.innerHTML = statement;
+                option.innerHTML = this.statementString(statement);
+                option.value = statement;
                 modal.querySelector('select[name="statement"]').append(option);
 
                 if (!item.hasOwnProperty(statement))
@@ -972,7 +983,8 @@ class Automation
             {
                 let option = document.createElement('option');
 
-                option.innerHTML = statement;
+                option.innerHTML = this.statementString(statement);
+                option.value = statement;
                 modal.querySelector('select[name="statement"]').append(option);
 
                 if (!item.hasOwnProperty(statement))
@@ -1179,7 +1191,8 @@ class Automation
             {
                 let option = document.createElement('option');
 
-                option.innerHTML = statement;
+                option.innerHTML = this.statementString(statement);
+                option.value = statement;
                 modal.querySelector('select[name="statement"]').append(option);
 
                 if (!condition.hasOwnProperty(statement))
@@ -1233,7 +1246,8 @@ class Automation
             {
                 let option = document.createElement('option');
 
-                option.innerHTML = statement;
+                option.innerHTML = this.statementString(statement);
+                option.value = statement;
                 modal.querySelector('select[name="statement"]').append(option);
 
                 if (!condition.hasOwnProperty(statement))
