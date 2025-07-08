@@ -4,10 +4,10 @@ class Automation
     service = 'automation';
 
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval', 'startup'];
-    triggerStatement = ['equals', 'above', 'below', 'between', 'changes', 'updates'];
+    triggerStatement = ['equals', 'above', 'below', 'between', 'outside', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
-    conditionStatement = ['equals', 'differs', 'above', 'below', 'between'];
+    conditionStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside'];
 
     actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay'];
     actionStatement = ['value', 'increase', 'decrease'];
@@ -24,6 +24,11 @@ class Automation
             return;
 
         this.service += '/' + instance;
+    }
+
+    isArrayStatement(statement)
+    {
+        return statement == 'between' || statement == 'outside';
     }
 
     checkDevices()
@@ -208,17 +213,18 @@ class Automation
         switch (statement)
         {
             case 'between':
-                form.querySelector('.between').style.display = 'block';
+            case 'outside':
+                form.querySelector('.array').style.display = 'block';
                 form.querySelector('.other').style.display = 'none';
                 break;
 
             case 'updates':
-                form.querySelector('.between').style.display = 'none';
+                form.querySelector('.array').style.display = 'none';
                 form.querySelector('.other').style.display = 'none';
                 break;
 
             default:
-                form.querySelector('.between').style.display = 'none';
+                form.querySelector('.array').style.display = 'none';
                 form.querySelector('.other').style.display = 'block';
                 break;
         }
@@ -245,7 +251,7 @@ class Automation
                     if (statement == 'updates')
                         break;
 
-                    data += ' <span class="value">' + (statement == 'between' && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                    data += ' <span class="value">' + (this.isArrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
                 }
 
                 break;
@@ -292,7 +298,7 @@ class Automation
             if (!condition.hasOwnProperty(statement))
                 continue;
 
-            value = statement == 'between' && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : condition[statement];
+            value = this.isArrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : condition[statement];
 
             switch (condition.type)
             {
@@ -890,7 +896,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (statement == 'between')
+                if (this.isArrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = item[statement][0];
                     modal.querySelector('input[name="max"]').value = item[statement][1];
@@ -926,7 +932,7 @@ class Automation
                 }
 
                 statements.forEach(statement => delete item[statement]);
-                item[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
 
                 if (form.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
@@ -974,7 +980,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (statement == 'between')
+                if (this.isArrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = item[statement][0];
                     modal.querySelector('input[name="max"]').value = item[statement][1];
@@ -1001,7 +1007,7 @@ class Automation
 
                 item.topic = form.topic;
                 item.property = form.property;
-                item[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
 
                 if (form.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
@@ -1181,7 +1187,7 @@ class Automation
 
                     modal.querySelector('select[name="statement"]').value = statement;
 
-                if (statement == 'between')
+                if (this.isArrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = condition[statement][0];
                     modal.querySelector('input[name="max"]').value = condition[statement][1];
@@ -1200,7 +1206,7 @@ class Automation
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
                 condition[item] = form[item];
-                condition[form.statement] = form.statement == 'between' ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
+                condition[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
 
                 if (append)
                     list.push(condition);
@@ -1235,7 +1241,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (statement == 'between')
+                if (this.isArrayStatement(statement))
                 {
                     modal.querySelector('input[name="start"]').value = condition[statement][0];
                     modal.querySelector('input[name="end"]').value = condition[statement][1];
@@ -1251,7 +1257,7 @@ class Automation
                 let form = formData(modal.querySelector('form'));
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
-                condition[form.statement] = form.statement == 'between' ? [form.start, form.end] : form.value;
+                condition[form.statement] = this.isArrayStatement(form.statement) ? [form.start, form.end] : form.value;
 
                 if (append)
                     list.push(condition);
