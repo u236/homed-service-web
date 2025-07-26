@@ -225,14 +225,11 @@ class Dashboard
         if (!this.status.dashboards[this.index])
             this.index = 0;
 
-        fetch('html/dashboard/dashboard.html?' + Date.now()).then(response => response.text()).then(html =>
-        {
-            let list;
-            let dashboard;
 
-            this.content.innerHTML = html;
-            list = this.content.querySelector('.dashboardList');
-            dashboard = this.status.dashboards[this.index];
+        loadHTML('html/dashboard/dashboard.html', this, this.content, function()
+        {
+            let list = this.content.querySelector('.dashboardList');
+            let dashboard = this.status.dashboards[this.index];
 
             if (!guest)
             {
@@ -447,9 +444,8 @@ class Dashboard
 
         }.bind(this);
 
-        fetch('html/dashboard/dashboardSort.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/dashboardSort.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.save').addEventListener('click', function() { this.storeDashboards(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
@@ -515,9 +511,8 @@ class Dashboard
         if (!dashboard)
             dashboard = {name: 'New dashboard', blocks: new Array(), add: true};
 
-        fetch('html/dashboard/dashboardEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/dashboardEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name;
             modal.querySelector('input[name="name"]').value = dashboard.name;
             modal.querySelector('select[name="columnPriority"]').value = dashboard.columnPriority ?? 'equal';
@@ -550,9 +545,8 @@ class Dashboard
 
     showDashboardRemove(dashboard)
     {
-        fetch('html/dashboard/dashboardRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/dashboardRemove.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.status.dashboards.splice(this.index, 1); this.setIndex(0); this.storeDashboards(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
@@ -620,9 +614,8 @@ class Dashboard
         if (!block)
             block = {name: 'New block', items: new Array(), add: true};
 
-        fetch('html/dashboard/blockEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/blockEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
             modal.querySelector('textarea[name="note"]').value = block.note ?? '';
@@ -635,7 +628,7 @@ class Dashboard
                 modal.querySelector('select[name="dashboard"]').append(option);
             });
 
-            modal.querySelector('.edit').style.display = block.add ? 'none' : 'block'; // || callback
+            modal.querySelector('.edit').style.display = block.add ? 'none' : 'block';
             modal.querySelector('select[name="dashboard"]').value = this.index;
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
             modal.querySelector('select[name="height"]').value = block.height ?? 'normal';
@@ -733,13 +726,10 @@ class Dashboard
             });
         }
 
-        fetch('html/dashboard/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/itemEdit.html', this, modal.querySelector('.data'), function()
         {
-            let name;
+            let name = modal.querySelector('.name');
             let data;
-
-            modal.querySelector('.data').innerHTML = html;
-            name = modal.querySelector('.name');
 
             name.innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> <span></span>';
             this.devicePromise(item, name.querySelector('span'));
@@ -831,11 +821,9 @@ class Dashboard
                 expose += '_' + part[1];
         }
 
-        fetch('html/dashboard/exposeInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/exposeInfo.html', this, modal.querySelector('.data'), function()
         {
             let table;
-
-            modal.querySelector('.data').innerHTML = html;
 
             this.devicePromise(item, modal.querySelector('.name'));
             modal.querySelector('.note').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
@@ -858,13 +846,10 @@ class Dashboard
 
     showRecorderInfo(item, interval)
     {
-        fetch('html/dashboard/recorderInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/dashboard/recorderInfo.html', this, modal.querySelector('.data'), function()
         {
             let id = 'chart-' + randomString(8);
-            let chart;
-
-            modal.querySelector('.data').innerHTML = html;
-            chart = modal.querySelector('.chart');
+            let chart = modal.querySelector('.chart');
 
             this.devicePromise(item, modal.querySelector('.name'));
             modal.querySelector('.note').innerHTML = this.itemString(item, false);

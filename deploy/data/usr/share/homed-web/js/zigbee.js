@@ -421,12 +421,9 @@ class ZigBee extends DeviceService
 
     showDeviceList()
     {
-        fetch('html/zigbee/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceList.html', this, this.content, function()
         {
-            let table;
-
-            this.content.innerHTML = html;
-            table = this.content.querySelector('.deviceList table');
+            let table = this.content.querySelector('.deviceList table');
 
             Object.keys(this.devices).forEach(ieeeAddress =>
             {
@@ -479,7 +476,7 @@ class ZigBee extends DeviceService
 
     showDeviceMap()
     {
-        fetch('html/zigbee/deviceMap.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceMap.html', this, this.content, function()
         {
             let map, width, height, link, text, node, routerLinks = false;
             let data = {nodes: new Array(), links: new Array()};
@@ -487,7 +484,6 @@ class ZigBee extends DeviceService
             let simulation = d3.forceSimulation();
             let symbol = [d3.symbolStar, d3.symbolTriangle, d3.symbolCircle];
 
-            this.content.innerHTML = html;
             this.content.querySelector('input[name="routerLinks"]').addEventListener('change', function() { routerLinks = this.checked; simulation.restart(); });
 
             map = d3.select('.deviceMap svg');
@@ -554,12 +550,11 @@ class ZigBee extends DeviceService
 
     showDeviceInfo(device)
     {
-        fetch('html/zigbee/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceInfo.html', this, this.content, function()
         {
-            let table;
             let ota;
+            let table;
 
-            this.content.innerHTML = html;
             this.content.querySelector('.name').innerHTML = device.info.name;
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
@@ -608,9 +603,8 @@ class ZigBee extends DeviceService
         if (!device.info.logicalType)
             return;
 
-        fetch('html/zigbee/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').placeholder = device.info.ieeeAddress;
             modal.querySelector('input[name="name"]').value = device.info.name != device.info.ieeeAddress ? device.info.name : '';
@@ -629,9 +623,8 @@ class ZigBee extends DeviceService
         if (!device.info.logicalType)
             return;
 
-        fetch('html/zigbee/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceRemove.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.graceful').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: device.id}, true); }.bind(this));
@@ -646,9 +639,8 @@ class ZigBee extends DeviceService
         if (!device.info.logicalType)
             return;
 
-        fetch('html/zigbee/deviceUpgrade.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceUpgrade.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.refresh').addEventListener('click', function() { modal.querySelector('.dataLoader').style.display = 'block'; modal.querySelectorAll('.otaData').forEach(cell => { cell.innerHTML = empty; }); this.serviceCommand({action: 'otaRefresh', device: device.id}); }.bind(this));
@@ -664,9 +656,8 @@ class ZigBee extends DeviceService
 
     showDeviceData(device)
     {
-        fetch('html/zigbee/deviceData.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceData.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.json').innerHTML = JSON.stringify(device.info, null, 2);
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
@@ -676,16 +667,12 @@ class ZigBee extends DeviceService
 
     showDeviceGroups(device)
     {
-        fetch('html/zigbee/deviceGroups.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceGroups.html', this, modal.querySelector('.data'), function()
         {
-            let select;
-            let input;
+            let select = modal.querySelector('select[name="endpointId"]');
+            let input = modal.querySelector('input[name="groupId"]');
 
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-
-            select = modal.querySelector('select[name="endpointId"]');
-            input = modal.querySelector('input[name="groupId"]');
 
             device.info.endpoints?.forEach(item =>
             {
@@ -804,16 +791,12 @@ class ZigBee extends DeviceService
             modal.querySelector('.bind').disabled = disabled;
         }
 
-        fetch('html/zigbee/deviceBinding.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceBinding.html', this, modal.querySelector('.data'), function()
         {
-            let endpointList;
-            let clusterList;
+            let endpointList = modal.querySelector('select[name="endpointId"]');
+            let clusterList = modal.querySelector('select[name="clusterId"]');
 
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-
-            endpointList = modal.querySelector('select[name="endpointId"]');
-            clusterList = modal.querySelector('select[name="clusterId"]');
 
             device.info.endpoints?.forEach(item =>
             {
@@ -863,14 +846,11 @@ class ZigBee extends DeviceService
 
     showDeviceDebug(device)
     {
-        fetch('html/zigbee/deviceDebug.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/zigbee/deviceDebug.html', this, modal.querySelector('.data'), function()
         {
-            let select;
+            let select = modal.querySelector('select[name="endpointId"]');
 
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
-
-            select = modal.querySelector('select[name="endpointId"]');
 
             device.info.endpoints?.forEach(item =>
             {

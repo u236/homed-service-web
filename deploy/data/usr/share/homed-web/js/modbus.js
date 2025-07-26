@@ -125,12 +125,9 @@ class Modbus extends DeviceService
             return;
         }
 
-        fetch('html/modbus/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/modbus/deviceList.html', this, this.content, function()
         {
-            let table;
-
-            this.content.innerHTML = html;
-            table = this.content.querySelector('.deviceList table');
+            let table = this.content.querySelector('.deviceList table');
 
             Object.keys(this.devices).forEach(id =>
             {
@@ -182,9 +179,8 @@ class Modbus extends DeviceService
             add = true;
         }
 
-        fetch('html/modbus/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/modbus/deviceEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';

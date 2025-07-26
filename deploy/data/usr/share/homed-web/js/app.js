@@ -655,11 +655,10 @@ class DeviceService
 
     showDeviceInfo(device)
     {
-        fetch('html/' + this.service.split('/')[0] + '/deviceInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/' + this.service.split('/')[0] + '/deviceInfo.html', this, this.content, function()
         {
             let table;
 
-            this.content.innerHTML = html;
             this.content.querySelector('.name').innerHTML = device.info.name;
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
@@ -706,9 +705,8 @@ class DeviceService
 
     showDeviceRemove(device)
     {
-        fetch('html/' + this.service.split('/')[0] + '/deviceRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/' + this.service.split('/')[0] + '/deviceRemove.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: this.names ? device.info.name : device.id}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
@@ -797,9 +795,8 @@ window.onload = function()
 
     document.querySelector('#hotkeys').addEventListener('click', function()
     {
-        fetch('hotkeys.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('hotkeys.html', this, modal.querySelector('.data'), function() 
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
@@ -819,9 +816,8 @@ window.onload = function()
 
     logout.addEventListener('click', function()
     {
-        fetch('logout.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('logout.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.current').addEventListener('click', function() { window.location.href = 'logout?session=current'; }.bind(this));
 
             if (!guest)
@@ -916,6 +912,15 @@ document.onkeydown = function(event)
             break;
     }
 };
+
+function loadHTML(file, context, element, callback)
+{
+    fetch(file + '?' + Date.now()).then(response => response.text()).then(html =>
+    {
+        element.innerHTML = html;
+        callback.bind(context)();
+    });
+}
 
 function setTheme()
 {

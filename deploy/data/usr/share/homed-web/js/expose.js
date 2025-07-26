@@ -204,12 +204,11 @@ function addExpose(table, device, endpointId, expose, names = true)
         {
             labelCell.querySelector('span').addEventListener('click', function()
             {
-                fetch('names.html?' + Date.now()).then(response => response.text()).then(html =>
+                loadHTML('names.html', this, modal.querySelector('.data'), function()
                 {
                     let title = exposeTitle(device, endpoint, property, false);
                     let item = endpoint + '/' + property;
 
-                    modal.querySelector('.data').innerHTML = html;
                     modal.querySelector('.name').innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title;
                     modal.querySelector('input[name="name"]').placeholder = title;
                     modal.querySelector('input[name="name"]').value = controller.propertyName(item) ?? '';

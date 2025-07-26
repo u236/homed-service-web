@@ -110,12 +110,9 @@ class Custom extends DeviceService
             return;
         }
 
-        fetch('html/custom/deviceList.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/custom/deviceList.html', this, this.content, function()
         {
-            let table;
-
-            this.content.innerHTML = html;
-            table = this.content.querySelector('.deviceList table');
+            let table = this.content.querySelector('.deviceList table');
 
             Object.keys(this.devices).forEach(id =>
             {
@@ -167,9 +164,8 @@ class Custom extends DeviceService
             add = true;
         }
 
-        fetch('html/custom/deviceEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/custom/deviceEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';

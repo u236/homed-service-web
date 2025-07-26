@@ -613,9 +613,8 @@ class Automation
 
     showStates()
     {
-        fetch('html/automation/states.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/states.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             this.updateStates();
             showModal(true);
@@ -630,12 +629,9 @@ class Automation
             return;
         }
 
-        fetch('html/automation/automationList.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/automationList.html', this, this.content, function()
         {
-            let table;
-
-            this.content.innerHTML = html;
-            table = this.content.querySelector('.itemList table');
+            let table = this.content.querySelector('.itemList table');
 
             this.status.automations.forEach((item, index) =>
             {
@@ -679,13 +675,11 @@ class Automation
 
     showAutomationInfo(updated = true, add = false)
     {
-        fetch('html/automation/automationInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/automationInfo.html', this, this.content, function()
         {
             let triggers;
             let conditions;
             let actions;
-
-            this.content.innerHTML = html;
 
             if (updated)
             {
@@ -799,9 +793,8 @@ class Automation
 
     showAutomationEdit()
     {
-        fetch('html/automation/automationEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/automationEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('input[name="name"]').value = this.data.name;
             modal.querySelector('textarea[name="note"]').value = this.data.note ?? '';
@@ -830,9 +823,8 @@ class Automation
 
     showAutomationRemove()
     {
-        fetch('html/automation/automationRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/automationRemove.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'removeAutomation', automation: this.name}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
@@ -883,12 +875,11 @@ class Automation
 
     showPropertyItem(item, list, statements, append, type)
     {
-        fetch('html/automation/propertyItem.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/propertyItem.html', this, modal.querySelector('.data'), function()
         {
             let properties = this.controller.propertiesList();
             let data;
 
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = 'Property ' + type;
             modal.querySelector('.property').innerHTML = append ? 'Select property there <i class="icon-right"></i>' : this.itemProperty(item, true);
 
@@ -978,9 +969,8 @@ class Automation
 
     showMqttItem(item, list, statements, append, type)
     {
-        fetch('html/automation/mqttItem.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/mqttItem.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = 'MQTT ' + type;
             modal.querySelector('input[name="topic"]').value = item.topic ?? '';
             modal.querySelector('input[name="property"]').value = item.property ?? '';
@@ -1054,9 +1044,8 @@ class Automation
 
     showTelegramTrigger(trigger, append)
     {
-        fetch('html/automation/telegramTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/telegramTrigger.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
             modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
@@ -1090,9 +1079,8 @@ class Automation
 
     showTimeTrigger(trigger, append)
     {
-        fetch('html/automation/timeTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/timeTrigger.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
@@ -1123,9 +1111,8 @@ class Automation
 
     showIntervalTrigger(trigger, append)
     {
-        fetch('html/automation/intervalTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/intervalTrigger.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="interval"]').value = trigger.interval ?? 10;
             modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
@@ -1158,9 +1145,8 @@ class Automation
 
     showStartupTrigger(trigger, append)
     {
-        fetch('html/automation/startupTrigger.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/startupTrigger.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1188,9 +1174,8 @@ class Automation
 
     showStatePatternCondition(condition, list, append, type)
     {
-        fetch('html/automation/' + type + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/' + type + 'Condition.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector(type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]').value = condition[type == 'state' ? 'name' : 'pattern'] ?? '';
 
             this.conditionStatement.forEach(statement =>
@@ -1244,10 +1229,8 @@ class Automation
 
     showDateTimeCondition(condition, list, append, type)
     {
-        fetch('html/automation/' + type + 'Condition.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/' + type + 'Condition.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
-
             this.conditionStatement.forEach(statement =>
             {
                 let option = document.createElement('option');
@@ -1296,9 +1279,8 @@ class Automation
 
     showWeekCondition(condition, list, append)
     {
-        fetch('html/automation/weekCondition.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/weekCondition.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="days"]').value = condition.days ? condition.days.join(', ') : '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1324,9 +1306,8 @@ class Automation
 
     showMqttAction(action, list, append)
     {
-        fetch('html/automation/mqttAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/mqttAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="topic"]').value = action.topic ?? '';
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
@@ -1361,9 +1342,8 @@ class Automation
 
     showStateAction(action, list, append)
     {
-        fetch('html/automation/stateAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/stateAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="name"]').value = action.name ?? '';
             modal.querySelector('textarea[name="value"]').value = action.value ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
@@ -1396,9 +1376,8 @@ class Automation
 
     showTelegramAction(action, list, append)
     {
-        fetch('html/automation/telegramAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/telegramAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             modal.querySelector('textarea[name="file"]').value = action.file ?? '';
             modal.querySelector('textarea[name="keyboard"]').value = action.keyboard ?? '';
@@ -1452,9 +1431,8 @@ class Automation
 
     showShellAction(action, list, append)
     {
-        fetch('html/automation/shellAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/shellAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="command"]').value = action.command ?? '';
             modal.querySelector('input[name="timeout"]').value = action.timeout ?? 30;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
@@ -1487,9 +1465,8 @@ class Automation
 
     showConditionAction(action, list, append)
     {
-        fetch('html/automation/conditionAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/conditionAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1522,9 +1499,8 @@ class Automation
 
     showDelayAction(action, list, append)
     {
-        fetch('html/automation/delayAction.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/delayAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('textarea[name="delay"]').value = action.delay ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
 
@@ -1555,9 +1531,8 @@ class Automation
 
     showAlert(page)
     {
-        fetch('html/automation/alert.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/automation/alert.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.data').innerHTML = html;
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('.leave').addEventListener('click', function() { this.updated = false; this.controller.showPage(page); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });

@@ -408,8 +408,6 @@ class Recorder
                 row.querySelector('.timestamp').innerHTML = timestamp;
             });
         }
-
-        // canvas.style.display = 'block';
     }
 
     parseMessage(list, message)
@@ -474,12 +472,9 @@ class Recorder
             return;
         }
 
-        fetch('html/recorder/itemList.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/recorder/itemList.html', this, this.content, function()
         {
-            let table;
-
-            this.content.innerHTML = html;
-            table = this.content.querySelector('.itemList table');
+            let table = this.content.querySelector('.itemList table');
 
             this.status.items.forEach((item, index) =>
             {
@@ -511,7 +506,7 @@ class Recorder
 
     showItemInfo()
     {
-        fetch('html/recorder/itemInfo.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/recorder/itemInfo.html', this, this.content, function()
         {
             let start = localStorage.getItem('recorderStart');
             let end = localStorage.getItem('recorderEnd');
@@ -523,7 +518,6 @@ class Recorder
             let datepicker;
             let chart;
 
-            this.content.innerHTML = html;
             this.status.items.forEach((item, index) => { items.push([index, item.name ? item.name.toLowerCase() : item.endpoint + ' - ' + item.property]); });
 
             items.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
@@ -599,14 +593,11 @@ class Recorder
 
     showItemEdit(add)
     {
-        fetch('html/recorder/itemEdit.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/recorder/itemEdit.html', this, modal.querySelector('.data'), function()
         {
             let item;
-            let name;
+            let name = modal.querySelector('.name');
             let data;
-
-            modal.querySelector('.data').innerHTML = html;
-            name = modal.querySelector('.name');
 
             if (add)
             {
@@ -668,14 +659,11 @@ class Recorder
 
     showItemRemove()
     {
-        fetch('html/recorder/itemRemove.html?' + Date.now()).then(response => response.text()).then(html =>
+        loadHTML('html/recorder/itemRemove.html', this, modal.querySelector('.data'), function()
         {
-            let name;
-
-            modal.querySelector('.data').innerHTML = html;
-            name = modal.querySelector('.name');
+            let name = modal.querySelector('.name');
+            
             name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
-
             modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
