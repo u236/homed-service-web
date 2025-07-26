@@ -195,6 +195,12 @@ class Automation
         return value ? value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value) : null;
     }
 
+    parseString(string)
+    {
+        string = string.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return string;
+    }    
+
     itemProperty(item, form = false)
     {
         let device = this.controller.findDevice(item);
@@ -261,13 +267,13 @@ class Automation
                     if (statement == 'updates')
                         break;
 
-                    data += ' <span class="value">' + (this.isArrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : trigger[statement]) + '</span>';
+                    data += ' <span class="value">' + (this.isArrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : this.parseString(trigger[statement])) + '</span>'; // TODO: parseString for array statements
                 }
 
                 break;
 
             case 'telegram':
-                data = '<span class="value">' + trigger.message + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
+                data = '<span class="value">' + this.parseString(trigger.message) + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
                 break;
 
             case 'time':
@@ -308,7 +314,7 @@ class Automation
             if (!condition.hasOwnProperty(statement))
                 continue;
 
-            value = this.isArrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : condition[statement];
+            value = this.isArrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : this.parseString(condition[statement]); // TODO: parseString for array statements
 
             switch (condition.type)
             {
@@ -344,25 +350,25 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = this.itemProperty(action) + ' <i class="icon-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + action[statement] + '</span>';
+                    data = this.itemProperty(action) + ' <i class="icon-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + this.parseString(action[statement]) + '</span>';
                 }
 
                 break;
 
             case 'mqtt':
-                data = '<span class="value">' + action.message + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' <span class="value">retained</span>' : '');
+                data = '<span class="value">' + this.parseString(action.message) + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' <span class="value">retained</span>' : '');
                 break;
 
             case 'state':
-                data = (action.value || action.value == false ? 'set' : 'remove') + ' <span class="value">' + action.name + '</span>' + (action.value || action.value == false ? ' to <span class="value">' + action.value + '</span>' : '');
+                data = (action.value || action.value == false ? 'set' : 'remove') + ' <span class="value">' + action.name + '</span>' + (action.value || action.value == false ? ' to <span class="value">' + this.parseString(action.value) + '</span>' : '');
                 break;
 
             case 'telegram':
-                data = (action.file ? '[file]' : '<span class="value">' + action.message + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
+                data = (action.file ? '[file]' : '<span class="value">' + this.parseString(action.message) + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
                 break;
 
             case 'shell':
-                data = '<span class="value">' + action.command + '</span>';
+                data = '<span class="value">' + this.parseString(action.command) + '</span>';
                 break;
 
             case 'condition':
@@ -370,7 +376,7 @@ class Automation
                 break;
 
             case 'delay':
-                data = '<span class="value">' + action.delay + '</span> seconds';
+                data = '<span class="value">' + this.parseString(action.delay) + '</span> seconds';
                 break;
         }
 
