@@ -3,8 +3,11 @@
     <span class="copy"><i class="icon-copy"></i></span>
 </div>
 <form>
+    <label>Condition type:</label>
+    <select name="conditionType"><option>AND</option><option>OR</option><option>NOT</option></select>
     <label>Trigger name:</label>
     <input type="text" name="triggerName">
+    <label class="checkbox"><input type="checkbox" name="hideElse">Hide empty else</label>
 </form>
 <div class="buttons">
     <button class="save"><i class="icon-true"></i> Save</button>

@@ -419,7 +419,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + ' "><i class="icon-enter"></i></span> ';
                         cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type ?? '<span class="shade"><i>no conditions</i></span>';
                         break;
 
@@ -480,7 +480,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
                         cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
                         break;
 
@@ -496,14 +496,14 @@ class Automation
                         if (action.type != 'condition')
                             break;
 
-                        for (let j = 0; j < 3; j++)
+                        for (let j = 0; j < (action.hideElse && !action.else.length ? 2 : 3); j++)
                         {
                             let actionRow = table.insertRow();
                             let nameCell = actionRow.insertCell();
                             let actionCell = actionRow.insertCell();
 
-                            for (let k = 0; k <= level; k++)
-                                nameCell.innerHTML += '<span class="' + (k < level ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
+                            for (let k = 0; k <= level - 1; k++)
+                                nameCell.innerHTML += '<span class="tiny ' + (k < level ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
 
                             nameCell.colSpan = 4;
                             actionCell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
@@ -511,21 +511,21 @@ class Automation
                             switch (j)
                             {
                                 case 0:
-                                    nameCell.innerHTML += '<span class="value">IF</span>';
+                                    nameCell.innerHTML += '<span class="value">IF</span> <span class="value">' + action.conditionType + '</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 7);
-                                    automation.conditionList(automation, action.conditions, table, level + 2, 3);
+                                    automation.conditionList(automation, action.conditions, table, level + 1, 3);
                                     break;
 
                                 case 1:
                                     nameCell.innerHTML += '<span class="value">THEN</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.then, true); }, 5);
-                                    automation.actionList(automation, action.then, table, level + 2);
+                                    automation.actionList(automation, action.then, table, level + 1);
                                     break;
 
                                 case 2:
                                     nameCell.innerHTML += '<span class="value">ELSE</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.else, true); }, 5);
-                                    automation.actionList(automation, action.else, table, level + 2);
+                                    automation.actionList(automation, action.else, table, level + 1);
                                     break;
                             }
                         }
@@ -1469,11 +1469,16 @@ class Automation
     {
         loadHTML('html/automation/conditionAction.html', this, modal.querySelector('.data'), function()
         {
+            modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="hideElse"]').checked = action.hideElse;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                action.conditionType = form.conditionType;
+                action.hideElse = form.hideElse;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
