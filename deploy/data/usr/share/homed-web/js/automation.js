@@ -9,7 +9,7 @@ class Automation
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside'];
 
-    actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay'];
+    actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay', 'exit'];
     actionStatement = ['value', 'increase', 'decrease'];
 
     content = document.querySelector('.content .container');
@@ -374,6 +374,7 @@ class Automation
                 break;
 
             case 'condition':
+            case 'exit':
                 data = action.triggerName ? '' : '<span class="shade"><i>any trigger</i></span>';
                 break;
 
@@ -872,6 +873,7 @@ class Automation
             case 'shell':     this.showShellAction(action, list, append); break;
             case 'condition': this.showConditionAction(action, list, append); break;
             case 'delay':     this.showDelayAction(action, list, append); break;
+            case 'exit':      this.showExitAction(action, list, append); break;
         }
     }
 
@@ -1469,7 +1471,7 @@ class Automation
     {
         loadHTML('html/automation/conditionAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? '';
+            modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? 'AND';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="hideElse"]').checked = action.hideElse;
 
@@ -1533,6 +1535,35 @@ class Automation
 
             this.handleCopy(action, this.data.actions, append);
             showModal(true, 'textarea[name="delay"]');
+        });
+    }
+
+    showExitAction(action, list, append)
+    {
+        loadHTML('html/automation/exitAction.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
+                else
+                    delete action.triggerName;
+
+                if (append)
+                    list.push(action);
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(action, this.data.actions, append);
+            showModal(true, 'input[name="triggerName"]');
         });
     }
 
