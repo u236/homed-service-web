@@ -205,12 +205,17 @@ class Automation
 
     itemProperty(item, form = false)
     {
-        let device = this.controller.findDevice(item);
+        if (item.endpoint != 'triggerEndpoint' || item.property != 'triggerProperty')
+        {
+            let device = this.controller.findDevice(item);
 
-        if (form)
-            return  (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
+            if (form)
+                return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
 
-        return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="icon-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
+            return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="icon-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
+        }
+        
+        return form ? '<i>Trigger Property</i>' : '<span class="value"><i>Trigger Property</i></span>';
     }
 
     handleCopy(item, list, append)
@@ -801,7 +806,7 @@ class Automation
             modal.querySelector('.name').innerHTML = this.data.name;
             modal.querySelector('input[name="name"]').value = this.data.name;
             modal.querySelector('textarea[name="note"]').value = this.data.note ?? '';
-            modal.querySelector('select[name="mode"]').value = this.data.mode ?? '';
+            modal.querySelector('select[name="mode"]').value = this.data.mode ?? 'parallel';
             modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
             modal.querySelector('input[name="active"]').checked = this.data.active;
 
@@ -881,7 +886,7 @@ class Automation
     {
         loadHTML('html/automation/propertyItem.html', this, modal.querySelector('.data'), function()
         {
-            let properties = this.controller.propertiesList();
+            let properties = this.controller.propertiesList(type != 'trigger');
             let data;
 
             modal.querySelector('.name').innerHTML = 'Property ' + type;
