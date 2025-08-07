@@ -323,9 +323,12 @@ class Controller
         return device ?? new Device();
     }
 
-    propertiesList(pattern)
+    propertiesList(triggerProperty, pattern)
     {
         let list = new Object();
+
+        if (triggerProperty)
+            list['<i>Trigger Property</i>'] = {endpoint: "triggerEndpoint", property: "triggerProperty"};
 
         Object.keys(this.services).forEach(item =>
         {
@@ -1105,13 +1108,14 @@ function showModal(show, focus)
         let list =
         {
             'Trigger name': '{{ triggerName }}',
+            'Trigger property': '{{ triggerProperty }}',
             'Shell output': '{{ shellOutput }}',
             'File contents': '{{ file | /path/to/file }}',
             'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}',
             'State value': '{{ state | stateName }}',
             'Color temperature': '{{ colorTemperature | 153 | 500 }}',
             'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}',
-            ...controller.propertiesList(true)
+            ...controller.propertiesList(false, true)
         };
 
         modal.style.display = 'block';
