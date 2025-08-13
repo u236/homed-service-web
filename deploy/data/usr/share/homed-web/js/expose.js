@@ -444,13 +444,13 @@ function updateExpose(device, endpointId, property, value)
             switch (property.split('_')[0])
             {
                 case 'color':
-                    
+
                     if (value[0] + value[1] + value[2] >= 255)
                     {
                         colorPicker.color.rgb = {r: value[0], g: value[1], b: value[2]};
                         cell.innerHTML = '<div class="color" style="background-color: rgb(' + value[0] + ', ' + value[1] + ', ' + value[2] + ');"></div>';
                     }
-                    
+
                     break;
 
                 case 'irCode':
@@ -469,7 +469,7 @@ function updateExpose(device, endpointId, property, value)
 
                 default:
 
-                    if (cell.dataset.class && typeof value == 'boolean')
+                    if (typeof value == 'boolean' && cell.dataset.class)
                     {
                         switch (cell.dataset.class)
                         {
@@ -485,32 +485,27 @@ function updateExpose(device, endpointId, property, value)
                     switch (cell.dataset.type)
                     {
                         case 'number':
+                        case 'time':
                         {
                             let input = row.querySelector('td.control input');
 
                             if (property == 'level')
                                 value = Math.round(value * 100 / 255);
 
-                            if (cell.dataset.value == value)
-                                break;
-
-                            if (input)
+                            if (input && cell.dataset.value != value)
                                 input.value = value;
 
                             break;
                         }
 
                         case 'select': row.querySelector('td.control select').value = value; break;
-                        case 'time':   row.querySelector('td.control input').value = value; break;
                     }
 
                     if (typeof value == 'number' && cell.dataset.round)
                         value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
 
-                    cell.innerHTML = value;
-
-                    if (cell.dataset.unit)
-                        cell.innerHTML += ' ' + cell.dataset.unit;
+                    if (cell.dataset.value != value)
+                        cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
 
                     break;
             }
