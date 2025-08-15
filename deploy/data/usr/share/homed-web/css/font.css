@@ -60,3 +60,4 @@
 .icon-search::before  { content: '\e81b'; }
 .icon-group::before   { content: '\e81c'; }
 .icon-chain::before   { content: '\e81d'; }
+.icon-warning::before { content: '\e81e'; }

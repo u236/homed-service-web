@@ -185,7 +185,7 @@ class Controller
                 {
                     let item = document.createElement('span');
                     let itemName = service;
-                    
+
                     if (menu.innerHTML)
                         menu.append('|');
 
@@ -237,7 +237,7 @@ class Controller
     {
         let list = page.split('?');
         let service = list[0];
-    
+
         if (!service)
             service = 'dashboard';
 
@@ -509,7 +509,7 @@ class DeviceService
                 }
             }
 
-            cell.innerHTML = this.parseValue(key, device.info[key]);
+            cell.innerHTML = this.parseValue(device.info, key, true);
         });
     }
 
@@ -617,8 +617,20 @@ class DeviceService
         }
     }
 
-    parseValue(key, value)
+    parseValue(data, key, summary)
     {
+        let value = data[key];
+
+        if (this.service.startsWith('zigbee') && key == 'cloud' && data.cloud && data.name == data.ieeeAddress)
+        {
+            let warning = '<i class="icon-warning warning"></i>';
+
+            if (summary)
+                warning += ' device name not set';
+
+            return warning;
+        }
+
         switch (key)
         {
             case 'active':
@@ -798,7 +810,7 @@ window.onload = function()
 
     document.querySelector('#hotkeys').addEventListener('click', function()
     {
-        loadHTML('hotkeys.html', this, modal.querySelector('.data'), function() 
+        loadHTML('hotkeys.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);

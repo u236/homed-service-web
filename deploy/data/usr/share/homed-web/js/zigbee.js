@@ -191,10 +191,10 @@ class ZigBee extends DeviceService
         let ota = device.info.ota ?? new Object();
 
         modal.querySelector('.dataLoader').style.display = ota.running ? 'block' : 'none';
-        modal.querySelector('.manufacturerCode').innerHTML = ota.manufacturerCode != undefined ? this.parseValue('manufacturerCode', ota.manufacturerCode) : empty;
-        modal.querySelector('.imageType').innerHTML = ota.imageType != undefined  ? this.parseValue('imageType', ota.imageType) : empty;
-        modal.querySelector('.currentVersion').innerHTML = ota.currentVersion != undefined ? this.parseValue('currentVersion', ota.currentVersion) : empty;
-        modal.querySelector('.fileVersion').innerHTML = ota.fileVersion != undefined ? this.parseValue('fileVersion', ota.fileVersion) : empty;
+        modal.querySelector('.manufacturerCode').innerHTML = ota.manufacturerCode != undefined ? this.parseValue(ota, 'manufacturerCode') : empty;
+        modal.querySelector('.imageType').innerHTML = ota.imageType != undefined  ? this.parseValue(ota, 'imageType') : empty;
+        modal.querySelector('.currentVersion').innerHTML = ota.currentVersion != undefined ? this.parseValue(ota, 'currentVersion') : empty;
+        modal.querySelector('.fileVersion').innerHTML = ota.fileVersion != undefined ? this.parseValue(ota, 'fileVersion') : empty;
         modal.querySelector('.fileName').innerHTML = ota.fileName ? '<span title="' + ota.fileName + '">' + ota.fileName + '</span>' : empty;
         modal.querySelector('.progress').innerHTML = ota.running ? '0 %' : 'not running';
         modal.querySelector('.refresh').disabled = ota.running ? true : false;
@@ -364,8 +364,10 @@ class ZigBee extends DeviceService
         }
     }
 
-    parseValue(key, value)
+    parseValue(data, key, summary)
     {
+        let value = data[key];
+
         switch (key)
         {
             case 'logicalType': return this.logicalTypes[value];
@@ -380,7 +382,7 @@ class ZigBee extends DeviceService
             case 'networkAddress':
                 return '0x' + ('0000' + value.toString(16)).slice(-4);
 
-            default: return super.parseValue(key, value);
+            default: return super.parseValue(data, key, summary);
         }
     }
 
@@ -459,9 +461,9 @@ class ZigBee extends DeviceService
 
                             break;
 
-                        case 2: cell.innerHTML = this.parseValue('powerSource', device.info.powerSource); cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = this.parseValue('discovery', device.info.discovery); cell.classList.add('center', 'mobileHidden'); break;
-                        case 4: cell.innerHTML = this.parseValue('cloud', device.info.cloud); cell.classList.add('center', 'mobileHidden'); break;
+                        case 2: cell.innerHTML = this.parseValue(device.info, 'powerSource'); cell.classList.add('center'); break;
+                        case 3: cell.innerHTML = this.parseValue(device.info, 'discovery'); cell.classList.add('center', 'mobileHidden'); break;
+                        case 4: cell.innerHTML = this.parseValue(device.info, 'cloud'); cell.classList.add('center', 'mobileHidden'); break;
                         case 5: cell.innerHTML = device.properties('common').linkQuality ?? device.info.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
                         case 6: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
                     }
