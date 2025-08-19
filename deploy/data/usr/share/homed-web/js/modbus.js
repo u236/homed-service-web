@@ -14,6 +14,8 @@ class Modbus extends DeviceService
         wbMap6s:               'Wiren Board WB-MAP6S Energy Meter',
         wbMap12e:              'Wiren Board WB-MAP12E Energy Meter',
         wbMap12h:              'Wiren Board WB-MAP12H Energy Meter',
+        wbMrm2:                'Wiren Board WB-MRM2 Relay Controller',
+        wbMrwl3:               'Wiren Board WB-MRWL3 Relay Controller',
         wbMr6:                 'Wiren Board WB-MR6 Relay Controller',
         wbUps:                 'Wiren Board UPS v3 Backup Power Supply',
         neptunSmartPlus:       'Neptun Smart+ Controller',
