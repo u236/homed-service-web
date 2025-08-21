@@ -21,7 +21,8 @@ class Modbus extends DeviceService
         wbUps:                 'Wiren Board UPS v3 Backup Power Supply',
         neptunSmartPlus:       'Neptun Smart+ Controller',
         jth2d1:                'JTH-2D1 Temperature and Humidity Sensor',
-        t13:                   'T13-750W-12-H Frequency Converter'
+        t13:                   'T13-750W-12-H Frequency Converter',
+        m0701s:                'VFC-M0701S Frequency Converter'
     };
 
     constructor(controller, instance)
