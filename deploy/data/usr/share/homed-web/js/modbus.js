@@ -14,11 +14,23 @@ class Modbus extends DeviceService
         wbMap6s:               'Wiren Board WB-MAP6S Energy Meter',
         wbMap12e:              'Wiren Board WB-MAP12E Energy Meter',
         wbMap12h:              'Wiren Board WB-MAP12H Energy Meter',
+        wbMrwm2:               'Wiren Board WB-MRWM2 Relay Controller',
         wbMrm2:                'Wiren Board WB-MRM2-mini Relay Controller',
         wbMr3:                 'Wiren Board WB-MR3LV/MRWL3 Relay Controller',
         wbMr6:                 'Wiren Board WB-MR6C/MR6-LV Relay Controller',
         wbMr6p:                'Wiren Board WB-MR6CU/MRPS6 Relay Controller',
-        wbUps:                 'Wiren Board UPS v3 Backup Power Supply',
+        wbLed0:                'Wiren Board WB-LED Dimmer (W1, W2, W3, W4)',
+        wbLed1:                'Wiren Board WB-LED Dimmer (W1+W2, W3, W4)',
+        wbLed2:                'Wiren Board WB-LED Dimmer (CCT1, W3, W4)',
+        wbLed16:               'Wiren Board WB-LED Dimmer (W1, W2, W3+W4)',
+        wbLed17:               'Wiren Board WB-LED Dimmer (W1+W2, W3+W4)',
+        wbLed18:               'Wiren Board WB-LED Dimmer (CCT1, W3+W4)',
+        wbLed32:               'Wiren Board WB-LED Dimmer (W1, W2, CCT2)',
+        wbLed33:               'Wiren Board WB-LED Dimmer (W1+W2, CCT2)',
+        wbLed34:               'Wiren Board WB-LED Dimmer (CCT1, CCT2)',
+        wbLed256:              'Wiren Board WB-LED Dimmer (RGB, W4)',
+        wbLed512:              'Wiren Board WB-LED Dimmer (W1+W2+W3+W4)',
+        wbUps:                 'Wiren Board WB-UPS v3 Backup Power Supply',
         neptunSmartPlus:       'Neptun Smart+ Controller',
         jth2d1:                'JTH-2D1 Temperature and Humidity Sensor',
         t13:                   'T13-750W-12-H Frequency Converter',
@@ -51,7 +63,7 @@ class Modbus extends DeviceService
                 if (!device.name)
                     device.name = device.id;
 
-                if (!this.devices[device.id])
+                if (!this.devices[device.id] || this.devices[device.id].info.type != device.type)
                 {
                     let item = this.names ? device.name : device.id;
 

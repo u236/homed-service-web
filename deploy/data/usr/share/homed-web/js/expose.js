@@ -39,7 +39,8 @@ function exposeTitle(device, endpoint, property, names = true)
     if (title[1]?.match('^[pt][0-9]+$'))
         title[1] = title[1].toUpperCase();
 
-    return title.join(' ') + (endpointId ? ' ' + (name ? '(' + name.toLowerCase() + ')' : endpointId) : '');
+    title = title.join(' ');
+    return endpointId ? (name ? name + ' ' + title : title + ' ' + endpointId) : title;
 }
 
 function exposeList(expose, options)
@@ -243,7 +244,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
             case 'colorTemperature':
             {
-                let min = option.min ?? 150;
+                let min = option.min ?? 153;
                 let max = option.max ?? 500;
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
