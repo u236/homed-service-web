@@ -318,7 +318,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                         if (option.unit)
                             valueCell.dataset.unit = option.unit;
 
-                        if ((option.max - option.min) / (option.step ?? 1) <= 1000)
+                        if ((option.max - option.min) / (option.step ?? 1) <= 1000 && !option.collapse)
                         {
                             controlCell.innerHTML = '<input type="range" min="' + option.min + '" max="' + option.max + '" step="' + (option.step ?? 1) + '">';
                             controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + (option.unit ? ' ' + option.unit : '') + '</span>'; });
@@ -339,7 +339,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                         if (!items.length)
                             break;
 
-                        if (items.length <= 10)
+                        if (items.length <= 10 && !option.collapse)
                         {
                             items.forEach((item, index) => { controlCell.innerHTML += (index ? '/' : '') + '<span>' + item + '</span>'; });
                             controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { if (valueCell.dataset.value != item.innerHTML) { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpointId, {[property]: item.innerHTML}); } }) );
