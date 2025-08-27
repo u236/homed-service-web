@@ -150,7 +150,7 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
     {
         for (int i = 0; i < it.value().count(); i++)
         {
-            const QString item = it.value().at(i);
+            const QString &item = it.value().at(i);
 
             if (item.endsWith('#') ? !subTopic.startsWith(item.mid(0, item.indexOf("#"))) : subTopic != item)
                 continue;
@@ -316,7 +316,7 @@ void Controller::clientConnected(void)
     else
         client->sendTextMessage(QJsonDocument({{"topic", "error"}, {"message", "mqtt disconnected"}}).toJson(QJsonDocument::Compact));
 
-    m_clients.insert(client, QStringList());
+    m_clients.insert(client, QList <QString> ());
 }
 
 void Controller::clientDisconnected(void)

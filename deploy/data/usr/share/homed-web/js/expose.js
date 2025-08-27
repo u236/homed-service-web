@@ -247,7 +247,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                 let min = option.min ?? 153;
                 let max = option.max ?? 500;
                 valueCell.dataset.type = 'number';
-                controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" class="colorTemperature">';
+                controlCell.innerHTML = '<input type="range" min="' + min + '" max="' + max + '" step="' + (option.step ?? 1) + '" class="colorTemperature">';
                 controlCell.querySelector('input').style.background = 'linear-gradient(to right, rgb(' + temperatureToColor(min).join(', ') + '), rgb(' + temperatureToColor(max).join(', ') + '))';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + '</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: parseInt(this.value)}); });

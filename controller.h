@@ -43,7 +43,7 @@ private:
     QMap <QString, QByteArray> m_messages;
 
     QList <QTcpSocket*> m_sockets;
-    QMap <QWebSocket*, QStringList> m_clients;
+    QMap <QWebSocket*, QList <QString>> m_clients;
 
     void httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers = QMap <QString, QString> (), const QByteArray &response = QByteArray());
     void fileResponse(QTcpSocket *socket, const QString &fileName);
