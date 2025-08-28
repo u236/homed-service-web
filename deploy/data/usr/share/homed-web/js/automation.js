@@ -594,7 +594,7 @@ class Automation
             loadFile(function(data)
             {
                 this.data = data;
-                delete this.name;
+                delete this.uuid;
                 this.showAutomationInfo();
 
             }.bind(this));
@@ -610,7 +610,7 @@ class Automation
         if (automation)
         {
             this.data = structuredClone(automation);
-            this.name = automation.name;
+            this.uuid = automation.uuid;
             this.showAutomationInfo(false);
         }
         else
@@ -698,10 +698,10 @@ class Automation
             if (add)
             {
                 this.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
-                delete this.name;
+                delete this.uuid;
             }
 
-            if (this.name)
+            if (this.uuid)
             {
                 let automations = new Array();
                 let list = new Array();
@@ -733,8 +733,8 @@ class Automation
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
-            this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'updateAutomation', automation: this.name, data: this.data}); }.bind(this));
-            this.content.querySelector('.copy').addEventListener('click', function() { delete this.data.active; this.data.name += ' (copy)'; delete this.name; this.showAutomationInfo(); }.bind(this));
+            this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'updateAutomation', automation: this.uuid, data: this.data}); }.bind(this));
+            this.content.querySelector('.copy').addEventListener('click', function() { delete this.data.active; this.data.name += ' (copy)'; delete this.uuid; this.showAutomationInfo(); }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
@@ -744,6 +744,7 @@ class Automation
                 delete data.active;
                 delete data.lastTriggered;
                 delete data.name;
+                delete data.uuid;
 
                 item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
                 item.download = this.data.name + '.json';
@@ -751,7 +752,7 @@ class Automation
 
             }.bind(this));
 
-            this.content.querySelector('.name').innerHTML = this.data.name + (this.name ? '' : ' <span class="value warning">NEW</span>');
+            this.content.querySelector('.name').innerHTML = this.data.name + (this.uuid ? '' : ' <span class="value warning">NEW</span>');
             this.content.querySelector('.note').innerHTML = this.data.note ?? '';
             this.content.querySelector('.mode').innerHTML = '<span class="value">' + this.data.mode + '</span>';
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';
@@ -834,7 +835,7 @@ class Automation
         loadHTML('html/automation/automationRemove.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('.name').innerHTML = this.data.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'removeAutomation', automation: this.name}); this.controller.clearPage(); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'removeAutomation', automation: this.uuid}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
