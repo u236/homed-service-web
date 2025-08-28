@@ -442,7 +442,9 @@ function updateExpose(device, endpointId, property, value)
 
         if (cell)
         {
-            switch (property.split('_')[0])
+            let name = property.split('_')[0];
+
+            switch (name)
             {
                 case 'color':
 
@@ -505,9 +507,13 @@ function updateExpose(device, endpointId, property, value)
                     if (typeof value == 'number' && cell.dataset.round)
                         value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
 
-                    if (cell.dataset.value != value)
-                        cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
+                    if (cell.dataset.value == value)
+                        break;
 
+                    if (name == 'battery')
+                        checkBattery(cell, value);
+
+                    cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
                     break;
             }
 

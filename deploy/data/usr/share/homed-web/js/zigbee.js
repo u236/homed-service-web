@@ -48,7 +48,25 @@ class ZigBee extends DeviceService
     constructor(controller, instance)
     {
         super(controller, 'zigbee', instance);
-        this.intervals.push(setInterval(function() { this.updateLastSeen(); }.bind(this), 100));
+        this.intervals.push(setInterval(function() { this.updateBattery(); this.updateLastSeen(); }.bind(this), 100));
+    }
+
+    updateBattery()
+    {
+        if (this.controller.service != this.service)
+            return;
+
+        Object.keys(this.devices).forEach(id =>
+        {
+            let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .powerSource');
+            let value = this.devices[id].properties('common').battery;
+
+            if (isNaN(value) || !cell || cell.dataset.value == value)
+                return;
+
+            cell.dataset.value = value;
+            checkBattery(cell, value);
+        });
     }
 
     updateLastSeen()
@@ -461,7 +479,7 @@ class ZigBee extends DeviceService
 
                             break;
 
-                        case 2: cell.innerHTML = this.parseValue(device.info, 'powerSource'); cell.classList.add('center'); break;
+                        case 2: cell.innerHTML = this.parseValue(device.info, 'powerSource'); cell.classList.add('powerSource', 'center'); break;
                         case 3: cell.innerHTML = this.parseValue(device.info, 'discovery'); cell.classList.add('center', 'mobileHidden'); break;
                         case 4: cell.innerHTML = this.parseValue(device.info, 'cloud'); cell.classList.add('center', 'mobileHidden'); break;
                         case 5: cell.innerHTML = device.properties('common').linkQuality ?? device.info.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;

@@ -977,6 +977,10 @@ function sortTable(table, index, first = true, once = false)
                     sort = parseInt(current.innerHTML) > parseInt(next?.innerHTML);
                     break;
 
+                case current.classList.contains('powerSource'):
+                    sort = parseInt(current.dataset.value ?? 1000) > parseInt(next?.dataset.value ?? 1000);
+                    break;
+
                 default:
                     sort = current.innerHTML.toLowerCase() > next?.innerHTML.toLowerCase();
                     break;
@@ -1183,6 +1187,14 @@ function formData(form)
     });
 
     return data;
+}
+
+function checkBattery(element, value)
+{
+    if (value <= 20)
+        element.classList.add(value > 10 ? 'warning' : 'error');
+    else
+        element.classList.remove('error', 'warning');
 }
 
 function timeInterval(interval, round = true)
