@@ -14,7 +14,7 @@ function temperatureToColor(value)
 
 function exposeTitle(device, endpoint, property, names = true)
 {
-    let propertyName = controller.propertyName(endpoint + '/' + property);
+    let propertyName = controller.propertyName(endpoint + '/' + (['lock', 'switch'].includes(property) ? 'status' : property));
     let endpointId = endpoint.split('/')[2];
     let name = device.options(endpointId).name;
     let title = property.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');

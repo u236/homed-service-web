@@ -1043,6 +1043,11 @@ tr:first-child td {
     margin-bottom: 10px;
 }
 
+#modal .overview {
+    border-top: 1px solid var(--border-shade);
+    padding: 10px 0;
+}
+
 #modal .table {
     position: relative;
     left:  -5px;
