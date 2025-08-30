@@ -492,7 +492,7 @@ function updateExpose(device, endpointId, property, value)
                         {
                             let input = row.querySelector('td.control input');
 
-                            if (property == 'level')
+                            if (name == 'level')
                                 value = Math.round(value * 100 / 255);
 
                             if (input && cell.dataset.value != value)
