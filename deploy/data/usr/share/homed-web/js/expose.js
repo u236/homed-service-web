@@ -281,7 +281,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + property + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: name == 'level' ? Math.round(this.value * 255 / 100) : parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: name == 'level' ? Math.round(this.value * 2.55) : parseInt(this.value)}); });
                 break;
             }
 
@@ -492,8 +492,8 @@ function updateExpose(device, endpointId, property, value)
                         {
                             let input = row.querySelector('td.control input');
 
-                            if (property == 'level')
-                                value = Math.round(value * 100 / 255);
+                            if (name == 'level')
+                                value = Math.round(value / 2.55);
 
                             if (input && cell.dataset.value != value)
                                 input.value = value;
