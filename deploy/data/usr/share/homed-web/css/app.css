@@ -328,6 +328,10 @@ td.remove:hover {
     font-size: 0.875rem;
 }
 
+.lockScroll {
+    overflow: hidden;
+}
+
 .pageLoader {
     width: 20px;
     height: 20px;

@@ -130,9 +130,9 @@ class Dashboard
 
                     Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(item =>
                     {
-                        let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
+                        let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: item};
 
-                        if (item != expose)
+                        if (item.split('_')[0] != expose)
                             return;
 
                         if (endpointId != 'common')

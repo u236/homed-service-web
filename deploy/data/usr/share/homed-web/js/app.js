@@ -1141,6 +1141,8 @@ function showModal(show, focus)
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
         modal.querySelectorAll('label .dropdown').forEach(item => { addDropdown(item, Object.keys(list), function(key) {let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, 7); });
         modal.querySelector(focus)?.focus();
+
+        document.querySelector('body').classList.add('lockScroll');
         return;
     }
 
@@ -1152,6 +1154,8 @@ function showModal(show, focus)
     modal.addEventListener('animationend', closeModal);
     modal.classList.remove('fade-in');
     modal.classList.add('fade-out');
+
+    document.querySelector('body').classList.remove('lockScroll');
 }
 
 function handleArrowButtons(element, list, index, callback)
