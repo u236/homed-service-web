@@ -887,13 +887,10 @@ document.onkeydown = function(event)
                 {
                     event.preventDefault();
                     document.querySelector('th.search').click();
+                    break;
                 }
 
-                break;
-
-            case 'l':
-
-                if (!search)
+                if (!search && key != '/')
                     document.querySelector('#list')?.click();
 
                 break;
