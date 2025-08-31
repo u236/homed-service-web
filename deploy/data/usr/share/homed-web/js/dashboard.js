@@ -449,7 +449,7 @@ class Dashboard
                         {
                             let status = 'off'
 
-                            items.forEach(item => { if (item.device.properties(item.endpointId).status == 'on') status = 'on'; });
+                            items.forEach(item => { if (item.device.properties(item.endpointId)[item.property] == 'on') status = 'on'; });
 
                             if (toggle.dataset.status == status)
                                 return;
