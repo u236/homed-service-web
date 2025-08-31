@@ -10,6 +10,7 @@ class Modbus extends DeviceService
         r4pin08m2:             'Eletechsup R4PIN08-4DI-4DO Controller',
         r4pin08m3:             'Eletechsup R4PIN08-2DI-6DO Controller',
         r4pin08m4:             'Eletechsup R4PIN08-6DI-2DO Controller',
+        wbM1w2:                'Wiren Board WB-M1W2 Temperature Sensor',
         wbMs:                  'Wiren Board WB-MS Modbus Sensor',
         wbMsw:                 'Wiren Board WB-MSW Wall-mounted Sensor',
         wbMap3ev:              'Wiren Board WB-MAP3EV Voltage Meter',
