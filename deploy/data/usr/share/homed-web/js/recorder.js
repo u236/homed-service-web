@@ -562,7 +562,7 @@ class Recorder
                 this.chartQuery(this.data, chart, element.innerHTML);
 
             }.bind(this)));
-            
+
             this.content.querySelector('.shift').querySelectorAll('span').forEach(element => element.addEventListener('click', function() { this.chartQuery(this.data, chart, chart.querySelector('canvas').dataset.interval, element.id); }.bind(this)));
 
             datepicker.querySelector('.apply').addEventListener('click', function()
@@ -591,20 +591,26 @@ class Recorder
         });
     }
 
-    showItemEdit(add)
+    showItemEdit(add, data)
     {
         loadHTML('html/recorder/itemEdit.html', this, modal.querySelector('.data'), function()
         {
             let item;
             let name = modal.querySelector('.name');
-            let data;
+
+            if (data)
+            {
+                let element = modal.querySelector('.property');
+                element.innerHTML = data.endpoint + ' <i class="icon-right"></i> ' + data.property;
+                this.devicePromise(data, element);
+            }
 
             if (add)
             {
                 let properties = this.controller.propertiesList();
 
                 item = new Object();
-                name.innerHTML = 'New item';
+                name.innerHTML = 'New recorder item';
 
                 addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
                 {
@@ -648,7 +654,7 @@ class Recorder
                 item.threshold = form.threshold;
 
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...item});
-                this.controller.clearPage();
+                this.controller.showPage('recorder');
 
             }.bind(this));
 
@@ -662,7 +668,7 @@ class Recorder
         loadHTML('html/recorder/itemRemove.html', this, modal.querySelector('.data'), function()
         {
             let name = modal.querySelector('.name');
-            
+
             name.innerHTML = this.data.endpoint + ' <i class="icon-right"></i> ' + this.data.property;
             modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });

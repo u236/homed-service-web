@@ -311,6 +311,14 @@ td.remove:hover {
 .inactive {
     opacity: 0.5;
 }
+ 
+.hidden {
+    opacity: 0;
+}
+
+.hidden:hover {
+    opacity: 1;
+}
 
 .buttons {
     display: inline-flex;
@@ -822,8 +830,8 @@ td.remove:hover {
     cursor: pointer;
 }
 
-.exposes .label i:hover {
-    color: var(--color-main);
+.exposes .label i:not(.hidden):hover {
+    color: var(--color-warning);
 }
 
 .exposes .value {

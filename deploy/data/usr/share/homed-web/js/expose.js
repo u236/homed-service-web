@@ -168,6 +168,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
     list.forEach(property =>
     {
+        let recorder = controller.services.recorder;
         let last = table.rows[table.rows.length - 1]?.dataset.expose;
         let edge = last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
         let endpoint = device.service.split('/')[0] + '/' + device.id;
@@ -192,14 +193,29 @@ function addExpose(table, device, endpointId, expose, names = true)
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
 
-        controller.services.recorder?.status.items?.forEach((data, index) =>
+        if (recorder)
         {
-            if (data.endpoint != endpoint || data.property != property)
-                return;
+            let check = false;
+            let element;
 
             labelCell.innerHTML += ' <i class="icon-chart shade"></i>';
-            labelCell.querySelector('i').addEventListener('click', function() { controller.showPage('recorder?index=' + index); showModal(false); });
-        });
+            element = labelCell.querySelector('i');
+
+            recorder.status.items?.forEach((data, index) =>
+            {
+                if (data.endpoint != endpoint || data.property != property)
+                    return;
+
+                element.addEventListener('click', function() { controller.showPage('recorder?index=' + index); showModal(false); });
+                check = true;
+            });
+
+            if (!check)
+            {
+                element.classList.add('hidden');
+                element.addEventListener('click', function() { recorder.showItemEdit(true, {endpoint: endpoint, property: property}); });
+            }
+        }
 
         if (names)
         {
