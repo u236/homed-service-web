@@ -49,17 +49,26 @@ class Automation
         this.status.automations.forEach((item, index) =>
         {
             let row = document.querySelector('tr[data-index="' + index + '"]');
+            let check = false;
 
             if (!row)
                 return;
 
             Object.keys(item).forEach(key =>
-            { 
-                if (!Array.isArray(item[key])) 
+            {
+                if (!Array.isArray(item[key]))
                     return;
-                
-                item[key].forEach(element => { if (element.type == 'property' && !this.controller.findDevice(element).info) row.classList.add('incomplete'); else row.classList.remove('incomplete'); });
+
+                item[key].forEach(element => { if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty' && !this.controller.findDevice(element).info) check = true; });
             });
+
+            if (check)
+            {
+                row.classList.add('incomplete');
+                return;
+            }
+
+            row.classList.remove('incomplete');
         });
     }
 
@@ -201,7 +210,7 @@ class Automation
             value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
         return value;
-    }    
+    }
 
     itemProperty(item, form = false)
     {
@@ -214,7 +223,7 @@ class Automation
 
             return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="icon-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
         }
-        
+
         return form ? '<i>Trigger Property</i>' : '<span class="value"><i>Trigger Property</i></span>';
     }
 
