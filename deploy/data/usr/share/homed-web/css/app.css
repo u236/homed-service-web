@@ -312,11 +312,11 @@ td.remove:hover {
     opacity: 0.5;
 }
  
-.hidden {
+.invisible {
     opacity: 0;
 }
 
-.hidden:hover {
+.invisible:hover {
     opacity: 1;
 }
 
@@ -830,7 +830,7 @@ td.remove:hover {
     cursor: pointer;
 }
 
-.exposes .label i:not(.hidden):hover {
+.exposes .label i:not(.invisible):hover {
     color: var(--color-warning);
 }
 

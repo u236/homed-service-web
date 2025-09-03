@@ -41,12 +41,6 @@ class Automation
         }
     }
 
-    uuid()
-    {
-        let uuid = '00000000000040000000000000000000';
-        return uuid.replace(/[0]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
-    }
-
     checkDevices()
     {
         if (this.controller.page != this.service || !this.status.automations)
@@ -154,14 +148,23 @@ class Automation
         {
             case 'status':
 
-                let check = this.status.automations?.map(automation => automation.name);
+                let check = this.status.automations?.map(automation => automation.uuid);
 
                 this.status = message;
-                this.status.automations?.forEach(item => { if (!item.conditions) item.conditions = new Array(); });
+                this.status.automations?.forEach(item =>
+                {
+                    if (!item.conditions)
+                        item.conditions = new Array();
+
+                    if (item.uuid != this.data.uuid)
+                        return;
+
+                    item.actions.forEach((action, index) => this.data.actions[index].uuid = action.uuid);
+                });
 
                 if (this.controller.service == this.service)
                 {
-                    if (JSON.stringify(check) != JSON.stringify(this.status.automations?.map(automation => automation.name)))
+                    if (JSON.stringify(check) != JSON.stringify(this.status.automations?.map(automation => automation.uuid)))
                         this.controller.showPage(this.service);
 
                     this.updateStates();
@@ -244,9 +247,7 @@ class Automation
             return;
         }
 
-        if (data.uuid)
-            data.uuid = this.uuid();
-
+        delete data.uuid;
         element.addEventListener('click', function() { list.push(data); this.showAutomationInfo(); }.bind(this));
     }
 

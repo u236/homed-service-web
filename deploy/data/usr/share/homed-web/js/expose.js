@@ -212,7 +212,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
             if (!check)
             {
-                element.classList.add('hidden');
+                element.classList.add('invisible');
                 element.addEventListener('click', function() { recorder.showItemEdit(true, {endpoint: endpoint, property: property}); });
             }
         }
