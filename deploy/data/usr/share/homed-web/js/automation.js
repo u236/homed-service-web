@@ -41,6 +41,12 @@ class Automation
         }
     }
 
+    uuid()
+    {
+        let uuid = '00000000000040000000000000000000';
+        return uuid.replace(/[0]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+    }
+
     checkDevices()
     {
         if (this.controller.page != this.service || !this.status.automations)
@@ -230,6 +236,7 @@ class Automation
     handleCopy(item, list, append)
     {
         let element = modal.querySelector('.copy');
+        let data = structuredClone(item);
 
         if (append)
         {
@@ -237,7 +244,10 @@ class Automation
             return;
         }
 
-        element.addEventListener('click', function() { list.push(structuredClone(item)); this.showAutomationInfo(); }.bind(this));
+        if (data.uuid)
+            data.uuid = this.uuid();
+
+        element.addEventListener('click', function() { list.push(data); this.showAutomationInfo(); }.bind(this));
     }
 
     valueForm(form, statement)
@@ -743,7 +753,7 @@ class Automation
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
             this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'updateAutomation', automation: this.uuid, data: this.data}); }.bind(this));
-            this.content.querySelector('.copy').addEventListener('click', function() { delete this.data.active; this.data.name += ' (copy)'; delete this.uuid; this.showAutomationInfo(); }.bind(this));
+            this.content.querySelector('.copy').addEventListener('click', function() { delete this.uuid; delete this.data.uuid; delete this.data.active; this.data.name += ' (copy)'; this.showAutomationInfo(); }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
