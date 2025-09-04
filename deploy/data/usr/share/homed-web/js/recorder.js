@@ -416,14 +416,31 @@ class Recorder
         {
             case 'status':
 
+                let check = false;
+
                 this.status = message;
 
-                if (this.controller.service == 'recorder')
+                if (this.item && this.status.items)
                 {
-                    this.controller.showPage('recorder');
+                    this.status.items.forEach((item, index) =>
+                    {
+                        if (item.endpoint != this.item.endpoint || item.property != this.item.property)
+                            return;
+
+                        this.controller.showPage('recorder?index=' + index);
+                        check = true;
+                    });
+                }
+
+                if (check || this.controller.service == 'recorder')
+                {
+                    if (!check)
+                        this.controller.showPage('recorder');
+
                     this.updatePage();
                 }
 
+                delete this.item;
                 break;
 
             // TODO: add events
@@ -508,6 +525,7 @@ class Recorder
     {
         loadHTML('html/recorder/itemInfo.html', this, this.content, function()
         {
+            let interval = localStorage.getItem('recorderInterval') ?? '24h';
             let start = localStorage.getItem('recorderStart');
             let end = localStorage.getItem('recorderEnd');
             let id = 'chart-' + randomString(8);
@@ -549,19 +567,28 @@ class Recorder
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + this.data.debounce + '</span> seconds';
             this.content.querySelector('.threshold').innerHTML = '<span class="value">' + this.data.threshold + '</span>';
 
-            this.content.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
+            this.content.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
-                datepicker.style.display = element.innerHTML == 'custom' ? 'block' : 'none';
+                if (element.innerHTML == interval)
+                    element.classList.add('warning');
 
-                if (datepicker.style.display == 'block')
-                    return;
+                element.addEventListener('click', function()
+                {
+                    this.content.querySelector('.interval').querySelectorAll('span').forEach(element => element.classList.remove('warning'));
+                    element.classList.add('warning');
 
-                localStorage.setItem('recorderInterval', element.innerHTML);
+                    datepicker.style.display = element.innerHTML == 'custom' ? 'block' : 'none';
 
-                this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                this.chartQuery(this.data, chart, element.innerHTML);
+                    if (datepicker.style.display == 'block')
+                        return;
 
-            }.bind(this)));
+                    localStorage.setItem('recorderInterval', element.innerHTML);
+
+                    this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                    this.chartQuery(this.data, chart, element.innerHTML);
+
+                }.bind(this));
+            });
 
             this.content.querySelector('.shift').querySelectorAll('span').forEach(element => element.addEventListener('click', function() { this.chartQuery(this.data, chart, chart.querySelector('canvas').dataset.interval, element.id); }.bind(this)));
 
@@ -587,7 +614,7 @@ class Recorder
             this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
 
             this.devicePromise(this.data, name);
-            this.chartQuery(this.data, chart, localStorage.getItem('recorderInterval'), undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
+            this.chartQuery(this.data, chart, interval, undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
         });
     }
 
@@ -653,8 +680,9 @@ class Recorder
                 item.debounce = form.debounce;
                 item.threshold = form.threshold;
 
+                this.item = item;
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...item});
-                this.controller.showPage('recorder');
+                this.controller.clearPage();
 
             }.bind(this));
 

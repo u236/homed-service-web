@@ -954,16 +954,25 @@ class Dashboard
             this.devicePromise(item, modal.querySelector('.name'));
             modal.querySelector('.note').innerHTML = this.itemString(item, false);
 
-            modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.addEventListener('click', function()
+            modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
-                modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                if (element.innerHTML == interval)
+                    element.classList.add('warning');
 
-                if (!this.controller.services.recorder)
-                    return;
+                element.addEventListener('click', function()
+                {
+                    modal.querySelector('.interval').querySelectorAll('span').forEach(element => element.classList.remove('warning'));
+                    element.classList.add('warning');
 
-                this.controller.services.recorder.chartQuery(item, chart, element.innerHTML);
+                    modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
 
-            }.bind(this)));
+                    if (!this.controller.services.recorder)
+                        return;
+
+                    this.controller.services.recorder.chartQuery(item, chart, element.innerHTML);
+
+                }.bind(this))
+            });
 
             modal.querySelector('.item').addEventListener('click', function()
             {
