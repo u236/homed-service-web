@@ -950,6 +950,7 @@ function setWide()
 
 function sortTable(table, index, first = true, once = false)
 {
+    let invert = once && index == table.dataset.index ? true : false;
     let check = true;
 
     while (check)
@@ -967,15 +968,15 @@ function sortTable(table, index, first = true, once = false)
             switch (true)
             {
                 case current.classList.contains('lastSeen') || current.classList.contains('lastTriggered'):
-                    sort = parseInt(current.dataset.value) > parseInt(next?.dataset.value);
+                    sort = invert ? parseInt(current.dataset.value) < parseInt(next?.dataset.value) : parseInt(current.dataset.value) > parseInt(next?.dataset.value);
                     break;
 
                 case current.classList.contains('linkQuality'):
-                    sort = parseInt(current.innerHTML) > parseInt(next?.innerHTML);
+                    sort = invert ? parseInt(current.innerHTML) < parseInt(next?.innerHTML) : parseInt(current.innerHTML) > parseInt(next?.innerHTML);
                     break;
 
                 case current.classList.contains('powerSource'):
-                    sort = parseInt(current.dataset.value ?? 1000) > parseInt(next?.dataset.value ?? 1000);
+                    sort = invert ? parseInt(current.dataset.value ?? 1000) < parseInt(next?.dataset.value ?? 1000) : parseInt(current.dataset.value ?? 1000) > parseInt(next?.dataset.value ?? 1000);
                     break;
 
                 default:
@@ -993,11 +994,18 @@ function sortTable(table, index, first = true, once = false)
     }
 
     table.querySelectorAll('th.sort').forEach(cell => cell.classList.remove('warning') );
+    delete table.dataset.index;
 
-    if (once)
+    if (!once)
+    {
+        table.querySelector('th[data-index="' + index + '"]')?.classList.add('warning');
+        return;
+    }
+
+    if (invert)
         return;
 
-    table.querySelector('th[data-index="' + index + '"]')?.classList.add('warning');
+    table.dataset.index = index;
 }
 
 function showTableTotal(table, single, plural, colspan, count, total = true)
