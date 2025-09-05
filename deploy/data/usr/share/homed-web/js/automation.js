@@ -438,6 +438,9 @@ class Automation
         {
             let row = table.insertRow();
 
+            if (condition.active != undefined && !condition.active)
+                row.classList.add('inactive');
+
             for (let i = 0; i < 3; i++)
             {
                 let cell = row.insertCell();
@@ -495,6 +498,9 @@ class Automation
         list?.forEach((action, index) =>
         {
             let row = table.insertRow();
+
+            if (action.active != undefined && !action.active)
+                row.classList.add('inactive');
 
             for (let i = 0; i < 5; i++)
             {
@@ -790,6 +796,9 @@ class Automation
             {
                 let row = triggers.insertRow();
 
+                if (trigger.active != undefined && !trigger.active)
+                    row.classList.add('inactive');
+
                 for (let i = 0; i < 3; i++)
                 {
                     let cell = row.insertCell();
@@ -950,8 +959,10 @@ class Automation
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
-            modal.querySelector('.force').style.display = type != 'trigger' ? 'none' : 'block';
+            modal.querySelector('input[name="force"]').closest('label').style.display = type != 'trigger' ? 'none' : 'block';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
+
+            modal.querySelector('input[name="active"]').checked = item.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -970,7 +981,9 @@ class Automation
                 }
 
                 statements.forEach(statement => delete item[statement]);
+
                 item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                item.active = form.active;
 
                 if (form.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
@@ -1034,8 +1047,10 @@ class Automation
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
-            modal.querySelector('.force').style.display = type != 'trigger' ? 'none' : 'block';
+            modal.querySelector('input[name="force"]').closest('label').style.display = type != 'trigger' ? 'none' : 'block';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
+
+            modal.querySelector('input[name="active"]').checked = item.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1046,6 +1061,7 @@ class Automation
                 item.topic = form.topic;
                 item.property = form.property;
                 item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                item.active = form.active;
 
                 if (form.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
@@ -1079,6 +1095,7 @@ class Automation
             modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
             modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1087,6 +1104,7 @@ class Automation
 
                 trigger.message = form.message.trim();
                 trigger.chats = chats.length ? chats : null;
+                trigger.active = form.active;
 
                 if (form.name)
                     trigger.name = form.name;
@@ -1113,12 +1131,14 @@ class Automation
         {
             modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
 
                 trigger.time = form.time;
+                trigger.active = form.active;
 
                 if (form.name)
                     trigger.name = form.name;
@@ -1146,6 +1166,7 @@ class Automation
             modal.querySelector('input[name="interval"]').value = trigger.interval ?? 10;
             modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1153,6 +1174,7 @@ class Automation
 
                 trigger.interval = form.interval;
                 trigger.offset = form.offset;
+                trigger.active = form.active;
 
                 if (form.name)
                     trigger.name = form.name;
@@ -1178,10 +1200,13 @@ class Automation
         loadHTML('html/automation/startupTrigger.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                trigger.active = form.active;
 
                 if (form.name)
                     trigger.name = form.name;
@@ -1207,6 +1232,7 @@ class Automation
         loadHTML('html/automation/' + type + 'Condition.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector(type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]').value = condition[type == 'state' ? 'name' : 'pattern'] ?? '';
+            modal.querySelector('input[name="active"]').checked = condition.active ?? true;
 
             this.conditionStatement.forEach(statement =>
             {
@@ -1241,6 +1267,7 @@ class Automation
 
                 condition[item] = form[item];
                 condition[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
+                condition.active = form.active;
 
                 if (append)
                     list.push(condition);
@@ -1261,6 +1288,8 @@ class Automation
     {
         loadHTML('html/automation/' + type + 'Condition.html', this, modal.querySelector('.data'), function()
         {
+            modal.querySelector('input[name="active"]').checked = condition.active ?? true;
+
             this.conditionStatement.forEach(statement =>
             {
                 let option = document.createElement('option');
@@ -1290,7 +1319,9 @@ class Automation
                 let form = formData(modal.querySelector('form'));
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
+
                 condition[form.statement] = this.isArrayStatement(form.statement) ? [form.start, form.end] : form.value;
+                condition.active = form.active;
 
                 if (append)
                     list.push(condition);
@@ -1312,6 +1343,7 @@ class Automation
         loadHTML('html/automation/weekCondition.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('input[name="days"]').value = condition.days ? condition.days.join(', ') : '';
+            modal.querySelector('input[name="active"]').checked = condition.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1319,6 +1351,7 @@ class Automation
                 let days = form.days ? form.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
                 condition.days = days.length ? days : null;
+                condition.active = form.active;
 
                 if (append)
                     list.push(condition);
@@ -1342,6 +1375,7 @@ class Automation
             modal.querySelector('textarea[name="message"]').value = action.message ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="retain"]').checked = action.retain ?? false;
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1350,6 +1384,7 @@ class Automation
                 action.topic = form.topic;
                 action.message = form.message.trim();
                 action.retain = form.retain;
+                action.active = form.active;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
@@ -1377,6 +1412,7 @@ class Automation
             modal.querySelector('input[name="name"]').value = action.name ?? '';
             modal.querySelector('textarea[name="value"]').value = action.value ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1384,6 +1420,7 @@ class Automation
 
                 action.name = form.name;
                 action.value = this.parseValue(form.value);
+                action.active = form.active;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
@@ -1422,6 +1459,8 @@ class Automation
             modal.querySelector('input[name="update"]').checked = action.update ?? false;
             modal.querySelector('input[name="update"]').addEventListener('click', function() { modal.querySelector('input[name="remove"]').checked = false });
 
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
+
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
@@ -1434,6 +1473,7 @@ class Automation
                 action.silent = form.silent;
                 action.remove = form.remove;
                 action.update = form.update;
+                action.active = form.active;
 
                 if (form.thread)
                     action.thread = form.thread;
@@ -1466,6 +1506,7 @@ class Automation
             modal.querySelector('textarea[name="command"]').value = action.command ?? '';
             modal.querySelector('input[name="timeout"]').value = action.timeout ?? 30;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1473,6 +1514,7 @@ class Automation
 
                 action.command = form.command.trim();
                 action.timeout = form.timeout;
+                action.active = form.active;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
@@ -1538,12 +1580,14 @@ class Automation
         {
             modal.querySelector('textarea[name="delay"]').value = action.delay ?? '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
 
                 action.delay = form.delay;
+                action.active = form.active;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
@@ -1569,10 +1613,13 @@ class Automation
         loadHTML('html/automation/exitAction.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                action.active = form.active;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
