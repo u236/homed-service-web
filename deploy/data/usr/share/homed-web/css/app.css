@@ -242,13 +242,13 @@ td.edit {
 
 td.move {
     cursor: pointer;
-    width: 14px;
+    width: 10px;
     color: var(--color-shade);
 }
 
 td.remove {
     cursor: pointer;
-    width: 14px;
+    width: 16px;
     text-align: right;
 }
 

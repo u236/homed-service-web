@@ -429,7 +429,7 @@ class Automation
         automation.showCondition({type: type}, list, true);
     }
 
-    conditionList(automation, list, table, level = 0, colSpan = 0)
+    conditionList(automation, list, table, level = 0)
     {
         if (!list?.length && level)
             list = new Array(new Object());
@@ -441,7 +441,7 @@ class Automation
             if (condition.active != undefined && !condition.active)
                 row.classList.add('inactive');
 
-            for (let i = 0; i < 3; i++)
+            for (let i = 0; i < 5; i++)
             {
                 let cell = row.insertCell();
 
@@ -457,15 +457,12 @@ class Automation
                         if (!condition.type)
                             break;
 
-                        if (colSpan)
-                            cell.colSpan = colSpan;
-
                         if (['AND', 'OR', 'NOT'].includes(condition.type))
                         {
-                            cell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
+                            cell.innerHTML = '<div class="dropdown right"><i class="icon-plus"></i></div>';
                             cell.classList.add('right');
                             addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 7);
-                            automation.conditionList(automation, condition.conditions, table, level + 1, colSpan);
+                            automation.conditionList(automation, condition.conditions, table, level + 1);
                             break;
                         }
 
@@ -475,6 +472,26 @@ class Automation
                         break;
 
                     case 2:
+
+                        if (!condition.type || list.length < 2 || index == list.length - 1)
+                            break;
+
+                        cell.innerHTML = '<i class="icon-down"></i>';
+                        cell.classList.add('move');
+                        cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
+                        break;
+
+                    case 3:
+
+                        if (!condition.type || list.length < 2 || !index)
+                            break;
+
+                        cell.innerHTML = '<i class="icon-up"></i>';
+                        cell.classList.add('move');
+                        cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
+                        break;
+
+                    case 4:
 
                         if (!condition.type)
                             break;
@@ -538,14 +555,14 @@ class Automation
                                 nameCell.innerHTML += '<span class="tiny ' + (k < level ? 'shade' : 'warning') + '"><i class="icon-enter"></i></span> ';
 
                             nameCell.colSpan = 4;
-                            actionCell.innerHTML = '<div class="dropdown"><i class="icon-plus"></i></div>';
+                            actionCell.innerHTML = '<div class="dropdown right"><i class="icon-plus"></i></div>';
 
                             switch (j)
                             {
                                 case 0:
                                     nameCell.innerHTML += '<span class="value">IF</span> <span class="value">' + action.conditionType + '</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 7);
-                                    automation.conditionList(automation, action.conditions, table, level + 1, 3);
+                                    automation.conditionList(automation, action.conditions, table, level + 1);
                                     break;
 
                                 case 1:
@@ -799,7 +816,7 @@ class Automation
                 if (trigger.active != undefined && !trigger.active)
                     row.classList.add('inactive');
 
-                for (let i = 0; i < 3; i++)
+                for (let i = 0; i < 5; i++)
                 {
                     let cell = row.insertCell();
 
@@ -814,6 +831,26 @@ class Automation
                             break;
 
                         case 2:
+
+                            if (this.data.triggers.length < 2 || index == this.data.triggers.length - 1)
+                                break;
+
+                            cell.innerHTML = '<i class="icon-down"></i>';
+                            cell.classList.add('move');
+                            cell.addEventListener('click', function() { this.data.triggers[index + 1] = this.data.triggers.splice(index, 1, this.data.triggers[index + 1])[0]; this.showAutomationInfo(); }.bind(this));
+                            break;
+
+                        case 3:
+
+                            if (this.data.triggers.length < 2 || !index)
+                                break;
+
+                            cell.innerHTML = '<i class="icon-up"></i>';
+                            cell.classList.add('move');
+                            cell.addEventListener('click', function() { this.data.triggers[index - 1] = this.data.triggers.splice(index, 1, this.data.triggers[index - 1])[0]; this.showAutomationInfo(); }.bind(this));
+                            break;
+
+                        case 4:
                             cell.innerHTML = '<i class="icon-trash"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { this.data.triggers.splice(index, 1); this.showAutomationInfo(); }.bind(this));
