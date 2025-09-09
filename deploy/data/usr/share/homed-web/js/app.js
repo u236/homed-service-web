@@ -1200,8 +1200,8 @@ function formData(form)
 
 function checkBattery(element, value)
 {
-    if (value <= 20)
-        element.classList.add(value > 10 ? 'warning' : 'error');
+    if (value <= 20 || value == true)
+        element.classList.add(value > 10 || value == true ? 'warning' : 'error');
     else
         element.classList.remove('error', 'warning');
 }

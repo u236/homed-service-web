@@ -501,6 +501,9 @@ function updateExpose(device, endpointId, property, value)
 
                 default:
 
+                    if (['battery', 'batteryLow'].includes(name))
+                        checkBattery(cell, value);
+
                     if (typeof value == 'boolean' && cell.dataset.class)
                     {
                         switch (cell.dataset.class)
@@ -538,9 +541,6 @@ function updateExpose(device, endpointId, property, value)
 
                     if (cell.dataset.value == value)
                         break;
-
-                    if (name == 'battery')
-                        checkBattery(cell, value);
 
                     cell.innerHTML = value + (cell.dataset.unit ? ' ' + cell.dataset.unit : '');
                     break;

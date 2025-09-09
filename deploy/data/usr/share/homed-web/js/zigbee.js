@@ -59,9 +59,9 @@ class ZigBee extends DeviceService
         Object.keys(this.devices).forEach(id =>
         {
             let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .powerSource');
-            let value = this.devices[id].properties('common').battery;
+            let value = this.devices[id].properties('common').battery ?? this.devices[id].properties('common').batteryLow;
 
-            if (isNaN(value) || !cell || cell.dataset.value == value)
+            if (value == undefined || !cell || cell.dataset.value == value)
                 return;
 
             cell.dataset.value = value;
