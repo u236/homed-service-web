@@ -92,7 +92,7 @@ function exposeList(expose, options)
                     for (let i = 0; i < 4; i++)
                     {
                         let item = 'scheduleP' + parseInt(i + 1);
-                        list.push(item + 'Time');
+                        list.push(item + 'Start');
                         list.push(item + 'Temperature');
                         options[item + 'Temperature'] = option;
                     }
@@ -108,8 +108,18 @@ function exposeList(expose, options)
                     for (let i = 0; i < count * 7; i++)
                     {
                         let item = types[parseInt(i / count)] + 'P' + parseInt(i % count + 1);
-                        list.push(item + 'Time');
-                        list.push(item + 'Temperature');
+
+                        if (options.programType != 2)
+                        {
+                            list.push(item + 'Start');
+                            list.push(item + 'Temperature');
+                        }
+                        else
+                        {
+                            list.push(item + 'Temperature');
+                            list.push(item + 'End');
+                        }
+
                         options[item + 'Temperature'] = option;
                     }
 
@@ -123,7 +133,7 @@ function exposeList(expose, options)
                     for (let i = 0; i < 12; i++)
                     {
                         let item = types[parseInt(i / 4)] + 'P' + parseInt(i % 4 + 1);
-                        list.push(item + 'Time');
+                        list.push(item + 'Start');
                         list.push(item + 'Temperature');
                         options[item + 'Temperature'] = option;
                     }
@@ -138,7 +148,7 @@ function exposeList(expose, options)
                     for (let i = 0; i < 12; i++)
                     {
                         let item = types[parseInt(i / 6)] + 'P' + parseInt(i % 6 + 1);
-                        list.push(item + 'Time');
+                        list.push(item + 'Start');
                         list.push(item + 'Temperature');
                         options[item + 'Temperature'] = option;
                     }
@@ -310,6 +320,9 @@ function addExpose(table, device, endpointId, expose, names = true)
 
             default:
             {
+                if (property.endsWith('P1Start') || (options.programType == 2 && property.endsWith('P1Temperature')))
+                    edge = true;
+
                 switch (option.type)
                 {
                     case 'binary':
@@ -396,13 +409,10 @@ function addExpose(table, device, endpointId, expose, names = true)
 
                     default:
 
-                        if (property.match('^[a-z]+P[0-9]+Time$'))
+                        if (property.match('^[a-z]+P[0-9]+(Start|End)$'))
                         {
-                            if (property.includes('P1'))
-                                edge = true;
-
-                            controlCell.innerHTML = '<input type="time" value="00:00"><button>Set</button>';
-                            controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property.replace('Time', 'Hour')]: parseInt(data[0]), [property.replace('Time', 'Minute')]: parseInt(data[1])}); } });
+                            controlCell.innerHTML = '<input type="time" value="00:00" step="' + (options.programType != 2 ? 60 : 600) + '"><button>Set</button>';
+                            controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property.replace(options.programType != 2 ? 'Start' : 'End', 'Hour')]: parseInt(data[0]), [property.replace(options.programType != 2 ? 'Start' : 'End', 'Minute')]: parseInt(data[1])}); } });
                         }
 
                         break;
@@ -429,9 +439,12 @@ function updateExpose(device, endpointId, property, value)
 
         if (property.match('^[a-z]+P[0-9]+(Hour|Minute)$'))
         {
-            let item = property.replace('Hour', 'Time').replace('Minute', 'Time');
+            let item = property.replace('Hour', 'Start').replace('Minute', 'Start');
 
             cell = row.querySelector('td.value[data-property="' + item + '"]');
+
+            if (!cell)
+                cell = row.querySelector('td.value[data-property="' + item.replace('Start', 'End') + '"]');
 
             if (cell)
             {
