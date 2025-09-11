@@ -453,7 +453,7 @@ class ZigBee extends DeviceService
                 row.dataset.device = this.service + '/' + device.id;
                 row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
 
-                for (let i = 0; i < 7; i++)
+                for (let i = 0; i < 8; i++)
                 {
                     let cell = row.insertCell();
 
@@ -484,13 +484,14 @@ class ZigBee extends DeviceService
                         case 4: cell.innerHTML = this.parseValue(device.info, 'cloud'); cell.classList.add('center', 'mobileHidden'); break;
                         case 5: cell.innerHTML = device.properties('common').linkQuality ?? device.info.linkQuality ?? empty; cell.classList.add('linkQuality', 'center'); break;
                         case 6: cell.innerHTML = empty; cell.classList.add('lastSeen', 'right'); break;
+                        case 7: cell.innerHTML = device.info.ieeeAddress; cell.style.display = 'none'; break;
                     }
                 }
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, false, once); if (!once) localStorage.setItem('zigbeeSort', this.dataset.index); }) );
             sortTable(table, localStorage.getItem('zigbeeSort') ?? 0, false);
-            addTableSearch(table, 'devices', 'device', 8, [0, 1]);
+            addTableSearch(table, 'devices', 'device', 8, [0, 1, 7]);
         });
     }
 
