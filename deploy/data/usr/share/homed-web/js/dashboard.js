@@ -925,8 +925,7 @@ class Dashboard
         {
             let table;
 
-            this.devicePromise(item, modal.querySelector('.name'));
-            modal.querySelector('.note').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
+            modal.querySelector('.name').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
 
             table = modal.querySelector('table.exposes');
             addExpose(table, device, endpointId, expose, false);
@@ -951,8 +950,7 @@ class Dashboard
             let id = 'chart-' + randomString(8);
             let chart = modal.querySelector('.chart');
 
-            this.devicePromise(item, modal.querySelector('.name'));
-            modal.querySelector('.note').innerHTML = this.itemString(item, false);
+            modal.querySelector('.name').innerHTML = this.itemString(item, false);
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
