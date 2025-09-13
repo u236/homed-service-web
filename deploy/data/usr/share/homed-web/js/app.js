@@ -1202,10 +1202,12 @@ function checkBattery(element, value)
 {
     let type = typeof(value);
 
-    if ((type == 'number' && value <= 20) || (type == 'boolean' && value == true))
-        element.classList.add(value > 10 || type == 'boolean' ? 'warning' : 'error');
-    else
-        element.classList.remove('error', 'warning');
+    element.classList.remove('error', 'warning');
+
+    if (parseInt(value) > 20 || (type == 'boolean' && !value))
+        return;
+
+    element.classList.add(parseInt(value) > 10 || type == 'boolean' ? 'warning' : 'error');
 }
 
 function timeInterval(interval, round = true)
