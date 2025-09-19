@@ -13,6 +13,7 @@ class Modbus extends DeviceService
         wbM1w2:                'Wiren Board WB-M1W2 Temperature Sensor',
         wbMs:                  'Wiren Board WB-MS Modbus Sensor',
         wbMsw:                 'Wiren Board WB-MSW Wall-mounted Sensor',
+        wbMai6:                'Wiren Board WB-MAI6 Analog Input Controller',
         wbMap3ev:              'Wiren Board WB-MAP3EV Voltage Meter',
         wbMap3e:               'Wiren Board WB-MAP3E Energy Meter',
         wbMap6s:               'Wiren Board WB-MAP6S Energy Meter',
