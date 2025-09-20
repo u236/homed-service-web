@@ -876,6 +876,7 @@ class Automation
             modal.querySelector('select[name="mode"]').value = this.data.mode ?? 'parallel';
             modal.querySelector('input[name="debounce"]').value = this.data.debounce ?? 0;
             modal.querySelector('input[name="active"]').checked = this.data.active;
+            modal.querySelector('input[name="log"]').checked = this.data.log;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -886,6 +887,7 @@ class Automation
                 this.data.mode = form.mode;
                 this.data.debounce = form.debounce;
                 this.data.active = form.active;
+                this.data.log = form.log;
 
                 this.showAutomationInfo();
 
