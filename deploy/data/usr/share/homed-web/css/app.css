@@ -892,6 +892,11 @@ td.remove:hover {
     text-overflow: ellipsis;
 }
 
+.title .name .info:hover {
+    cursor: pointer;
+    color: var(--color-highlight);
+}
+
 .title .value {
     position: relative;
     bottom: 3px;

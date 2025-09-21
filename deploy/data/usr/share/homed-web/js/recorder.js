@@ -63,7 +63,7 @@ class Recorder
         return data;
     }
 
-    devicePromise(data, cell, table)
+    devicePromise(data, cell, info, table)
     {
         let device;
 
@@ -92,7 +92,13 @@ class Recorder
                 item.name = device.info.name + ' - ' + title;
             });
 
-            cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title;
+            cell.innerHTML = '<span>' + device.info.name + '</span> <i class="icon-right"></i> ' + title;
+
+            if (!guest && info)
+            {
+                cell.querySelector('span').classList.add('info');
+                cell.querySelector('span').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); }.bind(this));
+            }
 
             if (!table)
                 return;
@@ -508,7 +514,7 @@ class Recorder
                         case 0:
                             cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="icon-right"></i> ' + item.property + '</span>';
                             cell.colSpan = 2;
-                            this.devicePromise(item, cell, table);
+                            this.devicePromise(item, cell, false, table);
                             break;
 
                         case 1: cell.innerHTML = '<span class="value">' + item.debounce + '</span>'; cell.classList.add('center'); break;
@@ -613,7 +619,7 @@ class Recorder
 
             this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
 
-            this.devicePromise(this.data, name);
+            this.devicePromise(this.data, name, true);
             this.chartQuery(this.data, chart, interval, undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
         });
     }
