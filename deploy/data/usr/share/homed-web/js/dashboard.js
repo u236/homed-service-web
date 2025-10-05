@@ -132,7 +132,7 @@ class Dashboard
                     {
                         let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: item};
 
-                        if (item.split('_')[0] != expose)
+                        if (item.split('_')[0] != expose && device.options(endpointId)[item]?.class != expose)
                             return;
 
                         if (endpointId != 'common')
