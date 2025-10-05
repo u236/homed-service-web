@@ -390,6 +390,16 @@ class ZigBee extends DeviceService
         switch (key)
         {
             case 'logicalType': return this.logicalTypes[value];
+
+            case 'currentVersion':
+            case 'fileVersion':
+                return '0x' + ('00000000' + value.toString(16)).slice(-8);
+
+            case 'imageType':
+            case 'manufacturerCode':
+            case 'networkAddress':
+                return '0x' + ('0000' + value.toString(16)).slice(-4);
+
             case 'powerSource':
 
                 let backup = false;
@@ -401,15 +411,6 @@ class ZigBee extends DeviceService
                 }
 
                 return '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' + (backup ? ' + <i class="icon-battery"></i>' : '');
-
-            case 'currentVersion':
-            case 'fileVersion':
-                return '0x' + ('00000000' + value.toString(16)).slice(-8);
-
-            case 'imageType':
-            case 'manufacturerCode':
-            case 'networkAddress':
-                return '0x' + ('0000' + value.toString(16)).slice(-4);
 
             default: return super.parseValue(data, key, summary);
         }

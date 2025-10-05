@@ -595,7 +595,15 @@ class Recorder
                 }.bind(this));
             });
 
-            this.content.querySelector('.shift').querySelectorAll('span').forEach(element => element.addEventListener('click', function() { this.chartQuery(this.data, chart, chart.querySelector('canvas').dataset.interval, element.id); }.bind(this)));
+            this.content.querySelector('.shift').querySelectorAll('span').forEach(element =>
+            {
+                element.addEventListener('click', function()
+                {
+                    this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                    this.chartQuery(this.data, chart, chart.querySelector('canvas').dataset.interval, element.id);
+
+                }.bind(this))
+            });
 
             datepicker.querySelector('.apply').addEventListener('click', function()
             {
