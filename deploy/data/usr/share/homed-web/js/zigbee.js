@@ -390,7 +390,17 @@ class ZigBee extends DeviceService
         switch (key)
         {
             case 'logicalType': return this.logicalTypes[value];
-            case 'powerSource': return value != undefined ? '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' : empty;
+            case 'powerSource':
+
+                let backup = false;
+
+                if (value & 128)
+                {
+                    value = value & 127;
+                    backup = true;
+                }
+
+                return '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' + (backup ? ' + <i class="icon-battery"></i>' : '');
 
             case 'currentVersion':
             case 'fileVersion':

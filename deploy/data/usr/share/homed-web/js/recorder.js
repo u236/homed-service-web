@@ -156,7 +156,6 @@ class Recorder
         canvas.dataset.offset = offset;
         canvas.dataset.endpoint = item.endpoint;
         canvas.dataset.property = item.property;
-        // canvas.style.display = 'none';
 
         this.dataRequest(canvas);
     }
