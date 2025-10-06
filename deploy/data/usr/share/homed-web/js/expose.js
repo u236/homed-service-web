@@ -36,7 +36,7 @@ function exposeTitle(device, endpoint, property, names = true)
         default:       title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
     }
 
-    if (title[1]?.match('^[pt][0-9]+$'))
+    if (title[1] == 'id' || title[1]?.match('^[pt][0-9]+$'))
         title[1] = title[1].toUpperCase();
 
     title = title.join(' ');
