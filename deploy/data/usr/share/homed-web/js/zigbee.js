@@ -401,16 +401,8 @@ class ZigBee extends DeviceService
                 return '0x' + ('0000' + value.toString(16)).slice(-4);
 
             case 'powerSource':
-
-                let backup = false;
-
-                if (value & 128)
-                {
-                    value = value & 127;
-                    backup = true;
-                }
-
-                return '<i class="icon-' + (value != 1 && value != 4 ? 'battery' : 'plug') + '"></i>' + (backup ? ' + <i class="icon-battery"></i>' : '');
+                let battery = ![1, 4].includes(value & 127);
+                return '<i class="icon-' + (battery ? 'battery' : 'plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="icon-battery"></i>' : '');
 
             default: return super.parseValue(data, key, summary);
         }
