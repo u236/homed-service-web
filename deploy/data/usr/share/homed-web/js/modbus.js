@@ -5,6 +5,7 @@ class Modbus extends DeviceService
         customController:      'Custom Modbus Controller',
         homedRelayController:  'HOMEd Relay Controller',
         homedSwitchController: 'HOMEd Switch Controller',
+        n4dsa02:               'Eletechsup N4DSA02 Temperature Sensor',
         r4pin08m0:             'Eletechsup R4PIN08-8DI Controller',
         r4pin08m1:             'Eletechsup R4PIN08-8DO Controller',
         r4pin08m2:             'Eletechsup R4PIN08-4DI-4DO Controller',
