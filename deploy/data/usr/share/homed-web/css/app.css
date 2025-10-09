@@ -710,7 +710,7 @@ td.remove:hover {
 }
 
 .automationInfo .title a:hover {
-    color: var(--color-main);
+    color: var(--color-warning);
 }
 
 .itemInfo .chart {
