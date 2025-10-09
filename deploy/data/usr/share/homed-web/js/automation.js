@@ -740,7 +740,7 @@ class Automation
 
             if (add)
             {
-                this.data = {active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
+                this.data = {mode: 'single', active: true, triggers: new Array(), conditions: new Array(), actions: new Array()};
                 delete this.uuid;
             }
 
