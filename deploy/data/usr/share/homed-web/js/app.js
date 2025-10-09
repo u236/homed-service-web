@@ -1130,6 +1130,7 @@ function showModal(show, focus)
         {
             'Trigger name': '{{ triggerName }}',
             'Trigger property': '{{ triggerProperty }}',
+            'Trigger topic': '{{ triggerTopic }}',
             'Trigger message': '{{ triggerMessage }}',
             'Shell output': '{{ shellOutput }}',
             'File contents': '{{ file | /path/to/file }}',
