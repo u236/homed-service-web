@@ -8,11 +8,11 @@
     <label>Endpoint:</label>
     <select name="endpointId"></select>
     <label>Cluster ID:</label>
-    <input type="text" name="clusterId">
+    <input type="number" min="0" max="65535" name="clusterId">
     <label>Manufacturer code:</label>
-    <input type="text" name="manufacturerCode">
+    <input type="number" min="0" max="65535" name="manufacturerCode">
     <label>Command ID:</label>
-    <input type="text" name="commandId">
+    <input type="number" min="0" max="255" name="commandId">
     <label>Payload (hex):</label>
     <input type="text" name="payload">
     <label class="checkbox"><input type="checkbox" name="clusterSpecific">Cluster specific</label>

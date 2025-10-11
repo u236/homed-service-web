@@ -881,15 +881,18 @@ class ZigBee extends DeviceService
             {
                 let option = document.createElement('option');
                 option.innerHTML = item.endpointId;
+
+                if (item.endpointId == localStorage.getItem('zigbeeDebugEndpointId'))
+                    option.selected = true;
+
                 select.append(option);
             });
 
-            if (!select.innerHTML)
-            {
-                let option = document.createElement('option');
-                option.innerHTML = '1';
-                select.append(option);
-            }
+            modal.querySelector('input[name="clusterId"]').value = localStorage.getItem('zigbeeDebugClusterId') ?? '';
+            modal.querySelector('input[name="manufacturerCode"]').value = localStorage.getItem('zigbeeDebugManufacturerCode') ?? '';
+            modal.querySelector('input[name="commandId"]').value = localStorage.getItem('zigbeeDebugCommandId') ?? '';
+            modal.querySelector('input[name="payload"]').value = localStorage.getItem('zigbeeDebugPayload') ?? '';
+            modal.querySelector('input[name="payload"]').checked = localStorage.getItem('zigbeeDebugClusterSpecific');
 
             modal.querySelector('.send').addEventListener('click', function()
             {
@@ -906,6 +909,8 @@ class ZigBee extends DeviceService
 
             modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+
+            Array.from(modal.querySelector('form')).forEach(input => input.addEventListener('input', function() { localStorage.setItem('zigbeeDebug' + this.name.charAt(0).toUpperCase() + this.name.slice(1), this.value); }));
             showModal(true);
         });
     }
