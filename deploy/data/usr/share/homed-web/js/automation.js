@@ -800,6 +800,7 @@ class Automation
             this.content.querySelector('.mode').innerHTML = '<span class="value">' + this.data.mode + '</span>';
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';
             this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="icon-true success"></i>' : '<i class="icon-false shade"></i>';
+            this.content.querySelector('.log').innerHTML = this.data.log ? '<i class="icon-true success"></i>' : '<i class="icon-false shade"></i>';
 
             triggers = this.content.querySelector('.triggers');
             conditions = this.content.querySelector('.conditions');
