@@ -4,7 +4,7 @@ class Automation
     service = 'automation';
 
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval', 'startup'];
-    triggerStatement = ['equals', 'above', 'below', 'between', 'outside', 'changes', 'updates'];
+    triggerStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside'];
