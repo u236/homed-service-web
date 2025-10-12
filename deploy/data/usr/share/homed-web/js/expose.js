@@ -14,48 +14,62 @@ function temperatureToColor(value)
 
 function exposeTitle(device, endpoint, property, names = true)
 {
-    let propertyName = controller.propertyName(endpoint + '/' + (['lock', 'switch'].includes(property) ? 'status' : property));
     let endpointId = endpoint.split('/')[2];
-    let name = device.options(endpointId).name;
-    let title = property.replace('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
+    let endpointName = device.options(endpointId).name;
+    let propertyName = controller.propertyName(endpoint + '/' + (['lock', 'switch'].includes(property) ? 'status' : property));
+    let title = device.options(endpointId ?? 'common')[property]?.title;
 
     if (names && propertyName)
         return propertyName;
 
-    switch (title[0])
+    if (title)
     {
-        case 'co2':    title[0] = 'CO2'; break;
-        case 'eco2':   title[0] = 'eCO2'; break;
-        case 'pm':     title[0] = 'PM'; break;
-        case 'pm1':    title[0] = 'PM1'; break;
-        case 'pm4':    title[0] = 'PM4'; break;
-        case 'pm10':   title[0] = 'PM10'; break;
-        case 'pm25':   title[0] = 'PM2.5'; break;
-        case 'uv':     title[0] = 'UV'; break;
-        case 'voc':    title[0] = 'VOC'; break;
-        default:       title[0] = title[0].charAt(0).toUpperCase() + title[0].slice(1).toLowerCase(); break;
+        let part = property.split('_');
+        let id = part[part.length - 1];
+        title += !isNaN(id) ? ' ' + id : '';
+    }
+    else
+    {
+        let list = property.replaceAll('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
+
+        switch (list[0])
+        {
+            case 'co2':    list[0] = 'CO2'; break;
+            case 'eco2':   list[0] = 'eCO2'; break;
+            case 'pm':     list[0] = 'PM'; break;
+            case 'pm1':    list[0] = 'PM1'; break;
+            case 'pm4':    list[0] = 'PM4'; break;
+            case 'pm10':   list[0] = 'PM10'; break;
+            case 'pm25':   list[0] = 'PM2.5'; break;
+            case 'uv':     list[0] = 'UV'; break;
+            case 'voc':    list[0] = 'VOC'; break;
+            default:       list[0] = list[0].charAt(0).toUpperCase() + list[0].slice(1).toLowerCase(); break;
+        }
+
+        if (list[1] == 'id' || list[1]?.match('^[pt][0-9]+$'))
+            list[1] = list[1].toUpperCase();
+
+        title = list.join(' ');
     }
 
-    if (title[1] == 'id' || title[1]?.match('^[pt][0-9]+$'))
-        title[1] = title[1].toUpperCase();
-
-    title = title.join(' ');
-    return endpointId ? (name ? name + ' ' + title : title + ' ' + endpointId) : title;
+    return endpointId ? (endpointName ? endpointName + ' ' + title : title + ' ' + endpointId) : title;
 }
 
 function exposeList(expose, options)
 {
     let part = expose.split('_');
+    let id = part[part.length - 1];
+    let name = !isNaN(id) ? expose.substring(0, expose.lastIndexOf('_')) : expose;
     let list = new Array();
 
-    switch (part[0])
+    switch (name)
     {
         case 'cover':
             list = ['cover', 'position'];
             break;
 
         case 'light':
-            list = ['status'].concat(options[part[1] ? 'light_' + part[1] : 'light'] ?? new Array());
+            list = ['status'].concat(options[!isNaN(id) ? 'light_' + id : 'light'] ?? new Array());
             break;
 
         case 'lock':
@@ -160,12 +174,12 @@ function exposeList(expose, options)
             break;
 
         default:
-            list.push(part[0]);
+            list.push(name);
             break;
     }
 
-    if (part[1])
-        list.forEach((item, index) => { list[index] = item + '_' + part[1]; });
+    if (!isNaN(id))
+        list.forEach((item, index) => { list[index] = item + '_' + id; });
 
     return list;
 }
