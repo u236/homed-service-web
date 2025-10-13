@@ -831,8 +831,10 @@ class Dashboard
             let name = modal.querySelector('.name');
             let data;
 
-            name.innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> <span></span>';
-            this.devicePromise(item, name.querySelector('span'));
+            name.innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> <span>New item</span>';
+
+            if (!item.add)
+                this.devicePromise(item, name.querySelector('span'));
 
             modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
