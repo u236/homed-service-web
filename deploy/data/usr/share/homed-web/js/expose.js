@@ -481,6 +481,18 @@ function updateExpose(device, endpointId, property, value)
             return;
         }
 
+        if (device.options(endpointId).runningStatus && property == 'running')
+        {
+            cell = row.querySelector('[data-property="runningStatus"]');
+
+            if (cell)
+            {
+                cell.innerHTML = '<i class="icon-' + (value ? 'play' : 'stop') + '"></i>';
+                cell.classList.remove('warning', 'shade');
+                cell.classList.add(value ? 'warning' : 'shade');
+            }
+        }
+
         cell = row.querySelector('[data-property="' + property + '"]');
 
         if (cell)

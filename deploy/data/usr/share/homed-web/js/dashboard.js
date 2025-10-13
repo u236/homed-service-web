@@ -181,7 +181,7 @@ class Dashboard
                     break;
 
                 case 'thermostat':
-                    valueCell.innerHTML = '<span data-property="temperature">' + empty + '</span> <i class="icon-right"></i> <span data-property="targetTemperature" data-unit="°C">' + empty + '</span>';
+                    valueCell.innerHTML = '<span data-property="runningStatus"></span> <span data-property="temperature">' + empty + '</span> <i class="icon-right"></i> <span data-property="targetTemperature" data-unit="°C">' + empty + '</span>';
                     break;
 
                 default:

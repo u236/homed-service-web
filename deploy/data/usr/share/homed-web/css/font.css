@@ -61,3 +61,5 @@
 .icon-group::before   { content: '\e81c'; }
 .icon-chain::before   { content: '\e81d'; }
 .icon-warning::before { content: '\e81e'; }
+.icon-play::before    { content: '\e81f'; }
+.icon-stop::before    { content: '\e820'; }
