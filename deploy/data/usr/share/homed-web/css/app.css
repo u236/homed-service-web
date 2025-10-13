@@ -623,6 +623,11 @@ td.remove:hover {
 
 .dashboardBlock td {
     border-top: 1px solid var(--border-main);
+    vertical-align: top;
+}
+
+.dashboardBlock td.name {
+    white-space: normal;
 }
 
 .dashboardBlock canvas {

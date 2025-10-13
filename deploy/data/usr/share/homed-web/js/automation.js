@@ -300,7 +300,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = '<span class="value">' + this.shieldValue(trigger.message) + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>': '');
+                data = '<span class="value">' + this.shieldValue(trigger.message) + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>' : '');
                 break;
 
             case 'time':
@@ -391,7 +391,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = (action.file ? '[file]' : '<span class="value">' + this.shieldValue(action.message) + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>': '');
+                data = (action.file ? '[file]' : '<span class="value">' + this.shieldValue(action.message) + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>' : '');
                 break;
 
             case 'shell':

@@ -15,11 +15,10 @@ function temperatureToColor(value)
 function exposeMeta(expose)
 {
     let list = expose.split('_');
-    let id = list[list.length - 1];
-    let meta = {name: !isNaN(id) ? expose.substring(0, expose.lastIndexOf('_')) : expose};
+    let meta = {name: list[0]};
 
-    if (!isNaN(id))
-        meta.id = id;
+    if (!isNaN(list[1]))
+        meta.id = list[1];
 
     return meta;
 }
@@ -29,21 +28,15 @@ function exposeTitle(device, endpoint, property, names = true)
     let endpointId = endpoint.split('/')[2];
     let endpointName = device.options(endpointId).name;
     let propertyName = controller.propertyName(endpoint + '/' + (['lock', 'switch'].includes(property) ? 'status' : property));
+    let meta = exposeMeta(property);
     let title = device.options(endpointId ?? 'common')[property]?.title;
 
     if (names && propertyName)
         return propertyName;
 
-    if (title)
+    if (!title || ['light', 'switch', 'cover', 'lock', 'thermostat'].includes(meta.name))
     {
-        let meta = exposeMeta(property);
-
-        if (meta.id)
-            title += ' ' + meta.id;
-    }
-    else
-    {
-        let list = property.replaceAll('_', ' ').replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
+        let list = meta.name.replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
         switch (list[0])
         {
@@ -64,6 +57,9 @@ function exposeTitle(device, endpoint, property, names = true)
 
         title = list.join(' ');
     }
+
+    if (meta.id)
+        title += ' ' + meta.id;
 
     return endpointId ? (endpointName ? endpointName + ' ' + title : title + ' ' + endpointId) : title;
 }
