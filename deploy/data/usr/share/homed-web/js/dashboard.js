@@ -162,17 +162,17 @@ class Dashboard
 
         if (item.expose)
         {
-            let part = item.expose.split('_');
+            let meta = exposeMeta(item.expose);
 
-            switch (part[0])
+            switch (meta.name)
             {
                 case 'light':
                 case 'lock':
                 case 'switch':
-                    let name = part[1] ? 'status_' + part[1] : 'status';
-                    row.dataset.type = 'status';
+                    let name = meta.id ? 'status_' + meta.id : 'status';
                     valueCell.dataset.property = name;
                     valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
+                    row.dataset.type = 'status';
                     break;
 
                 case 'cover':
@@ -193,10 +193,10 @@ class Dashboard
         {
             valueCell.dataset.property = item.property;
 
-            if (item.property.split('_')[0] == 'status')
+            if (exposeMeta(item.property).name == 'status')
             {
-                row.dataset.type = 'status';
                 valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[item.property]: 'toggle'}); }.bind(this));
+                row.dataset.type = 'status';
             }
         }
 
@@ -904,7 +904,7 @@ class Dashboard
 
         if (item.property)
         {
-            let part = item.property.split('_');
+            let meta = exposeMeta(item.property);
             let list =
             {
                 cover:      ['cover', 'position'],
@@ -914,13 +914,13 @@ class Dashboard
                 thermostat: ['systemMode', 'operationMode', 'targetTemperature', 'temperature', 'running']
             };
 
-            Object.keys(list).forEach(key => { if (list[key].includes(part[0]) && device.items(endpointId).includes(key)) expose = key; });
+            Object.keys(list).forEach(key => { if (list[key].includes(meta.name) && device.items(endpointId).includes(key)) expose = key; });
 
             if (!expose)
                 expose = item.property;
 
-            if (part[1])
-                expose += '_' + part[1];
+            if (meta.id)
+                expose += '_' + meta.id;
         }
 
         loadHTML('html/dashboard/exposeInfo.html', this, modal.querySelector('.data'), function()

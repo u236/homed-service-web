@@ -12,6 +12,18 @@ function temperatureToColor(value)
     return color;
 }
 
+function exposeMeta(expose)
+{
+    let list = expose.split('_');
+    let id = list[list.length - 1];
+    let meta = {name: !isNaN(id) ? expose.substring(0, expose.lastIndexOf('_')) : expose};
+
+    if (!isNaN(id))
+        meta.id = id;
+
+    return meta;
+}
+
 function exposeTitle(device, endpoint, property, names = true)
 {
     let endpointId = endpoint.split('/')[2];
@@ -24,9 +36,10 @@ function exposeTitle(device, endpoint, property, names = true)
 
     if (title)
     {
-        let part = property.split('_');
-        let id = part[part.length - 1];
-        title += !isNaN(id) ? ' ' + id : '';
+        let meta = exposeMeta(property);
+
+        if (meta.id)
+            title += ' ' + meta.id;
     }
     else
     {
@@ -57,19 +70,17 @@ function exposeTitle(device, endpoint, property, names = true)
 
 function exposeList(expose, options)
 {
-    let part = expose.split('_');
-    let id = part[part.length - 1];
-    let name = !isNaN(id) ? expose.substring(0, expose.lastIndexOf('_')) : expose;
+    let meta = exposeMeta(expose);
     let list = new Array();
 
-    switch (name)
+    switch (meta.name)
     {
         case 'cover':
             list = ['cover', 'position'];
             break;
 
         case 'light':
-            list = ['status'].concat(options[!isNaN(id) ? 'light_' + id : 'light'] ?? new Array());
+            list = ['status'].concat(options[meta.id ? 'light_' + meta.id : 'light'] ?? new Array());
             break;
 
         case 'lock':
@@ -174,12 +185,12 @@ function exposeList(expose, options)
             break;
 
         default:
-            list.push(name);
+            list.push(meta.name);
             break;
     }
 
-    if (!isNaN(id))
-        list.forEach((item, index) => { list[index] = item + '_' + id; });
+    if (meta.id)
+        list.forEach((item, index) => { list[index] = item + '_' + meta.id; });
 
     return list;
 }
