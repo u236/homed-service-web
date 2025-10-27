@@ -355,7 +355,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
                     case 'button':
                         controlCell.innerHTML = '<span>trigger</span>';
-                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">true</span>'; deviceCommand(device, endpointId, {[property]: true}); });
+                        controlCell.querySelector('span').addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">triggered</span>'; deviceCommand(device, endpointId, {[property]: true}); });
                         break;
 
                     case 'number':

@@ -972,7 +972,7 @@ function sortTable(table, index, first = true, once = false)
                     break;
 
                 case current.classList.contains('linkQuality'):
-                    sort = invert ? parseInt(current.innerHTML) < parseInt(next?.innerHTML) : parseInt(current.innerHTML) > parseInt(next?.innerHTML);
+                    sort = invert ? parseInt(current.textContent) < parseInt(next?.textContent) : parseInt(current.textContent) > parseInt(next?.textContent);
                     break;
 
                 case current.classList.contains('powerSource'):
@@ -980,7 +980,7 @@ function sortTable(table, index, first = true, once = false)
                     break;
 
                 default:
-                    sort = current.innerHTML.toLowerCase() > next?.innerHTML.toLowerCase();
+                    sort = isNaN(current.textContent) || isNaN(next?.textContent) ? current.textContent.toLowerCase() > next?.textContent.toLowerCase() : parseFloat(current.textContent) > parseFloat(next.textContent);
                     break;
             }
 

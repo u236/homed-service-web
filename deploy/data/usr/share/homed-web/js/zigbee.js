@@ -62,7 +62,13 @@ class ZigBee extends DeviceService
             let cell = document.querySelector('tr[data-device="' + this.service + '/' + id + '"] .powerSource');
             let value = device.properties('common').battery ?? device.properties('common').batteryLow;
 
-            if (device.info.powerSource == 1 || device.info.powerSource == 4 || !cell || cell.dataset.value == value || value == undefined)
+            if (!device.info.logicalType || device.info.powerSource == 1 || device.info.powerSource == 4)
+                return;
+
+            if (value == undefined)
+                value = 100;
+
+            if (!cell || cell.dataset.value == value)
                 return;
 
             cell.dataset.value = value;
@@ -402,7 +408,7 @@ class ZigBee extends DeviceService
 
             case 'powerSource':
                 let battery = ![1, 4].includes(value & 127);
-                return '<i class="icon-' + (battery ? 'battery' : 'plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="icon-battery"></i>' : '');
+                return data.logicalType ? '<i class="icon-' + (battery ? 'battery' : 'plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="icon-battery"></i>' : '') : empty;
 
             default: return super.parseValue(data, key, summary);
         }
