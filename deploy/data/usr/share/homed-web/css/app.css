@@ -238,6 +238,13 @@ td.edit {
     cursor: pointer;
 }
 
+td.empty {
+    width: 10px;
+    text-align: center;
+    color: var(--color-shade);
+    opacity: 0.25;
+}
+
 td.move {
     cursor: pointer;
     width: 10px;

@@ -474,7 +474,11 @@ class Automation
                     case 2:
 
                         if (!condition.type || list.length < 2 || index == list.length - 1)
+                        {
+                            cell.innerHTML = empty;
+                            cell.classList.add('empty');
                             break;
+                        }
 
                         cell.innerHTML = '<i class="icon-down"></i>';
                         cell.classList.add('move');
@@ -484,7 +488,11 @@ class Automation
                     case 3:
 
                         if (!condition.type || list.length < 2 || !index)
+                        {
+                            cell.innerHTML = empty;
+                            cell.classList.add('empty');
                             break;
+                        }
 
                         cell.innerHTML = '<i class="icon-up"></i>';
                         cell.classList.add('move');
@@ -584,7 +592,11 @@ class Automation
                     case 2:
 
                         if (!action.type || list.length < 2 || index == list.length - 1)
+                        {
+                            cell.innerHTML = empty;
+                            cell.classList.add('empty');
                             break;
+                        }
 
                         cell.innerHTML = '<i class="icon-down"></i>';
                         cell.classList.add('move');
@@ -594,8 +606,12 @@ class Automation
                     case 3:
 
                         if (!action.type || list.length < 2 || !index)
+                        {
+                            cell.innerHTML = empty;
+                            cell.classList.add('empty');
                             break;
-
+                        }
+                        
                         cell.innerHTML = '<i class="icon-up"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
@@ -834,7 +850,11 @@ class Automation
                         case 2:
 
                             if (this.data.triggers.length < 2 || index == this.data.triggers.length - 1)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
@@ -844,7 +864,11 @@ class Automation
                         case 3:
 
                             if (this.data.triggers.length < 2 || !index)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');

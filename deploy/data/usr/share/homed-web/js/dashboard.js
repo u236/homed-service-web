@@ -494,7 +494,11 @@ class Dashboard
                         case 1:
 
                             if (index == this.status.dashboards.length - 1)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
@@ -504,7 +508,11 @@ class Dashboard
                         case 2:
 
                             if (!index)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
@@ -552,7 +560,11 @@ class Dashboard
                         case 1:
 
                             if (dashboard.blocks.length < 2 || index == dashboard.blocks.length - 1)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
@@ -562,7 +574,11 @@ class Dashboard
                         case 2:
 
                             if (dashboard.blocks.length < 2 || !index)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');
@@ -681,7 +697,11 @@ class Dashboard
                         case 1:
 
                             if (block.items.length < 2 || index == block.items.length - 1)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-down"></i>';
                             cell.classList.add('move');
@@ -691,7 +711,11 @@ class Dashboard
                         case 2:
 
                             if (block.items.length < 2 || !index)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
                                 break;
+                            }
 
                             cell.innerHTML = '<i class="icon-up"></i>';
                             cell.classList.add('move');

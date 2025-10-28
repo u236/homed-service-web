@@ -69,8 +69,6 @@ QByteArray Database::randomData(int length)
 void Database::write(void)
 {
     QJsonObject json = {{"timestamp", QDateTime::currentSecsSinceEpoch()}, {"version", SERVICE_VERSION}};
-    QByteArray data;
-    bool check = true;
 
     if (!m_dashboards.isEmpty())
         json.insert("dashboards", m_dashboards);
@@ -83,28 +81,12 @@ void Database::write(void)
     if (!m_sync)
         return;
 
-    m_sync = false;
-
-    if (!m_file.open(QFile::WriteOnly))
-    {
-        logWarning << "Database not stored, file" << m_file.fileName() << "open error:" << m_file.errorString();
-        return;
-    }
-
     json.insert("adminToken", m_adminToken);
     json.insert("guestToken", m_guestToken);
-    data = QJsonDocument(json).toJson(QJsonDocument::Compact);
+    m_sync = false;
 
-    if (m_file.write(data) != data.length())
-    {
-        logWarning << "Database not stored, file" << m_file.fileName() << "write error:" << m_file.errorString();
-        check = false;
-    }
-
-    m_file.close();
-
-    if (!check)
+    if (reinterpret_cast <Controller*> (parent())->writeFile(m_file, QJsonDocument(json).toJson(QJsonDocument::Compact)))
         return;
 
-    system("sync");
+    logWarning << "Database not stored";
 }
