@@ -257,7 +257,7 @@ class Recorder
                         timestamp: timestamp,
                         label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
-                        minBarLength: 2
+                        minBarLength: 1
                     };
 
                     if (!value)
