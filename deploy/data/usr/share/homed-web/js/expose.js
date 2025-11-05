@@ -33,6 +33,10 @@ function exposeTitle(device, endpoint, property, names = true)
 
     if (names && propertyName)
         return propertyName;
+    
+    let switchName = device?.info?.options?.[property.replace('status', 'switch')]?.title;
+    if (names && switchName)
+        return switchName;
 
     if (!title || ['light', 'switch', 'cover', 'lock', 'thermostat'].includes(meta.name))
     {
