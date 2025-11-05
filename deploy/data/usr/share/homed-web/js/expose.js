@@ -26,7 +26,7 @@ function exposeMeta(expose)
 function exposeTitle(device, endpoint, itemName, names = true)
 {
     let meta = exposeMeta(itemName);
-    let list = ['lock', 'switch'];
+    let list = ['switch', 'lock'];
     let endpointId = endpoint.split('/')[2] ?? 'common';
     let endpointName = device.options(endpointId).name;
     let propertyName = controller.propertyName(endpoint + '/' + (list.includes(meta.name) ? itemName.replace(meta.name, 'status') : itemName));
@@ -40,7 +40,7 @@ function exposeTitle(device, endpoint, itemName, names = true)
     else
         title = device.options(endpointId)[itemName]?.title;
 
-    if (!title || ['light', 'switch', 'cover', 'lock', 'thermostat'].includes(meta.name))
+    if (!title || ['light', 'cover', 'thermostat'].includes(meta.name))
     {
         let list = meta.name.replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
