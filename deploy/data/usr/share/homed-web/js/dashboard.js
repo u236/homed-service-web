@@ -71,12 +71,7 @@ class Dashboard
     itemString(item, edit = true)
     {
         let device = this.controller.findDevice(item);
-        let property = item.expose ?? item.property;
-
-        if (['lock', 'switch'].includes(property))
-            property = 'status';
-
-        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, property);
+        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
     dashboardName(dashboard)
