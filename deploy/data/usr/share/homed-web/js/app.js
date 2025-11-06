@@ -844,6 +844,8 @@ window.onload = function()
             showModal(true);
         });
     });
+
+    fetch('dummy.html?' + Date.now()); // fix Safari 26 bug
 };
 
 window.onresize = function()
