@@ -270,7 +270,7 @@ void Controller::readyRead(void)
             return;
         }
 
-        guest = token != m_database->adminToken() ? true : false;
+        guest = token != m_database->adminToken();
     }
 
     url = url.mid(0, url.indexOf('?'));
