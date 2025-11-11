@@ -102,6 +102,7 @@ class Dashboard
 
         dashboard.exposes.forEach(expose =>
         {
+            let devices = this.controller.devicesList();
             let block = {items: new Array()};
 
             switch (expose)
@@ -112,31 +113,23 @@ class Dashboard
                 default:          block.name = expose.charAt(0).toUpperCase() + expose.slice(1); break;
             }
 
-            Object.keys(this.controller.services).forEach(item =>
+            Object.keys(devices).forEach(name =>
             {
-                let service = this.controller.services[item];
+                let device = devices[name];
 
-                if (!service.devices || !Object.keys(service.devices).length)
-                    return;
-
-                Object.keys(service.devices).forEach(id =>
+                Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(item =>
                 {
-                    let device = service.devices[id];
+                    let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: item};
 
-                    Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(item =>
-                    {
-                        let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: item};
+                    if (item.split('_')[0] != expose && device.options(endpointId)[item]?.class != expose)
+                        return;
 
-                        if (item.split('_')[0] != expose && device.options(endpointId)[item]?.class != expose)
-                            return;
+                    if (endpointId != 'common')
+                        data.endpoint += '/' + endpointId;
 
-                        if (endpointId != 'common')
-                            data.endpoint += '/' + endpointId;
+                    block.items.push(data);
 
-                        block.items.push(data);
-
-                    }); });
-                });
+                }); });
             });
 
             dashboard.blocks.push(block);
@@ -799,41 +792,36 @@ class Dashboard
 
     showItemEdit(dashboard, block, item, callback)
     {
+        let devices = this.controller.devicesList();
         let recorder = this.controller.services.recorder;
         let list = new Object();
 
         if (!item)
             item = {add: true};
 
-        Object.keys(this.controller.services).forEach(item =>
+        Object.keys(devices).forEach(name =>
         {
-            let service = this.controller.services[item];
+            let device = devices[name];
 
-            if (!service.devices || !Object.keys(service.devices).length)
-                return;
-
-            Object.keys(service.devices).forEach(id =>
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose =>
             {
-                let device = service.devices[id];
+                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
 
-                Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose =>
-                {
-                    let value = {endpoint: item.split('/')[0] + '/' + id, expose: expose};
+                if (expose == 'thermostatProgram')
+                    return;
 
-                    if (expose == 'thermostatProgram')
-                        return;
+                if (endpointId != 'common')
+                    value.endpoint += '/' + endpointId;
 
-                    if (endpointId != 'common')
-                        value.endpoint += '/' + endpointId;
+                list['Device <i class="icon-right"></i> ' + name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
 
-                    list['Device <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
-
-                }); });
-            });
+            }); });
         });
 
         if (recorder?.status?.items?.length)
         {
+            let items = new Object();
+
             recorder.status.items.forEach(item =>
             {
                 let device = this.controller.findDevice(item);
@@ -841,8 +829,10 @@ class Dashboard
                 if (!device.info)
                     return;
 
-                list['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
+                items['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
             });
+
+            Object.keys(items).sort().forEach(id => list[id] = items[id]);
         }
 
         loadHTML('html/dashboard/itemEdit.html', this, modal.querySelector('.data'), function()
