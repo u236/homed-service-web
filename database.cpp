@@ -6,6 +6,8 @@
 Database::Database(QSettings *config, QObject *parent) : QObject(parent), m_timer(new QTimer(this)), m_sync(false)
 {
     m_file.setFileName(config->value("server/database", "/opt/homed-web/database.json").toString());
+    m_passive = config->value("server/passive", false).toBool();
+
     connect(m_timer, &QTimer::timeout, this, &Database::write);
     m_timer->setSingleShot(true);
 }
@@ -76,7 +78,8 @@ void Database::write(void)
     if (!m_names.isEmpty())
         json.insert("names", m_names);
 
-    emit statusUpdated(json);
+    if (!m_passive)
+        emit statusUpdated(json);
 
     if (!m_sync)
         return;
