@@ -611,7 +611,7 @@ class Automation
                             cell.classList.add('empty');
                             break;
                         }
-                        
+
                         cell.innerHTML = '<i class="icon-up"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
@@ -793,7 +793,19 @@ class Automation
             this.content.querySelector('.edit').addEventListener('click', function() { this.showAutomationEdit(); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showAutomationRemove(); }.bind(this));
             this.content.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/' + this.service, {action: 'updateAutomation', automation: this.uuid, data: this.data}); }.bind(this));
-            this.content.querySelector('.copy').addEventListener('click', function() { delete this.uuid; delete this.data.uuid; delete this.data.active; this.data.name += ' (copy)'; this.showAutomationInfo(); }.bind(this));
+
+            this.content.querySelector('.copy').addEventListener('click', function()
+            {
+                delete this.uuid;
+
+                delete this.data.active;
+                delete this.data.lastTriggered;
+                delete this.data.uuid;
+
+                this.data.name += ' (copy)';
+                this.showAutomationInfo();
+
+            }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
