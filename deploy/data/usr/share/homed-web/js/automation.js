@@ -802,6 +802,7 @@ class Automation
                 delete this.data.lastTriggered;
                 delete this.data.uuid;
 
+                this.data.actions.forEach(action => delete action.uuid);
                 this.data.name += ' (copy)';
                 this.showAutomationInfo();
 
@@ -816,6 +817,8 @@ class Automation
                 delete data.lastTriggered;
                 delete data.name;
                 delete data.uuid;
+
+                data.actions.forEach(action => delete action.uuid);
 
                 item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
                 item.download = this.data.name + '.json';
