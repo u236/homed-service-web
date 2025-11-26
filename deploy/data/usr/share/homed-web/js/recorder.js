@@ -262,7 +262,7 @@ class Recorder
 
                     if (!value)
                         data.backgroundColor = this.color.error;
-                    else if (canvas.dataset.property.split('_')[0] == 'status' || ['true', 'false'].includes(value))
+                    else if (['on', 'off', 'true', 'false'].includes(value))
                         data.backgroundColor = ['on', 'true'].includes(value) ? this.color.on : this.color.off;
                     else
                         data.backgroundColor = this.color.bar[count++];
