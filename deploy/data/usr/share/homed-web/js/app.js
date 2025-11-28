@@ -901,6 +901,15 @@ document.onkeydown = function(event)
 
         switch (key)
         {
+            case 'enter':
+
+                let element = event.target.nextSibling;
+
+                if (element?.type == 'submit')
+                    element.click();
+
+                break;
+
             case '/':
             case 'esc':
             case 'escape':
