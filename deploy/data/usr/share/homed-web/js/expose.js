@@ -23,33 +23,39 @@ function exposeMeta(expose)
     return meta;
 }
 
-function exposeTitle(device, endpoint, property, names = true)
+function exposeTitle(device, endpoint, itemName, names = true)
 {
-    let endpointId = endpoint.split('/')[2];
+    let meta = exposeMeta(itemName);
+    let list = ['switch', 'lock'];
+    let endpointId = endpoint.split('/')[2] ?? 'common';
     let endpointName = device.options(endpointId).name;
-    let propertyName = controller.propertyName(endpoint + '/' + (['lock', 'switch'].includes(property) ? 'status' : property));
-    let meta = exposeMeta(property);
-    let title = device.options(endpointId ?? 'common')[property]?.title;
+    let propertyName = controller.propertyName(endpoint + '/' + (list.includes(meta.name) ? itemName.replace(meta.name, 'status') : itemName));
+    let title;
 
     if (names && propertyName)
         return propertyName;
 
-    if (!title || ['light', 'switch', 'cover', 'lock', 'thermostat'].includes(meta.name))
+    if (meta.name == 'status')
+        list.forEach(item => { if (device.items(endpointId).includes(itemName.replace('status', item))) title = device.options(endpointId)[itemName.replace('status', item)]?.title; });
+    else
+        title = device.options(endpointId)[itemName]?.title;
+
+    if (!title || ['light', 'cover', 'thermostat'].includes(meta.name))
     {
         let list = meta.name.replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
         switch (list[0])
         {
-            case 'co2':    list[0] = 'CO2'; break;
-            case 'eco2':   list[0] = 'eCO2'; break;
-            case 'pm':     list[0] = 'PM'; break;
-            case 'pm1':    list[0] = 'PM1'; break;
-            case 'pm4':    list[0] = 'PM4'; break;
-            case 'pm10':   list[0] = 'PM10'; break;
-            case 'pm25':   list[0] = 'PM2.5'; break;
-            case 'uv':     list[0] = 'UV'; break;
-            case 'voc':    list[0] = 'VOC'; break;
-            default:       list[0] = list[0].charAt(0).toUpperCase() + list[0].slice(1).toLowerCase(); break;
+            case 'co2':  list[0] = 'CO2'; break;
+            case 'eco2': list[0] = 'eCO2'; break;
+            case 'pm':   list[0] = 'PM'; break;
+            case 'pm1':  list[0] = 'PM1'; break;
+            case 'pm4':  list[0] = 'PM4'; break;
+            case 'pm10': list[0] = 'PM10'; break;
+            case 'pm25': list[0] = 'PM2.5'; break;
+            case 'uv':   list[0] = 'UV'; break;
+            case 'voc':  list[0] = 'VOC'; break;
+            default:     list[0] = list[0].charAt(0).toUpperCase() + list[0].slice(1).toLowerCase(); break;
         }
 
         if (list[1] == 'id' || list[1]?.match('^[pt][0-9]+$'))
@@ -61,7 +67,7 @@ function exposeTitle(device, endpoint, property, names = true)
     if (meta.id)
         title += ' ' + meta.id;
 
-    return endpointId ? (endpointName ? endpointName + ' ' + title : title + ' ' + endpointId) : title;
+    return !isNaN(endpointId) ? (endpointName ? endpointName + ' ' + title : title + ' ' + endpointId) : title;
 }
 
 function exposeList(expose, options)
@@ -85,8 +91,8 @@ function exposeList(expose, options)
             break;
 
         case 'thermostat':
-            let controls = ['systemMode', 'operationMode', 'targetTemperature'];
-            controls.forEach(function(item) { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
+            let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'heatMode'];
+            controls.forEach(item => { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
             options['temperature'] = {type: 'sensor', unit: '°C'};
             break;

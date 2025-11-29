@@ -94,11 +94,14 @@ void Controller::quit(void)
 
 void Controller::mqttConnected(void)
 {
-    mqttSubscribe(mqttTopic("command/web"));
-
     for (auto it = m_clients.begin(); it != m_clients.end(); it++)
         for (int i = 0; i < it.value().count(); i++)
             mqttSubscribe(mqttTopic(it.value().at(i)));
+
+    if (m_database->passive())
+        return;
+
+    mqttSubscribe(mqttTopic("command/web"));
 
     m_database->store();
     mqttPublishStatus();
@@ -270,7 +273,7 @@ void Controller::readyRead(void)
             return;
         }
 
-        guest = token != m_database->adminToken() ? true : false;
+        guest = token != m_database->adminToken();
     }
 
     url = url.mid(0, url.indexOf('?'));

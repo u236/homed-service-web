@@ -323,12 +323,10 @@ class Controller
         return device ?? new Device();
     }
 
-    propertiesList(triggerProperty, pattern)
+    devicesList()
     {
+        let devices = new Object();
         let list = new Object();
-
-        if (triggerProperty)
-            list['<i>Trigger Property</i>'] = {endpoint: "triggerEndpoint", property: "triggerProperty"};
 
         Object.keys(this.services).forEach(item =>
         {
@@ -341,20 +339,42 @@ class Controller
             {
                 let device = service.devices[id];
 
-                Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { exposeList(expose, device.options(endpointId)).forEach(property =>
-                {
-                    let value = {endpoint: item.split('/')[0] + '/' + id, property: property};
+                if (item.startsWith('zigbee') && !device.info.logicalType)
+                    return;
 
-                    if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
-                        return;
-
-                    if (endpointId != 'common')
-                        value.endpoint += '/' + endpointId;
-
-                    list[device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
-
-                }); }); });
+                devices[device.info.name] = device;
             });
+        });
+
+        Object.keys(devices).sort().forEach(item => list[item] = devices[item]);
+        return list;
+    }
+
+    propertiesList(triggerProperty, pattern)
+    {
+        let devices = this.devicesList();
+        let list = new Object();
+
+        if (triggerProperty)
+            list['<i>Trigger Property</i>'] = {endpoint: "triggerEndpoint", property: "triggerProperty"};
+
+        Object.keys(devices).forEach(name =>
+        {
+            let device = devices[name];
+
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { exposeList(expose, device.options(endpointId)).forEach(property =>
+            {
+                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, property: property};
+
+                if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
+                    return;
+
+                if (endpointId != 'common')
+                    value.endpoint += '/' + endpointId;
+
+                list[name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
+
+            }); }); });
         });
 
         return list;
@@ -844,6 +864,8 @@ window.onload = function()
             showModal(true);
         });
     });
+
+    fetch('dummy.html?' + Date.now()); // fix Safari 26 bug
 };
 
 window.onresize = function()
@@ -879,6 +901,15 @@ document.onkeydown = function(event)
 
         switch (key)
         {
+            case 'enter':
+
+                let element = event.target.nextSibling;
+
+                if (element?.type == 'submit')
+                    element.click();
+
+                break;
+
             case '/':
             case 'esc':
             case 'escape':

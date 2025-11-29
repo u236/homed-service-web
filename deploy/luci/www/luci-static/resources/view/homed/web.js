@@ -38,7 +38,7 @@ return view.extend({
         getHOMEdPort(configuration);
         return E([
             E('h2',_('HOMEd Web Service Configuration')),
-            E('p',{'class':'cbi-section-descr'},_('Documentation can be found <a href="https://wiki.homed.dev/page/Web/Configuration" target="_blank">here</a>.')),
+            E('p',{'class':'cbi-section-descr'},_('Documentation can be found <a href="https://wiki.homed.dev/web/configuration" target="_blank">here</a>.')),
             HOMEdPort!=0?E('p',{'class':'cbi-section-descr'},_('<a id="HomedLink" href="'+location.protocol+'//'+location.host+':'+HOMEdPort+'/" target="_blank">Go to HOMEd Web</a>.')):E('div'),
             E('p',{},E('textarea',{'style':'width:100%','rows':25,'disabled':isReadonlyView},[configuration!=null?configuration:'']))
         ]);

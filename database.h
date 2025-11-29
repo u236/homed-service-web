@@ -19,6 +19,8 @@ public:
     Database(QSettings *config, QObject *parent);
     ~Database(void);
 
+    inline bool passive(void) { return m_passive; }
+
     inline QString adminToken(void) { return m_adminToken; }
     inline void resetAdminToken(void) { m_adminToken = randomData(32).toHex(); }
 
@@ -35,7 +37,7 @@ private:
 
     QTimer *m_timer;
     QFile m_file;
-    bool m_sync;
+    bool m_sync, m_passive;
 
     QString m_adminToken, m_guestToken;
     QJsonArray m_dashboards;

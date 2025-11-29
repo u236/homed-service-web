@@ -875,7 +875,7 @@ td.remove:hover {
 .log {
     display: block;
     overflow-y: auto;
-    max-height: 500px;
+    max-height: 480px;
 }
 
 .log tr:hover {
