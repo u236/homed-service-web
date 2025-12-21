@@ -196,8 +196,8 @@ class Modbus extends DeviceService
                 }
             });
 
-            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('customSort', this.dataset.index); }) );
-            sortTable(table, localStorage.getItem('customSort') ?? 0);
+            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('homedModbusSort', this.dataset.index); }) );
+            sortTable(table, localStorage.getItem('homedModbusSort') ?? 0);
             addTableSearch(table, 'devices', 'device', 7, [0, 1]);
         });
     }

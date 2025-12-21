@@ -530,9 +530,9 @@ class Recorder
     {
         loadHTML('html/recorder/itemInfo.html', this, this.content, function()
         {
-            let interval = localStorage.getItem('recorderInterval') ?? '24h';
-            let start = localStorage.getItem('recorderStart');
-            let end = localStorage.getItem('recorderEnd');
+            let interval = localStorage.getItem('homedRecorderInterval') ?? '24h';
+            let start = localStorage.getItem('homedRecorderStart');
+            let end = localStorage.getItem('homedRecorderEnd');
             let id = 'chart-' + randomString(8);
             let items = new Array();
             let list = new Array();
@@ -587,7 +587,7 @@ class Recorder
                     if (datepicker.style.display == 'block')
                         return;
 
-                    localStorage.setItem('recorderInterval', element.innerHTML);
+                    localStorage.setItem('homedRecorderInterval', element.innerHTML);
 
                     this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
                     this.chartQuery(this.data, chart, element.innerHTML);
@@ -615,9 +615,9 @@ class Recorder
 
                 datepicker.style.display = 'none';
 
-                localStorage.setItem('recorderInterval', 'custom');
-                localStorage.setItem('recorderStart', start);
-                localStorage.setItem('recorderEnd', end);
+                localStorage.setItem('homedRecorderInterval', 'custom');
+                localStorage.setItem('homedRecorderStart', start);
+                localStorage.setItem('homedRecorderEnd', end);
 
                 this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
                 this.chartQuery(this.data, chart, 'custom', undefined, new Date(start).getTime(), new Date(end).getTime());

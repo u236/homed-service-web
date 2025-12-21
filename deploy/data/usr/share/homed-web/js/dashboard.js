@@ -1,7 +1,7 @@
 class Dashboard
 {
     content = document.querySelector('.content .container');
-    index = parseInt(localStorage.getItem('dashboard'));
+    index = parseInt(localStorage.getItem('homedDashboardIndex'));
     status = new Object();
 
     constructor(controller)
@@ -82,7 +82,7 @@ class Dashboard
     setIndex(index)
     {
         this.index = index;
-        localStorage.setItem('dashboard', this.index);
+        localStorage.setItem('homedDashboardIndex', this.index);
     }
 
     storeDashboards()

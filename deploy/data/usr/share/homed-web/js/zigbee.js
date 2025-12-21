@@ -499,8 +499,8 @@ class ZigBee extends DeviceService
                 }
             });
 
-            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, false, once); if (!once) localStorage.setItem('zigbeeSort', this.dataset.index); }) );
-            sortTable(table, localStorage.getItem('zigbeeSort') ?? 0, false);
+            table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, false, once); if (!once) localStorage.setItem('homedZigbeeSort', this.dataset.index); }) );
+            sortTable(table, localStorage.getItem('homedZigbeeSort') ?? 0, false);
             addTableSearch(table, 'devices', 'device', 8, [0, 1, 7]);
         });
     }
@@ -888,17 +888,17 @@ class ZigBee extends DeviceService
                 let option = document.createElement('option');
                 option.innerHTML = item.endpointId;
 
-                if (item.endpointId == localStorage.getItem('zigbeeDebugEndpointId'))
+                if (item.endpointId == localStorage.getItem('homed-zigbeeDebugEndpointId'))
                     option.selected = true;
 
                 select.append(option);
             });
 
-            modal.querySelector('input[name="clusterId"]').value = localStorage.getItem('zigbeeDebugClusterId') ?? '';
-            modal.querySelector('input[name="manufacturerCode"]').value = localStorage.getItem('zigbeeDebugManufacturerCode') ?? '';
-            modal.querySelector('input[name="commandId"]').value = localStorage.getItem('zigbeeDebugCommandId') ?? '';
-            modal.querySelector('input[name="payload"]').value = localStorage.getItem('zigbeeDebugPayload') ?? '';
-            modal.querySelector('input[name="payload"]').checked = localStorage.getItem('zigbeeDebugClusterSpecific');
+            modal.querySelector('input[name="clusterId"]').value = localStorage.getItem('homedZigbeeDebugClusterId') ?? '';
+            modal.querySelector('input[name="manufacturerCode"]').value = localStorage.getItem('homedZigbeeDebugManufacturerCode') ?? '';
+            modal.querySelector('input[name="commandId"]').value = localStorage.getItem('homedZigbeeDebugCommandId') ?? '';
+            modal.querySelector('input[name="payload"]').value = localStorage.getItem('homedZigbeeDebugPayload') ?? '';
+            modal.querySelector('input[name="payload"]').checked = localStorage.getItem('homedZigbeeDebugClusterSpecific');
 
             modal.querySelector('.send').addEventListener('click', function()
             {
@@ -916,7 +916,7 @@ class ZigBee extends DeviceService
             modal.querySelector('.battery').style.display = device.info.powerSource != 1 && device.info.powerSource != 4 ? 'block' : 'none';
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
 
-            Array.from(modal.querySelector('form')).forEach(input => input.addEventListener('input', function() { localStorage.setItem('zigbeeDebug' + this.name.charAt(0).toUpperCase() + this.name.slice(1), this.value); }));
+            Array.from(modal.querySelector('form')).forEach(input => input.addEventListener('input', function() { localStorage.setItem('homedZigbeeDebug' + this.name.charAt(0).toUpperCase() + this.name.slice(1), this.value); }));
             showModal(true);
         });
     }

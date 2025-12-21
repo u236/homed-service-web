@@ -1,4 +1,4 @@
-let modal, controller, dropdown, guest = true, theme = localStorage.getItem('theme') ?? 'dark', wide = localStorage.getItem('wide') ?? 'off', empty = '<span class="shade">&bull;</span>';
+let modal, controller, dropdown, guest = true, theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -96,7 +96,7 @@ class Controller
                 document.querySelector('#footerData').style.display = 'none';
             }
 
-            this.showPage(localStorage.getItem('page') ?? 'dashboard');
+            this.showPage(localStorage.getItem('homedPage') ?? 'dashboard');
             return;
         }
 
@@ -250,7 +250,7 @@ class Controller
             return;
         }
 
-        localStorage.setItem('page', page);
+        localStorage.setItem('homedPage', page);
         location.hash = page;
 
         this.service = service;
@@ -837,8 +837,8 @@ window.onload = function()
         });
     });
 
-    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('theme', theme); });
-    document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('wide', wide); });
+    document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('homedTheme', theme); });
+    document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('homedWide', wide); });
 
     setTheme();
     setWide();
