@@ -50,7 +50,8 @@ class Modbus extends DeviceService
         neptunSmartPlus:       'Neptun Smart+ Controller',
         jth2d1:                'JTH-2D1 Temperature and Humidity Sensor',
         t13:                   'T13-750W-12-H Frequency Converter',
-        m0701s:                'VFC-M0701S Frequency Converter'
+        m0701s:                'VFC-M0701S Frequency Converter',
+        pzem6l24:              'Peacefair PZEM-6L24 Energy Meter'
     };
 
     constructor(controller, instance)
