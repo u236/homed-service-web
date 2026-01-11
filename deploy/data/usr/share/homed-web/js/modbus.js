@@ -47,11 +47,12 @@ class Modbus extends DeviceService
         kc868a32:              'Kincony KC868-A32 Controller',
         kc868a64:              'Kincony KC868-A64 Controller',
         kc868a128:             'Kincony KC868-A128 Controller',
+        pzem0x4:               'Peacefair PZEM-004T, PZEM-014 or PZEM-016 Energy Meter',
+        pzem6l24:              'Peacefair PZEM-6L24 Energy Meter',
         neptunSmartPlus:       'Neptun Smart+ Controller',
         jth2d1:                'JTH-2D1 Temperature and Humidity Sensor',
         t13:                   'T13-750W-12-H Frequency Converter',
-        m0701s:                'VFC-M0701S Frequency Converter',
-        pzem6l24:              'Peacefair PZEM-6L24 Energy Meter'
+        m0701s:                'VFC-M0701S Frequency Converter'
     };
 
     constructor(controller, instance)
