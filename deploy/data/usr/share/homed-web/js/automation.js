@@ -248,6 +248,7 @@ class Automation
         }
 
         delete data.uuid;
+        data.active = false;
         element.addEventListener('click', function() { list.push(data); this.showAutomationInfo(); }.bind(this));
     }
 
@@ -1358,7 +1359,7 @@ class Automation
             modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(condition, this.data.conditions, append);
+            this.handleCopy(condition, list, append);
             showModal(true, type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]');
         });
     }
@@ -1412,7 +1413,7 @@ class Automation
             modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(condition, this.data.conditions, append);
+            this.handleCopy(condition, list, append);
             showModal(true, 'input[name="value"]');
         });
     }
@@ -1441,7 +1442,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(condition, this.data.conditions, append);
+            this.handleCopy(condition, list, append);
             showModal(true, 'input[name="days"]');
         });
     }
@@ -1479,7 +1480,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'input[name="topic"]');
         });
     }
@@ -1515,7 +1516,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'input[name="name"]');
         });
     }
@@ -1573,7 +1574,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'textarea[name="message"]');
         });
     }
@@ -1609,7 +1610,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'textarea[name="command"]');
         });
     }
@@ -1648,7 +1649,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'input[name="triggerName"]');
         });
     }
@@ -1682,7 +1683,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'textarea[name="delay"]');
         });
     }
@@ -1714,7 +1715,7 @@ class Automation
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
-            this.handleCopy(action, this.data.actions, append);
+            this.handleCopy(action, list, append);
             showModal(true, 'input[name="triggerName"]');
         });
     }
