@@ -99,7 +99,10 @@ void Controller::mqttConnected(void)
             mqttSubscribe(mqttTopic(it.value().at(i)));
 
     if (m_database->passive())
+    {
+        logWarning << "Running in passive mode";
         return;
+    }
 
     mqttSubscribe(mqttTopic("command/web"));
 

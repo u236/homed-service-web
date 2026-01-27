@@ -711,7 +711,7 @@ class Automation
                 if (!item.active)
                     row.classList.add('inactive');
 
-                for (let i = 0; i < 5; i++)
+                for (let i = 0; i < 6; i++)
                 {
                     let cell = row.insertCell();
 
@@ -727,10 +727,11 @@ class Automation
 
                             break;
 
-                        case 1: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center'); break;
-                        case 2: cell.innerHTML = item.conditions.length ? '<span class="value">' + item.conditions.length + '</span>' : empty; cell.classList.add('center'); break;
-                        case 3: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center'); break;
-                        case 4: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
+                        case 1: cell.innerHTML = '<span class="value">' + item.mode.slice(0, 1).toUpperCase() + '</span>'; cell.classList.add('center'); break;
+                        case 2: cell.innerHTML = '<span class="value">' + item.triggers.length + '</span>'; cell.classList.add('center', 'mobileHidden'); break;
+                        case 3: cell.innerHTML = '<span class="value">' + item.conditions.length + '</span>'; cell.classList.add('center', 'mobileHidden'); break;
+                        case 4: cell.innerHTML = '<span class="value">' + item.actions.length + '</span>'; cell.classList.add('center', 'mobileHidden'); break;
+                        case 5: cell.innerHTML = empty; cell.classList.add('lastTriggered', 'right'); break;
                     }
                 }
             });
