@@ -180,7 +180,10 @@ form label:last-child {
 }
 
 pre {
-    overflow-x: auto;
+    overflow: auto;
+    max-height: 800px;
+    margin: 0;
+    margin-bottom: 10px;
     padding: 5px;
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
@@ -997,11 +1000,6 @@ tr:first-child td {
 
 #modal label .dropdown .item {
     font-size: 1rem;
-}
-
-#modal pre {
-    margin: 0;
-    margin-bottom: 10px;
 }
 
 #modal table {

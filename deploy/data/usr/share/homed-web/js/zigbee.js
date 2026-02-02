@@ -691,6 +691,7 @@ class ZigBee extends DeviceService
         {
             modal.querySelector('.name').innerHTML = device.info.name;
             modal.querySelector('.json').innerHTML = JSON.stringify(device.info, null, 2);
+            modal.querySelector('.interview').addEventListener('click', function() { showModal(false); this.serviceCommand({action: 'interviewDevice', device: device.id, force: true}); }.bind(this));
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
