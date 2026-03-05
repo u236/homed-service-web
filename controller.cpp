@@ -307,6 +307,7 @@ void Controller::readyRead(void)
     {
         socket->setProperty("guest", guest);
         m_webSocket->handleConnection(socket);
+        m_sockets.removeAll(socket);
         return;
     }
 
