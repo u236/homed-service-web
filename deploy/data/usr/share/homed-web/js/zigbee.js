@@ -331,7 +331,7 @@ class ZigBee extends DeviceService
 
                     case 'groupRequest':
                     case 'bindingRequest':
-                        this.controller.showToast(html + message.event.replace('Request', ' request ') + (message.success ? 'finished successfully' : 'faled'), message.success ? 'success' : 'error');
+                        this.controller.showToast(html + message.event.replace('Request', ' request ') + (message.success ? 'finished successfully' : 'failed'), message.success ? 'success' : 'error');
                         break;
 
                     case 'clusterRequest':

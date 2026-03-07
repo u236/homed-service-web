@@ -501,7 +501,7 @@ class DeviceService
 
                 if (cell && cell.dataset.value != device.otaProgress)
                 {
-                    cell.dataset.value = device.otaProgres;
+                    cell.dataset.value = device.otaProgress;
                     cell.innerHTML = device.otaProgress + ' %';
                 }
             }

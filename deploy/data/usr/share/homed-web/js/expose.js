@@ -316,7 +316,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
             case 'irCode':
             {
-                valueCell.innerHTML = '<textarea></textarea><div class "buttons"><button class="learn">Learn</button><button class="send">Send</button></div>';
+                valueCell.innerHTML = '<textarea></textarea><div class="buttons"><button class="learn">Learn</button><button class="send">Send</button></div>';
                 valueCell.colSpan = 2;
                 valueCell.querySelector(".learn").addEventListener('click', function() { valueCell.querySelector('textarea').value = null; valueCell.dataset.mode = 'learn'; deviceCommand(device, endpointId, {learn: true}); });
                 valueCell.querySelector(".send").addEventListener('click', function() { valueCell.dataset.mode = 'send'; deviceCommand(device, endpointId, {irCode: valueCell.querySelector('textarea').value}); });
@@ -529,7 +529,7 @@ function updateExpose(device, endpointId, property, value)
                     if (cell.dataset.mode == 'learn')
                     {
                         cell.querySelector('textarea').value = value;
-                        cell.dataset.mode == 'send';
+                        cell.dataset.mode = 'send';
                     }
 
                     break;

@@ -932,7 +932,7 @@ td.remove:hover {
     margin-left: 0;
 }
 
-.title .interval span:last -child {
+.title .interval span:last-child {
     margin-right: 0;
 }
 

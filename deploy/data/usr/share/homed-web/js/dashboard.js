@@ -2,6 +2,8 @@ class Dashboard
 {
     content = document.querySelector('.content .container');
     index = parseInt(localStorage.getItem('homedDashboardIndex'));
+
+    intervals = new Array();
     status = new Object();
 
     constructor(controller)
@@ -258,6 +260,9 @@ class Dashboard
 
     showDashboard()
     {
+        this.intervals.forEach(interval => { clearInterval(interval); });
+        this.intervals = new Array();
+
         if (!guest)
             document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
 
@@ -433,7 +438,7 @@ class Dashboard
                         toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpointId, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
                         element.querySelector('.control').append(toggle);
 
-                        setInterval(function()
+                        this.intervals.push(setInterval(function()
                         {
                             let status = 'off'
 
@@ -445,7 +450,7 @@ class Dashboard
                             toggle.dataset.status = status;
                             toggle.querySelector('i').className = 'icon-enable ' + (status == 'on' ? 'warning' : 'shade');
 
-                        }, 100);
+                        }, 100));
                     }
 
                     switch (dashboard.columnPriority)
@@ -721,7 +726,7 @@ class Dashboard
 
         }.bind(this);
 
-        let block = isNaN(blockIndex) ? new Qbject() : dashboard.blocks[blockIndex];
+        let block = isNaN(blockIndex) ? new Object() : dashboard.blocks[blockIndex];
 
         if (!block)
             block = {name: 'New block', items: new Array(), add: true};
