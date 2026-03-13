@@ -54,7 +54,9 @@ void Database::init(void)
 
 void Database::store(bool sync)
 {
-    m_sync = sync;
+    if (sync)
+        m_sync = true;
+
     m_timer->start(STORE_DELAY);
 }
 
