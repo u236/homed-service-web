@@ -1,0 +1,7 @@
+pkgname = homed-web
+pkgver =
+arch =
+pkgdesc = HOMEd Web Service
+maintainer = u236 <mail@u236.org>
+depend = homed-qt
+backup = etc/homed/homed-web.conf

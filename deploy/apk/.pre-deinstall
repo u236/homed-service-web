@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/etc/init.d/homed-web stop
+/etc/init.d/homed-web disable
+
+exit 0

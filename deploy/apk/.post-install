@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/etc/init.d/homed-web enable
+/etc/init.d/homed-web start
+
+exit 0
