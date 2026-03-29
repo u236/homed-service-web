@@ -1,0 +1,4 @@
+name = homed-web
+description = HOMEd Web Service
+maintainer = u236 <mail@u236.org>
+depends = homed-qt
