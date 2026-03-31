@@ -114,6 +114,7 @@ class Controller
                     case 'automation': this.services[service] = new Automation(this, list[2]); break;
                     case 'recorder':   this.services[service] = new Recorder(this); break;
                     case 'custom':     this.services[service] = new Custom(this, list[2]); break;
+                    case 'matter':     this.services[service] = new Matter(this, list[2]); break;
                     case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
                     case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
                     default:           return;
@@ -163,7 +164,7 @@ class Controller
 
         if (redraw)
         {
-            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'modbus', 'custom'];
+            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
             let shortNames = {automation: 'auto', zigbee: 'zbee', modbus: 'mbus', custom: 'cust'};
             let services = Object.keys(this.services);
             let list = new Array();
