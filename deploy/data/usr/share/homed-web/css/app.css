@@ -1215,3 +1215,8 @@ tr:first-child td {
     .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
     .mobileHidden { display: none; }
 }
+
+@media (pointer: coarse) {
+    input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; }
+    input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+}

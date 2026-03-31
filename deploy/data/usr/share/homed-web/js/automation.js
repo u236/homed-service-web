@@ -738,7 +738,7 @@ class Automation
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { let once = cell.classList.contains('once'); sortTable(table, this.dataset.index, true, once); if (!once) localStorage.setItem('homedAutomationSort', this.dataset.index); }));
             sortTable(table, localStorage.getItem('homedAutomationSort') ?? 0);
-            addTableSearch(table, 'automations', 'automation', 6);
+            addTableSearch(table, 'automations', 'automation', 7);
         });
     }
 
