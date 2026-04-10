@@ -215,7 +215,7 @@ class Matter extends DeviceService
                 if (!code)
                     return;
 
-                this.serviceCommand({action: 'connectDevice', [code.startsWith('MT:') ? 'payload' : 'code']: code});
+                this.serviceCommand({action: 'connectDevice', code: code});
                 showModal(false);
 
             }.bind(this));
