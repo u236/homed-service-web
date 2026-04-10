@@ -33,6 +33,8 @@ class Socket
             this.connected = false;
 
         }.bind(this);
+
+        fetch('manifest.json?' + Date.now()); // workaround for safari 26 bug: new WebSocket() to an IP host stalls until another HTTP request kicks the network thread
     }
 
     subscribe(topic)
@@ -864,8 +866,6 @@ window.onload = function()
             showModal(true);
         });
     });
-
-    fetch('manifest.json?' + Date.now()); // workaround for safari 26 bug: new WebSocket() to an IP host stalls until another HTTP request kicks the network thread
 };
 
 window.onresize = function()
