@@ -864,6 +864,8 @@ window.onload = function()
             showModal(true);
         });
     });
+
+    fetch('manifest.json?' + Date.now()); // workaround for safari 26 bug: new WebSocket() to an IP host stalls until another HTTP request kicks the network thread
 };
 
 window.onresize = function()
