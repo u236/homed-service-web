@@ -16,7 +16,7 @@ class Matter extends DeviceService
         switch (list[0])
         {
             case 'status':
-
+            {
                 let check = Object.keys(this.devices).length ? false : true;
 
                 this.names = message.names;
@@ -66,9 +66,10 @@ class Matter extends DeviceService
                 }
 
                 break;
+            }
 
             case 'event':
-
+            {
                 let html = 'Device <b>' + (message.device ?? message.nodeId) + '</b> ';
 
                 if (this.controller.service != this.service)
@@ -98,6 +99,7 @@ class Matter extends DeviceService
                 }
 
                 break;
+            }
 
             default:
                 super.parseMessage(list, message);
