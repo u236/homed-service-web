@@ -159,11 +159,13 @@ class Dashboard
                 case 'light':
                 case 'lock':
                 case 'switch':
+                {
                     let name = meta.id ? 'status_' + meta.id : 'status';
                     valueCell.dataset.property = name;
                     valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                     row.dataset.type = 'status';
                     break;
+                }
 
                 case 'cover':
                     valueCell.dataset.property = 'position';

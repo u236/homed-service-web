@@ -91,14 +91,16 @@ function exposeList(expose, options)
             break;
 
         case 'thermostat':
+        {
             let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'heatMode'];
             controls.forEach(item => { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
             options['temperature'] = {type: 'sensor', unit: '°C'};
             break;
+        }
 
         case 'thermostatProgram':
-
+        {
             let option = options.targetTemperature ?? {};
 
             if (isNaN(option.min) || isNaN(option.max))
@@ -185,6 +187,7 @@ function exposeList(expose, options)
             }
 
             break;
+        }
 
         default:
             list.push(meta.name);
@@ -289,11 +292,9 @@ function addExpose(table, device, endpointId, expose, names = true)
         switch (name)
         {
             case 'color':
-            {
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
                 colorPicker.on('input:end', function() { deviceCommand(device, endpointId, {[property]: [colorPicker.color.rgb.r, colorPicker.color.rgb.g, colorPicker.color.rgb.b]}); });
                 break;
-            }
 
             case 'colorTemperature':
             {
@@ -308,24 +309,19 @@ function addExpose(table, device, endpointId, expose, names = true)
             }
 
             case 'cover':
-            {
                 controlCell.innerHTML = '<span>open</span>/<span>stop</span>/<span>close</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { valueCell.innerHTML = '<span class="shade">' + item.innerHTML + '</span>'; deviceCommand(device, endpointId, {[property]: item.innerHTML}); }) );
                 break;
-            }
 
             case 'irCode':
-            {
                 valueCell.innerHTML = '<textarea></textarea><div class="buttons"><button class="learn">Learn</button><button class="send">Send</button></div>';
                 valueCell.colSpan = 2;
                 valueCell.querySelector(".learn").addEventListener('click', function() { valueCell.querySelector('textarea').value = null; valueCell.dataset.mode = 'learn'; deviceCommand(device, endpointId, {learn: true}); });
                 valueCell.querySelector(".send").addEventListener('click', function() { valueCell.dataset.mode = 'send'; deviceCommand(device, endpointId, {irCode: valueCell.querySelector('textarea').value}); });
                 break;
-            }
 
             case 'level':
             case 'position':
-            {
                 valueCell.dataset.unit = '%';
 
                 if (option.type == 'sensor')
@@ -336,14 +332,11 @@ function addExpose(table, device, endpointId, expose, names = true)
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
                 controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: name == 'level' ? Math.round(this.value * 2.55) : parseInt(this.value)}); });
                 break;
-            }
 
             case 'status':
-            {
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpointId, {[property]: item.innerHTML}); }) );
                 break;
-            }
 
             default:
             {
@@ -389,7 +382,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                         break;
 
                     case 'select':
-
+                    {
                         let items = Array.isArray(option.enum) ? option.enum : Object.values(option.enum);
 
                         if (!items.length)
@@ -412,6 +405,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                         }
 
                         break;
+                    }
 
                     case 'sensor':
 

@@ -420,7 +420,7 @@ class Recorder
         switch (list[0])
         {
             case 'status':
-
+            {
                 let check = false;
 
                 this.status = message;
@@ -447,6 +447,7 @@ class Recorder
 
                 delete this.item;
                 break;
+            }
 
             // TODO: add events
         }

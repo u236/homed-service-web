@@ -147,7 +147,7 @@ class Automation
         switch (list[0])
         {
             case 'status':
-
+            {
                 let check = this.status.automations?.map(automation => automation.uuid);
 
                 this.status = message;
@@ -172,9 +172,10 @@ class Automation
                 }
 
                 break;
+            }
 
             case 'event':
-
+            {
                 let html = 'Automation <b>' + message.automation + '</b> ';
 
                 if (this.controller.service != this.service)
@@ -205,6 +206,7 @@ class Automation
                 }
 
                 break;
+            }
         }
     }
 
