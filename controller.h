@@ -31,8 +31,10 @@ public:
 private:
 
     Database *m_database;
+
     QTcpServer *m_tcpServer;
     QWebSocketServer *m_webSocket;
+    QTimer *m_timer;
 
     QMetaEnum m_commands;
 
@@ -67,6 +69,8 @@ private slots:
     void clientConnected(void);
     void clientDisconnected(void);
     void textMessageReceived(const QString &message);
+
+    void pingClients(void);
 
 };
 

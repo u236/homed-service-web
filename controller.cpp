@@ -1,7 +1,7 @@
 #include "controller.h"
 #include "logger.h"
 
-Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, configFile), m_database(new Database(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this)), m_commands(QMetaEnum::fromType <Command> ())
+Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, configFile), m_database(new Database(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this)), m_timer(new QTimer(this)), m_commands(QMetaEnum::fromType <Command> ())
 {
     m_frontend = getConfig()->value("server/frontend", "/usr/share/homed-web").toString();
     m_username = getConfig()->value("server/username").toString();
@@ -17,9 +17,12 @@ Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, confi
     connect(m_database, &Database::statusUpdated, this, &Controller::statusUpdated);
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
     connect(m_webSocket, &QWebSocketServer::newConnection, this, &Controller::clientConnected);
+    connect(m_timer, &QTimer::timeout, this, &Controller::pingClients);
 
     m_database->init();
     m_tcpServer->listen(QHostAddress::Any, static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
+
+    m_timer->start(10000);
 }
 
 void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers, const QByteArray &response)
@@ -38,7 +41,7 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
     for (auto it = headers.begin(); it != headers.end(); it++)
         data.append(QString("\r\n%1: %2").arg(it.key(), it.value()).toUtf8());
 
-    socket->write(data.append("\r\n\r\n").append(response));
+    socket->write(data.append("\r\nConnection: close\r\n\r\n").append(response));
     socket->close();
 }
 
@@ -375,4 +378,10 @@ void Controller::textMessageReceived(const QString &message)
     }
     else if (action == "unsubscribe")
         it.value().removeAll(subTopic);
+}
+
+void Controller::pingClients(void)
+{
+    for (auto it = m_clients.begin(); it != m_clients.end(); it++)
+        it.key()->ping();
 }
