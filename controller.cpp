@@ -38,7 +38,7 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
     for (auto it = headers.begin(); it != headers.end(); it++)
         data.append(QString("\r\n%1: %2").arg(it.key(), it.value()).toUtf8());
 
-    socket->write(data.append("\r\n\r\n").append(response));
+    socket->write(data.append("\r\nConnection: close\r\n\r\n").append(response));
     socket->close();
 }
 
