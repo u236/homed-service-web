@@ -239,7 +239,7 @@ class ZigBee extends DeviceService
         switch (list[0])
         {
             case 'status':
-
+            {
                 let check = false;
 
                 this.names = message.names;
@@ -304,9 +304,10 @@ class ZigBee extends DeviceService
                 }
 
                 break;
+            }
 
             case 'event':
-
+            {
                 let html = 'Device <b>' + message.device + '</b> ';
 
                 if (this.controller.service != this.service)
@@ -360,9 +361,10 @@ class ZigBee extends DeviceService
                 }
 
                 break;
+            }
 
             case 'fd':
-
+            {
                 let device = this.findDevice(this.instance ? list[3] : list[2]);
 
                 if (device)
@@ -382,6 +384,7 @@ class ZigBee extends DeviceService
                 }
 
                 break;
+            }
 
             default:
                 super.parseMessage(list, message);
@@ -407,8 +410,10 @@ class ZigBee extends DeviceService
                 return '0x' + ('0000' + value.toString(16)).slice(-4);
 
             case 'powerSource':
+            {
                 let battery = ![1, 4].includes(value & 127);
                 return data.logicalType ? '<i class="icon-' + (battery ? 'battery' : 'plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="icon-battery"></i>' : '') : empty;
+            }
 
             default: return super.parseValue(data, key, summary);
         }
