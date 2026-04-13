@@ -14,7 +14,6 @@ Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, confi
     m_retained = {"device", "expose", "service", "status"};
     m_types = {"css", "js", "json", "png", "svg", "woff2"};
 
-    connect(m_database, &Database::statusUpdated, this, &Controller::statusUpdated);
     connect(m_tcpServer, &QTcpServer::newConnection, this, &Controller::socketConnected);
     connect(m_webSocket, &QWebSocketServer::newConnection, this, &Controller::clientConnected);
     connect(m_timer, &QTimer::timeout, this, &Controller::pingClients);
@@ -110,7 +109,7 @@ void Controller::mqttConnected(void)
     mqttSubscribe(mqttTopic("command/web"));
 
     m_database->store();
-    mqttPublishStatus();
+    mqttPublishService();
 }
 
 void Controller::mqttDisconnected(void)
@@ -167,11 +166,6 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
             break;
         }
     }
-}
-
-void Controller::statusUpdated(const QJsonObject &json)
-{
-    mqttPublish(mqttTopic("status/web"), json, true);
 }
 
 void Controller::socketConnected(void)

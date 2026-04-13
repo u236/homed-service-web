@@ -60,8 +60,6 @@ private slots:
     void mqttDisconnected(void) override;
     void mqttReceived(const QByteArray &message, const QMqttTopicName &topic) override;
 
-    void statusUpdated(const QJsonObject &json);
-
     void socketConnected(void);
     void socketDisconnected(void);
     void readyRead(void);
