@@ -3,7 +3,7 @@
 
 Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, configFile), m_database(new Database(getConfig(), this)), m_tcpServer(new QTcpServer(this)), m_webSocket(new QWebSocketServer("HOMEd", QWebSocketServer::NonSecureMode, this)), m_timer(new QTimer(this)), m_commands(QMetaEnum::fromType <Command> ())
 {
-    m_frontend = getConfig()->value("server/frontend", "/usr/share/homed-web").toString();
+    m_frontend = getConfig()->value("server/frontend", basePath().append("share/homed-web")).toString();
     m_username = getConfig()->value("server/username").toString();
     m_password = getConfig()->value("server/password").toString();
     m_guest = getConfig()->value("server/guest").toString();

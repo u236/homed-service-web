@@ -90,7 +90,7 @@ void Database::write(void)
     json.insert("guestToken", m_guestToken);
     m_sync = false;
 
-    if (reinterpret_cast <Controller*> (parent())->writeFile(m_file, QJsonDocument(json).toJson(QJsonDocument::Compact)))
+    if (reinterpret_cast <HOMEd*> (parent())->writeFile(m_file, QJsonDocument(json).toJson(QJsonDocument::Compact)))
         return;
 
     logWarning << "Database not stored";
