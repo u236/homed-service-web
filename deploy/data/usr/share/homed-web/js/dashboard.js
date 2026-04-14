@@ -430,7 +430,7 @@ class Dashboard
                         cell.innerHTML = '<i>block is empty<i>';
                         cell.classList.add('center', 'shade');
                     }
-                    else if (status)
+                    else if (table.rows.length > 1 && status)
                     {
                         let toggle = document.createElement('span');
 

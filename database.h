@@ -49,10 +49,6 @@ private slots:
 
     void write(void);
 
-signals:
-
-    void statusUpdated(const QJsonObject &json);
-
 };
 
 #endif

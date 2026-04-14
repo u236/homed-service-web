@@ -38,7 +38,7 @@ private:
 
     QMetaEnum m_commands;
 
-    QString m_frontend, m_username, m_password, m_guest;
+    QString m_frontend, m_title, m_username, m_password, m_guest;
     bool m_debug, m_auth;
 
     QList <QString> m_retained, m_types;
@@ -59,8 +59,6 @@ private slots:
     void mqttConnected(void) override;
     void mqttDisconnected(void) override;
     void mqttReceived(const QByteArray &message, const QMqttTopicName &topic) override;
-
-    void statusUpdated(const QJsonObject &json);
 
     void socketConnected(void);
     void socketDisconnected(void);
