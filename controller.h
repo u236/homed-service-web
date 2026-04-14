@@ -38,7 +38,7 @@ private:
 
     QMetaEnum m_commands;
 
-    QString m_frontend, m_username, m_password, m_guest;
+    QString m_frontend, m_title, m_username, m_password, m_guest;
     bool m_debug, m_auth;
 
     QList <QString> m_retained, m_types;
