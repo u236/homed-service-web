@@ -72,6 +72,7 @@ QByteArray Database::randomData(int length)
 
 void Database::write(void)
 {
+    HOMEd *homed = reinterpret_cast <HOMEd*> (parent());
     QJsonObject json = {{"timestamp", QDateTime::currentSecsSinceEpoch()}, {"version", SERVICE_VERSION}};
 
     if (!m_dashboards.isEmpty())
@@ -81,7 +82,7 @@ void Database::write(void)
         json.insert("names", m_names);
 
     if (!m_passive)
-        emit statusUpdated(json);
+        homed->mqttPublishStatus(json);
 
     if (!m_sync)
         return;
@@ -90,7 +91,7 @@ void Database::write(void)
     json.insert("guestToken", m_guestToken);
     m_sync = false;
 
-    if (reinterpret_cast <Controller*> (parent())->writeFile(m_file, QJsonDocument(json).toJson(QJsonDocument::Compact)))
+    if (homed->writeFile(m_file, QJsonDocument(json).toJson(QJsonDocument::Compact)))
         return;
 
     logWarning << "Database not stored";
