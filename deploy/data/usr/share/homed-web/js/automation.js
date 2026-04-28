@@ -212,7 +212,7 @@ class Automation
 
     parseValue(value)
     {
-        return value ? value == 'true' || value == 'false' ? value == 'true' : isNaN(value) ? value : parseFloat(value) : null;
+        return value ? value == 'true' || value == 'false' ? value == 'true' : parseFloat(value) == value ? parseFloat(value) : value : null;
     }
 
     shieldValue(value)
