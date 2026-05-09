@@ -20,7 +20,7 @@ Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, confi
     connect(m_timer, &QTimer::timeout, this, &Controller::pingClients);
 
     m_database->init();
-    m_tcpServer->listen(QHostAddress::Any, static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
+    m_tcpServer->listen(QHostAddress(getConfig()->value("server/address", "0.0.0.0").toString()), static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
 
     m_timer->start(10000);
 }
