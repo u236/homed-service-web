@@ -167,14 +167,14 @@ class Controller
         if (redraw)
         {
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
-            let shortNames = {automation: 'auto', zigbee: 'zbee', modbus: 'mbus', custom: 'cust'};
+            let short = ['dash', 'rcrd', 'auto', 'zbee', 'mttr', 'mbus', 'cust'];
             let services = Object.keys(this.services);
             let list = new Array();
 
             menu.innerHTML = null;
             services.sort();
 
-            names.forEach(name =>
+            names.forEach((name, index) =>
             {
                 let serviceList;
 
@@ -192,8 +192,8 @@ class Controller
                     if (menu.innerHTML)
                         menu.append('|');
 
-                    if (serviceList.length > 1 || itemName.includes('/'))
-                        itemName = itemName.replace(name, shortNames[name]);
+                    if (services.length > 7 && itemName.length > 6)
+                        itemName = itemName.replace(name, short[index]);
 
                     item.innerHTML = itemName;
                     item.dataset.service = service;
