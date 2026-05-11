@@ -169,22 +169,22 @@ class Controller
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
             let short = ['dash', 'rcrd', 'auto', 'zbee', 'mttr', 'mbus', 'cust'];
             let services = Object.keys(this.services);
-            let list = new Array();
 
+            this.serviceList = new Array();
             menu.innerHTML = null;
             services.sort();
 
             names.forEach((name, index) =>
             {
-                let serviceList;
+                let list;
 
                 if (guest && !['dashboard', 'recorder'].includes(name))
                     return;
 
-                serviceList = services.filter(service => { return service.startsWith(name); });
-                list.push(...serviceList);
+                list = services.filter(service => { return service.startsWith(name); });
+                this.serviceList.push(...list);
 
-                serviceList.forEach(service =>
+                list.forEach(service =>
                 {
                     let item = document.createElement('span');
                     let itemName = service;
@@ -211,7 +211,7 @@ class Controller
                 item.classList.add('trigger');
                 element.classList.add('dropdown');
 
-                addDropdown(element, list, function(service) { this.showPage(service); }.bind(this), 0, item);
+                addDropdown(element, this.serviceList, function(service) { this.showPage(service); }.bind(this), 0, item);
 
                 menu.innerHTML = null;
                 menu.append(item, element);
@@ -234,6 +234,19 @@ class Controller
 
             item.classList.add('highlight');
         });
+    }
+
+    switchService(forward)
+    {
+        let index = this.serviceList.indexOf(this.service) - 1;
+
+        if (forward)
+            index += 2;
+
+        if (index < 0 || index >= this.serviceList.length)
+            return;
+
+        this.showPage(this.serviceList[index]);
     }
 
     showPage(page)
@@ -835,6 +848,8 @@ window.onload = function()
     {
         loadHTML('hotkeys.html', this, modal.querySelector('.data'), function()
         {
+            let meta = navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl';
+            modal.querySelectorAll('.meta').forEach(item => { item.innerHTML = meta; });
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
@@ -888,6 +903,16 @@ document.onkeydown = function(event)
 
     if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
     {
+        if ((event.ctrlKey || event.metaKey) && (key == 'arrowleft' || key == 'arrowright'))
+        {
+            event.preventDefault();
+
+            if (modal.style.display != 'block')
+                controller.switchService(key == 'arrowright');
+
+            return;
+        }
+
         switch (key)
         {
             case 'h': document.querySelector('#hotkeys').click(); return;
@@ -946,6 +971,7 @@ document.onkeydown = function(event)
                 break;
 
             event.preventDefault();
+            modal.querySelector('button.connect')?.click();
             modal.querySelector('button.remove')?.click();
             modal.querySelector('button.save')?.click();
             break;
