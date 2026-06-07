@@ -809,6 +809,10 @@ td.remove:hover {
     padding: 0 5px;
 }
 
+.exposes td .buttons {
+    display: block;
+}
+
 .exposes td button {
     height: 18px;
     margin-right: 5px;
