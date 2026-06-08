@@ -167,7 +167,7 @@ class Controller
         if (redraw)
         {
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
-            let short = ['dash', 'rcrd', 'auto', 'zbee', 'mttr', 'mbus', 'cust'];
+            let short = ['dash', 'rec', 'auto', 'zbee', 'mtr', 'mbus', 'cst'];
             let services = Object.keys(this.services);
 
             this.serviceList = new Array();
