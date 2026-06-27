@@ -19,10 +19,14 @@ Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, confi
     connect(m_webSocket, &QWebSocketServer::newConnection, this, &Controller::clientConnected);
     connect(m_timer, &QTimer::timeout, this, &Controller::pingClients);
 
-    m_database->init();
-    m_tcpServer->listen(QHostAddress(getConfig()->value("server/address", "0.0.0.0").toString()), static_cast <quint16> (getConfig()->value("server/port", 8080).toInt()));
+    if (!m_tcpServer->listen(QHostAddress(getConfig()->value("server/address", "0.0.0.0").toString()), static_cast <quint16> (getConfig()->value("server/port", 8086).toInt())))
+    {
+        logWarning << "Failed to start server, error:" << m_tcpServer->errorString();
+        return;
+    }
 
     m_timer->start(10000);
+    m_database->init();
 }
 
 void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers, const QByteArray &response)

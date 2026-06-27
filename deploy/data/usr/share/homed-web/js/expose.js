@@ -58,8 +58,9 @@ function exposeTitle(device, endpoint, itemName, names = true)
             default:     list[0] = list[0].charAt(0).toUpperCase() + list[0].slice(1).toLowerCase(); break;
         }
 
-        if (list[1] == 'id' || list[1]?.match('^[pt][0-9]+$'))
-            list[1] = list[1].toUpperCase();
+        for (let i = 0; i < list.length; i++)
+            if (['id', 'ir'].includes(list[i].toLowerCase()) || list[i]?.match('^[pt][0-9]+$'))
+                list[i] = list[i].toUpperCase();
 
         title = list.join(' ');
     }
