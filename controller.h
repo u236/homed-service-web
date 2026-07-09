@@ -3,6 +3,7 @@
 
 #define SERVICE_VERSION     "2.10.1"
 #define COOKIE_MAX_AGE      31536000
+#define REQUEST_TIMEOUT     5000
 
 #include <QMetaEnum>
 #include <QTcpServer>

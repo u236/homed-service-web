@@ -193,7 +193,7 @@ void Controller::readyRead(void)
     QTcpSocket *socket = reinterpret_cast <QTcpSocket*> (sender());
     QByteArray request = socket->peek(socket->bytesAvailable());
     QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(0x20), cookieList, itemList;
-    QString method = target.value(0), url = target.value(1), content = list.value(1);
+    QByteArray method = target.value(0).toUtf8(), url = target.value(1).toUtf8(), content = list.value(1).toUtf8();
     QMap <QString, QString> headers, cookies, items;
     bool guest = false;
 
@@ -224,11 +224,12 @@ void Controller::readyRead(void)
         logDebug(m_debug) << "Cookie received:" << cookieList.at(i);
     }
 
-    if (method == "POST" && headers.value("content-length").toInt() > content.length())
+    if (method == "POST")
     {
         socket->read(request.length());
-        socket->waitForReadyRead();
-        content.append(socket->readAll());
+
+        while (content.length() < headers.value("content-length").toInt() && socket->waitForReadyRead(REQUEST_TIMEOUT))
+            content.append(socket->readAll());
     }
 
     itemList = QString(method == "GET" && url.contains('?') ? url.mid(url.indexOf('?') + 1) : content).split('&');
