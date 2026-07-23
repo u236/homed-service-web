@@ -92,6 +92,13 @@ class Modbus extends DeviceService
 
                     check = true;
                 }
+                else if (this.names && this.devices[device.id].info.name != device.name)
+                {
+                    this.controller.socket.unsubscribe('expose/' + this.service + '/' + this.devices[device.id].info.name);
+                    this.controller.socket.unsubscribe('device/' + this.service + '/' + this.devices[device.id].info.name);
+                    this.controller.socket.subscribe('expose/' + this.service + '/' + device.name);
+                    this.controller.socket.subscribe('device/' + this.service + '/' + device.name);
+                }
 
                 this.devices[device.id].info = device;
 

@@ -267,6 +267,13 @@ class ZigBee extends DeviceService
 
                         check = true;
                     }
+                    else if (this.names && device.logicalType && this.devices[device.ieeeAddress].info.name != device.name)
+                    {
+                        this.controller.socket.unsubscribe('expose/' + this.service + '/' + this.devices[device.ieeeAddress].info.name);
+                        this.controller.socket.unsubscribe('device/' + this.service + '/' + this.devices[device.ieeeAddress].info.name);
+                        this.controller.socket.subscribe('expose/' + this.service + '/' + device.name);
+                        this.controller.socket.subscribe('device/' + this.service + '/' + device.name);
+                    }
 
                     this.devices[device.ieeeAddress].info = device;
 
