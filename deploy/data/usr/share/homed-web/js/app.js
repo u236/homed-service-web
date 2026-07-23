@@ -136,7 +136,6 @@ class Controller
                 if (service == 'recorder')
                     this.socket.unsubscribe('recorder');
 
-                this.socket.subscriptions.filter(topic => { return !topic.startsWith('service') && topic.includes(service); }).forEach(topic => { this.socket.unsubscribe(topic); });
                 this.removeService(service);
             }
 
