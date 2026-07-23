@@ -211,8 +211,7 @@ class Modbus extends DeviceService
 
         if (!device)
         {
-            let random = randomString(4);
-            device = {info: {name: 'Device ' + random, id: 'device_' + random, active: true}};
+            device = {info: {name: 'Device ' + randomString(4), active: true}};
             add = true;
         }
 

@@ -84,7 +84,7 @@ class Custom extends DeviceService
             loadFile(function(data)
             {
                 let random = randomString(4);
-                this.serviceCommand({action: 'updateDevice', data: {cloud: false, discovery: false, name: 'Device ' + random, id: 'device_' + random, ...data}});
+                this.serviceCommand({action: 'updateDevice', data: {cloud: false, discovery: false, name: 'Device ' + random, id: 'custom-' + random, ...data}});
 
             }.bind(this));
 
@@ -160,7 +160,7 @@ class Custom extends DeviceService
         if (!device)
         {
             let random = randomString(4);
-            device = {info: {name: 'Device ' + random, id: 'device_' + random, exposes: ['switch'], active: true}};
+            device = {info: {name: 'Device ' + random, id: 'custom-' + random, exposes: ['switch'], active: true}};
             add = true;
         }
 
