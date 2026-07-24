@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "2.10.1"
+#define SERVICE_VERSION     "2.11.0"
 #define COOKIE_MAX_AGE      31536000
 #define REQUEST_TIMEOUT     5000
 

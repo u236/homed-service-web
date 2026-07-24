@@ -325,7 +325,9 @@ class Automation
         if (trigger.name)
             data += (trigger.offset ? ' and ' : ' with ') + 'name <span class="value">' + trigger.name + '</span>';
 
-        if (trigger.force)
+        if (trigger.hold)
+            data += ' <span class="shade">[for ' + trigger.hold + ' ' + (trigger.hold != 1 ? 'seconds' : 'second') + ']</span>';
+        else if (trigger.force)
             data += ' <span class="shade">[force]</span>';
 
         return data.trim();
@@ -1039,6 +1041,9 @@ class Automation
 
             modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
 
+            modal.querySelector('.hold').style.display = type == 'trigger' ? 'block' : 'none';
+            modal.querySelector('input[name="hold"]').value = item.hold ?? '';
+
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
@@ -1067,6 +1072,11 @@ class Automation
 
                 item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
                 item.active = form.active;
+
+                if (form.hold && type == 'trigger')
+                    item.hold = form.hold;
+                else
+                    delete item.hold;
 
                 if (form.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
@@ -1127,6 +1137,9 @@ class Automation
 
             modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
 
+            modal.querySelector('.hold').style.display = type == 'trigger' ? 'block' : 'none';
+            modal.querySelector('input[name="hold"]').value = item.hold ?? '';
+
             modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
@@ -1145,6 +1158,11 @@ class Automation
                 item.property = form.property;
                 item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
                 item.active = form.active;
+
+                if (form.hold && type == 'trigger')
+                    item.hold = form.hold;
+                else
+                    delete item.hold;
 
                 if (form.triggerName)
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
