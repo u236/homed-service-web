@@ -9,13 +9,14 @@ class Recorder
         this.controller = controller;
         this.color =
         {
-            grid:  function() { return theme == 'dark' ? 'rgb(51, 51, 51)' : 'rgb(221, 221, 221)'; },
-            major: function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
-            error: 'rgba(255, 0, 0, 0.5)',
-            line:  'rgb(54, 162, 235)',
-            area:  'rgba(54, 162, 235, 0.4)',
-            on:    'rgb(243, 168, 59)',
-            off:   'rgba(127, 127, 127, 0.2)',
+            grid:   function() { return theme == 'dark' ? 'rgb(51, 51, 51)' : 'rgb(221, 221, 221)'; },
+            major:  function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
+            error:  'rgba(255, 0, 0, 0.5)',
+            line:   'rgb(54, 162, 235)',
+            area:   'rgba(54, 162, 235, 0.4)',
+            change: 'rgba(54, 162, 235, 0.8)',
+            on:     'rgb(243, 168, 59)',
+            off:    'rgba(127, 127, 127, 0.2)',
             bar:
             [
                 'rgba(54, 162, 235, 0.5)',
@@ -61,6 +62,21 @@ class Recorder
             data += ':' + ('0' + date.getSeconds()).slice(-2);
 
         return data;
+    }
+
+    daily(canvas)
+    {
+        return (canvas.dataset.end - canvas.dataset.start) / 86400000 >= 7; // TODO: check this
+    }
+
+    counter(item)
+    {
+        return ['increasing', 'total_increasing'].includes(this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.state); // TODO: remove backward compatibility for legacy total_increasing
+    }
+
+    unit(item)
+    {
+        return this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.unit ?? '';
     }
 
     devicePromise(data, cell, info, table)
@@ -129,7 +145,7 @@ class Recorder
             canvas.dataset.end = Date.now() - offset;
         }
 
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.start, end: canvas.dataset.end});
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.change == 'true' && this.daily(canvas) ? new Date(parseInt(canvas.dataset.start)).setHours(0, 0, 0, 0) : canvas.dataset.start, end: canvas.dataset.end, change: canvas.dataset.change == 'true'});
     }
 
     chartQuery(item, element, interval, shift, start, end)
@@ -164,11 +180,15 @@ class Recorder
     {
         let canvas = document.querySelector('canvas#' + message.id);
         let status = document.querySelector('.status#' + message.id);
+        let total = document.querySelector('.total#' + message.id);
         let table = document.querySelector('.log#' + message.id);
         let chart = Chart.getChart(canvas);
         let datasets = new Array();
         let numeric = true;
         let average = false;
+        let daily = false;
+        let counter;
+        let unit;
         let options;
 
         if (!canvas)
@@ -176,6 +196,12 @@ class Recorder
 
         if (status)
             status.innerHTML = message.timestamp.length + ' records, ' + message.time + ' ms';
+
+        if (message.change && this.daily(canvas))
+            daily = true;
+
+        counter = this.counter(canvas.dataset);
+        unit = this.unit(canvas.dataset);
 
         if (!message.timestamp.length)
         {
@@ -186,6 +212,20 @@ class Recorder
             }
 
             return;
+        }
+
+        if (total)
+        {
+            let value;
+
+            if (message.change && message.value?.length)
+                value = message.value.reduce((value, item) => value + parseFloat(item), 0);
+            else if (counter && message.value?.length)
+                value = parseFloat(message.value[message.value.length - 1]) - parseFloat(message.value[0]);
+            else if (counter && message.max?.length)
+                value = parseFloat(message.max[message.max.length - 1]) - parseFloat(message.min[0]);
+
+            total.innerHTML = isNaN(value) ? '' : '<span class="value">' + Number(value.toFixed(2)) + (unit ? ' ' + unit : '') + '</span>';
         }
 
         if (table && (table.dataset.interval != canvas.dataset.interval || table.dataset.offset != canvas.dataset.offset || table.rows[0]?.querySelector('.placeholder')))
@@ -231,18 +271,51 @@ class Recorder
             {
                 let data = new Array();
 
-                message.timestamp.forEach((timestamp, index) =>
+                if (daily)
                 {
-                    let value = message.value[index];
+                    let value = 0;
+                    let current;
 
-                    if (!value && index)
-                        data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2)) });
+                    message.timestamp.forEach((timestamp, index) =>
+                    {
+                        let date = new Date(timestamp).setHours(0, 0, 0, 0);
 
-                    data.push({x: timestamp, y: Number(parseFloat(value).toFixed(2)) });
-                });
+                        if (current && current != date)
+                        {
+                            data.push({x: current, y: Number(value.toFixed(2))});
+                            value = 0;
+                        }
 
-                data.push({x: options.scales.x.max, y: data[data.length - 1].y});
-                datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true});
+                        value += parseFloat(message.value[index]);
+                        current = date;
+                    });
+
+                    data.push({x: current, y: Number(value.toFixed(2))});
+                }
+                else
+                {
+                    message.timestamp.forEach((timestamp, index) =>
+                    {
+                        let value = message.value[index];
+
+                        if (!message.change && !value && index)
+                            data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2)) });
+
+                        data.push({x: timestamp, y: Number(parseFloat(value).toFixed(2)) });
+                    });
+                }
+
+                if (message.change)
+                {
+                    options.scales.x.min = data[0].x;
+                    options.scales.x.max = data[data.length - 1].x;
+                    datasets.push({data: data, backgroundColor: this.color.change, borderRadius: 3});
+                }
+                else
+                {
+                    data.push({x: options.scales.x.max, y: data[data.length - 1].y});
+                    datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true});
+                }
             }
             else
             {
@@ -282,9 +355,9 @@ class Recorder
 
             message.timestamp.forEach((timestamp, index) => // TODO: check for empty hours?
             {
-                let avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2));
-                let minTooltip = 'min: ' + Number(message.min[index].toFixed(2));
-                let maxTooltip = 'max: ' + Number(message.max[index].toFixed(2));
+                let avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2)) + (unit ? ' ' + unit : '');
+                let minTooltip = 'min: ' + Number(message.min[index].toFixed(2)) + (unit ? ' ' + unit : '');
+                let maxTooltip = 'max: ' + Number(message.max[index].toFixed(2)) + (unit ? ' ' + unit : '');
 
                 if (message.min[index] != message.max[index])
                 {
@@ -308,6 +381,8 @@ class Recorder
 
         if (numeric)
         {
+            let type = message.change ? 'bar' : 'line';
+
             options.interaction =
             {
                 intersect: false,
@@ -320,20 +395,30 @@ class Recorder
                 displayColors: false,
                 xAlign: 'center',
                 yAlign: 'bottom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this)}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (unit ? ' ' + unit : ''); }}
             };
             options.scales.y =
             {
                 grace: '10%',
                 border: {display: false},
-                grid: {color: function() { return this.color.grid(); }.bind(this)}
+                grid: {color: function() { return this.color.grid(); }.bind(this)},
+                ticks: {callback: function(value) { return canvas.dataset.unit == 'true' && unit ? value + ' ' + unit : value; }}
             };
 
             if (average)
                 options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
 
+            if (daily)
+                options.scales.x.time = {unit: 'day'};
+
+            if (chart && chart.config.type != type)
+            {
+                chart.destroy();
+                chart = null;
+            }
+
             if (!chart)
-                chart = new Chart(canvas, {type: 'line', data: {datasets: datasets}, options: options});
+                chart = new Chart(canvas, {type: type, data: {datasets: datasets}, options: options});
         }
         else
         {
@@ -626,6 +711,28 @@ class Recorder
             }.bind(this));
 
             this.content.querySelectorAll('#data').forEach(item => { item.id = id; });
+
+            if (this.counter(this.data))
+            {
+                let canvas = chart.querySelector('canvas');
+                let element = this.content.querySelector('.change');
+
+                canvas.dataset.change = true;
+                element.innerHTML = '<i class="icon-on"></i> SHOW CHANGE';
+
+                element.addEventListener('click', function()
+                {
+                    canvas.dataset.change = canvas.dataset.change != 'true';
+                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' SHOW CHANGE';
+                    this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                    this.chartQuery(this.data, chart, canvas.dataset.interval);
+
+                }.bind(this));
+            }
+            else
+                this.content.querySelector('.change').closest('.title').style.display = 'none';
+
+            chart.querySelector('canvas').dataset.unit = true;
 
             this.devicePromise(this.data, name, true);
             this.chartQuery(this.data, chart, interval, undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);

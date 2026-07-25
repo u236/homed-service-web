@@ -944,6 +944,16 @@ td.remove:hover {
     color: var(--color-highlight);
 }
 
+.title .change {
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--color-shade);
+}
+
+.title .change:hover {
+    color: var(--color-main);
+}
+
 .title .status {
     font-size: 0.8125rem;
     color: var(--color-shade);

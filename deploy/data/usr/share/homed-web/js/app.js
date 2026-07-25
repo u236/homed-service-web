@@ -812,8 +812,8 @@ class Dropdown
         switch (key)
         {
             case 'arrowdown': for (let i = this.index + 1; i < this.items.length; i++) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
-            case 'arrowup': for (let i = this.index - 1; i >= 0; i--) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
-            case 'enter': if (this.index >= 0 && this.index < this.items.length) this.items[this.index].click(); break;
+            case 'arrowup':   for (let i = this.index - 1; i >= 0; i--) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
+            case 'enter':     if (this.index >= 0 && this.index < this.items.length) this.items[this.index].click(); break;
 
             case 'esc':
             case 'escape':

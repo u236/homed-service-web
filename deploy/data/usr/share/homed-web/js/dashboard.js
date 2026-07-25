@@ -197,6 +197,7 @@ class Dashboard
 
     addChart(table, item, interval, height)
     {
+        let deadline = Date.now() + 5000;
         let row = table.insertRow();
         let cell = row.insertCell();
 
@@ -206,7 +207,9 @@ class Dashboard
 
         function wait(resolve)
         {
-            if (!this.controller.services.recorder)
+            let device = this.controller.findDevice(item);
+
+            if (!this.controller.services.recorder || (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes))
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -220,6 +223,7 @@ class Dashboard
             row.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
             cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '" class="' + (height ?? 'normal') + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
+            cell.querySelector('canvas').dataset.change = this.controller.services.recorder.counter(item);
             this.controller.services.recorder.chartQuery(item, cell, interval);
 
         }.bind(this));
@@ -1006,8 +1010,31 @@ class Dashboard
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             modal.querySelectorAll('#data').forEach(item => { item.id = id; });
 
+            if (this.controller.services.recorder?.counter(item))
+            {
+                let canvas = chart.querySelector('canvas');
+                let element = modal.querySelector('.change');
+
+                canvas.dataset.change = true;
+                element.innerHTML = '<i class="icon-on"></i> SHOW CHANGE';
+
+                element.addEventListener('click', function()
+                {
+                    canvas.dataset.change = canvas.dataset.change != 'true';
+                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' SHOW CHANGE';
+                    modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
+                    this.controller.services.recorder.chartQuery(item, chart, canvas.dataset.interval);
+
+                }.bind(this));
+            }
+            else
+                modal.querySelector('.change').closest('.title').style.display = 'none';
+
             if (this.controller.services.recorder)
+            {
+                chart.querySelector('canvas').dataset.unit = true;
                 this.controller.services.recorder.chartQuery(item, chart, interval);
+            }
 
             showModal(true);
         });
