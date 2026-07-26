@@ -140,7 +140,7 @@ class Recorder
                 default:      date.setHours(date.getHours() - 24); break;
             }
 
-            offset *= (Date.now() - date.getTime()) / 10;
+            offset *= Math.max((Date.now() - date.getTime()) / 10, 7200000);
             canvas.dataset.start = date.getTime() - offset;
             canvas.dataset.end = Date.now() - offset;
         }
@@ -402,14 +402,14 @@ class Recorder
                 grace: '10%',
                 border: {display: false},
                 grid: {color: function() { return this.color.grid(); }.bind(this)},
-                ticks: {callback: function(value) { return canvas.dataset.unit == 'true' && unit ? value + ' ' + unit : value; }}
+                ticks: {callback: function(value) { let label = parseFloat(value.toPrecision(12)); return canvas.dataset.unit == 'true' && unit ? label + ' ' + unit : label; }}
             };
 
             if (average)
                 options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
 
             if (daily)
-                options.scales.x.time = {unit: 'day'};
+                options.scales.x.time.unit = 'day';
 
             if (chart && chart.config.type != type)
             {
