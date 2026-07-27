@@ -213,8 +213,8 @@ function addExpose(table, device, endpointId, expose, names = true)
         let last = table.rows[table.rows.length - 1]?.dataset.expose;
         let edge = last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
         let endpoint = device.service.split('/')[0] + '/' + device.id;
-        let option = options[property] ?? new Object();
         let name = property.split('_')[0];
+        let option = options[property] ?? options[name] ?? new Object();
         let row = table.insertRow();
         let labelCell = row.insertCell();
         let valueCell = row.insertCell();
