@@ -934,10 +934,10 @@ class Dashboard
                 thermostat: ['systemMode', 'operationMode', 'targetTemperature', 'temperature', 'running']
             };
 
-            Object.keys(list).forEach(key => { if (list[key].includes(meta.name) && device.items(endpointId).includes(key)) expose = key; });
+            Object.keys(list).forEach(key => { if (list[key].includes(meta.name) && device.items(endpointId).includes(meta.id ? key + '_' + meta.id : key)) expose = key; });
 
             if (!expose)
-                expose = item.property;
+                expose = meta.name;
 
             if (meta.id)
                 expose += '_' + meta.id;
