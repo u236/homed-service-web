@@ -230,7 +230,7 @@ class Automation
             let device = this.controller.findDevice(item);
 
             if (form)
-                return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
+                return exposeIcon(device, item.endpoint, item.property) + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
 
             return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="icon-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
         }

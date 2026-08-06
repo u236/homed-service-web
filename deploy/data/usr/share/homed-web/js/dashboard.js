@@ -40,11 +40,11 @@ class Dashboard
         }
     }
 
-    devicePromise(item, cell)
+    devicePromise(item, cell, icon = true)
     {
         cell.innerHTML = item.name ?? (item.endpoint ? item.endpoint + ' <i class="icon-right"></i> ' + (item.expose ?? item.property) : 'New item');
 
-        if (!item.name)
+        if (item.endpoint)
         {
             let device;
 
@@ -61,7 +61,7 @@ class Dashboard
                 resolve();
             }
 
-            new Promise(wait.bind(this)).then(function() { cell.innerHTML = device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property); }.bind(this));
+            new Promise(wait.bind(this)).then(function() { cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (item.name ?? device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property)); }.bind(this));
         }
     }
 
@@ -70,10 +70,10 @@ class Dashboard
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
 
-    itemString(item, edit = true)
+    itemString(item, edit = true, icon = true)
     {
         let device = this.controller.findDevice(item);
-        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        return (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
     dashboardName(dashboard)
@@ -141,11 +141,11 @@ class Dashboard
     addBlockItem(table, item)
     {
         let row = table.insertRow();
-        let titleCell = row.insertCell();
+        let labelCell = row.insertCell();
         let valueCell = row.insertCell();
 
-        this.devicePromise(item, titleCell);
-        titleCell.classList.add('name');
+        this.devicePromise(item, labelCell);
+        labelCell.classList.add('label');
 
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
@@ -403,7 +403,7 @@ class Dashboard
 
                             row.dataset.device = device.service + '/' + device.id;
                             row.dataset.endpointId = endpointId;
-                            row.querySelectorAll(row.dataset.type == 'status' ? 'td.name' : 'td.name, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
+                            row.querySelectorAll(row.dataset.type == 'status' ? 'td.label' : 'td.label, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
 
                             if (status)
                                 items.push({device: device, endpointId: endpointId, property: row.querySelector('td.value').dataset.property});
@@ -687,10 +687,10 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = '<span></span><div class="note">' + this.itemString(item) + '</div>';
+                            cell.innerHTML = '<span></span><div class="note">' + this.itemString(item, true, false) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
-                            this.devicePromise(item, cell.querySelector('span'));
+                            this.devicePromise(item, cell.querySelector('span'), false);
                             break;
 
                         case 1:
@@ -824,7 +824,7 @@ class Dashboard
                 if (endpointId != 'common')
                     value.endpoint += '/' + endpointId;
 
-                list['Device <i class="icon-right"></i> ' + name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
+                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="icon-right"></i> ' + name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
 
             }); });
         });
@@ -840,7 +840,7 @@ class Dashboard
                 if (!device.info)
                     return;
 
-                items['Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
+                items[exposeIcon(device, item.endpoint, item.property) + 'Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
             });
 
             Object.keys(items).sort().forEach(id => list[id] = items[id]);
@@ -854,7 +854,7 @@ class Dashboard
             name.innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> <span>New item</span>';
 
             if (!item.add)
-                this.devicePromise(item, name.querySelector('span'));
+                this.devicePromise(item, name.querySelector('span'), false);
 
             modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
@@ -947,7 +947,7 @@ class Dashboard
         {
             let table;
 
-            modal.querySelector('.name').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
+            modal.querySelector('.name').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false, false);
 
             table = modal.querySelector('table.exposes');
             addExpose(table, device, endpointId, expose, false);
@@ -972,7 +972,7 @@ class Dashboard
             let id = 'chart-' + randomString(8);
             let chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = this.itemString(item, false);
+            modal.querySelector('.name').innerHTML = this.itemString(item, false, false);
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {

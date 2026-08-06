@@ -1,3 +1,15 @@
+html {
+    --color-success:    #008000;
+    --color-warning:    #fbb040;
+    --color-error:      #ff4000;
+    --border-radius:    5px;
+    --header-height:    50px;
+    --footer-height:    40px;
+    scrollbar-width:    thin;
+    scrollbar-color:    var(--color-shade) var(--background-main);
+    font-size: 14px;
+}
+
 html[theme="light"] {
     --background-main:  #ffffff;
     --background-shade: #eeeeee;
@@ -38,16 +50,8 @@ html[theme="dark"] {
     color-scheme:       dark;
 }
 
-html {
-    --color-success:    #008000;
-    --color-warning:    #fbb040;
-    --color-error:      #ff4000;
-    --border-radius:    5px;
-    --header-height:    50px;
-    --footer-height:    40px;
-    scrollbar-width:    thin;
-    scrollbar-color:    var(--color-shade) var(--background-main);
-    font-size: 14px;
+html[icons="off"] .exposeIcon {
+    display: none;
 }
 
 body {
@@ -636,7 +640,7 @@ td.remove:hover {
     vertical-align: top;
 }
 
-.dashboardBlock td.name {
+.dashboardBlock td.label {
     white-space: normal;
 }
 
@@ -747,11 +751,11 @@ td.remove:hover {
     display: none;
 }
 
-.deviceInfo .exposes .label span {
+.deviceInfo .exposes .label .name {
     cursor: pointer;
 }
 
-.deviceInfo .exposes .label span:hover {
+.deviceInfo .exposes .label .name:hover {
     color: var(--color-highlight);
 }
 
@@ -974,6 +978,14 @@ td.remove:hover {
     color: var(--color-highlight);
 }
 
+.mdi {
+    position: relative;
+    top: 1px;
+    line-height: 0;
+    font-size: 16px;
+    color: var(--color-shade);
+}
+
 th:first-child, td:first-child {
     padding-left: 5px;
 }
@@ -1180,12 +1192,12 @@ tr:first-child td {
     cursor: pointer;
 }
 
-#toggleTheme, #toggleWide, #logout {
+#toggleIcons, #toggleTheme, #toggleWide, #logout {
     cursor: pointer;
     padding: 0 5px;
 }
 
-#hotkeys:hover, #toggleTheme:hover, #toggleWide:hover, #logout:hover {
+#hotkeys:hover, #toggleIcons:hover, #toggleTheme:hover, #toggleWide:hover, #logout:hover {
     color: var(--color-main);
 }
 

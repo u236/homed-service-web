@@ -4,6 +4,11 @@
 }
 
 @font-face {
+    font-family: 'Material Design Icons';
+    src: url('../font/material-design-icons.woff2') format('woff2');
+}
+
+@font-face {
     font-family: 'Open Sans';
     src: url('../font/open-sans-cyrillic.woff2') format('woff2');
 }

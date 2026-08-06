@@ -108,7 +108,7 @@ class Recorder
                 item.name = device.info.name + ' - ' + title;
             });
 
-            cell.innerHTML = '<span>' + device.info.name + '</span> <i class="icon-right"></i> ' + title;
+            cell.innerHTML = (info ? '' : exposeIcon(device, data.endpoint, data.property)) + '<span>' + device.info.name + '</span> <i class="icon-right"></i> ' + title;
 
             if (!guest && info)
             {

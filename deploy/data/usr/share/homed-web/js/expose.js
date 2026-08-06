@@ -1,5 +1,71 @@
 let colorPicker;
 
+const defaultIcons =
+{
+    binary:            'checkbox-marked-circle-outline',
+    button:            'gesture-tap-button',
+    number:            'numeric',
+    select:            'format-list-bulleted',
+    sensor:            'information-outline',
+    toggle:            'toggle-switch-outline',
+
+    color:             'palette',
+    colorTemperature:  'white-balance-incandescent',
+    cover:             'window-shutter',
+    fanMode:           'fan',
+    heatMode:          'fire',
+    level:             'brightness-6',
+    light:             'lightbulb',
+    lock:              'lock',
+    operationMode:     'calendar-clock',
+    outlet:            'power-socket',
+    position:          'arrow-up-down',
+    running:           'radiator',
+    switch:            'light-switch',
+    systemMode:        'power',
+    thermostat:        'thermostat',
+    valve:             'pipe-valve',
+
+    battery:           'battery',
+    batteryLow:        'battery',
+    co2:               'molecule-co2',
+    contact:           'door',
+    current:           'current-ac',
+    eco2:              'molecule-co2',
+    energy:            'meter-electric',
+    energyT1:          'meter-electric',
+    energyT2:          'meter-electric',
+    energyT3:          'meter-electric',
+    energyT4:          'meter-electric',
+    flow:              'waves-arrow-right',
+    formaldehyde:      'molecule',
+    frequency:         'sine-wave',
+    gas:               'gas-cylinder',
+    humidity:          'water-percent',
+    illuminance:       'brightness-5',
+    moisture:          'water',
+    motion:            'motion-sensor',
+    occupancy:         'home',
+    power:             'flash',
+    pressure:          'gauge',
+    producedEnergy:    'meter-electric',
+    smoke:             'smoke',
+    tamper:            'shield-alert',
+    targetDistance:    'arrow-left-right',
+    temperature:       'thermometer',
+    vibration:         'vibrate',
+    voc:               'molecule',
+    voltage:           'sine-wave',
+    volume:            'water',
+    waterLeak:         'water'
+};
+
+const coverIcons =
+{
+    blind:   {cover: 'window-shutter', position: 'arrow-up-down'},
+    curtain: {cover: 'curtains',       position: 'arrow-left-right'}
+};
+
 function temperatureToColor(value)
 {
     let color = new Array();
@@ -21,6 +87,53 @@ function exposeMeta(expose)
         meta.id = list[1];
 
     return meta;
+}
+
+function exposeIcon(device, endpoint, itemName)
+{
+    let meta = exposeMeta(itemName);
+    let endpointId = endpoint.split('/')[2] ?? 'common';
+    let options = device.options(endpointId);
+    let option = options[itemName] ?? options[meta.name] ?? new Object();
+    let icon = option.icon;
+
+    if (!icon && meta.name == 'status')
+    {
+        let list = ['light', 'lock', 'switch'];
+
+        list.forEach(item =>
+        {
+            let name = meta.id ? item + '_' + meta.id : item;
+
+            if (!device.items(endpointId).includes(name))
+                return;
+
+            icon = defaultIcons[typeof options[name] == 'string' ? options[name] : item];
+        });
+    }
+
+    if (!icon && ['cover', 'position'].includes(meta.name))
+    {
+        let name = meta.id ? 'cover_' + meta.id : 'cover';
+
+        if (device.items(endpointId).includes(name))
+            icon = coverIcons[options[name] == 'blind' ? 'blind' : 'curtain'][meta.name];
+    }
+
+    if (!icon)
+    {
+        switch (true)
+        {
+            case meta.name in defaultIcons:                       icon = defaultIcons[meta.name]; break;
+            case meta.name.startsWith('schedule'):                icon = 'calendar-week'; break;
+            case meta.name.toLowerCase().endsWith('start'):       icon = 'clock-outline'; break;
+            case meta.name.toLowerCase().endsWith('end'):         icon = 'clock-outline'; break;
+            case meta.name.toLowerCase().endsWith('temperature'): icon = defaultIcons.temperature; break;
+            default:                                              icon = defaultIcons[option.type] ?? defaultIcons.sensor;
+        }
+    }
+
+    return '<span class="mdi mdi-' + icon.replace(/^mdi:/, '') + ' exposeIcon"> </span>';
 }
 
 function exposeTitle(device, endpoint, itemName, names = true)
@@ -227,7 +340,7 @@ function addExpose(table, device, endpointId, expose, names = true)
         row.dataset.endpointId = endpointId;
         row.dataset.expose = expose;
 
-        labelCell.innerHTML = '<span>' + exposeTitle(device, endpoint, property) + '</span>';
+        labelCell.innerHTML = exposeIcon(device, endpoint, property) + '<span class="name">' + exposeTitle(device, endpoint, property) + '</span>';
         labelCell.classList.add('label');
 
         valueCell.dataset.property = property;
@@ -260,7 +373,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
         if (names)
         {
-            labelCell.querySelector('span').addEventListener('click', function()
+            labelCell.querySelector('.name').addEventListener('click', function()
             {
                 loadHTML('names.html', this, modal.querySelector('.data'), function()
                 {
@@ -274,7 +387,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                     modal.querySelector('.save').addEventListener('click', function()
                     {
                         controller.setPropertyName(item, modal.querySelector('input[name="name"]').value.trim());
-                        labelCell.querySelector('span').innerHTML = exposeTitle(device, endpoint, property);
+                        labelCell.querySelector('.name').innerHTML = exposeTitle(device, endpoint, property);
                         showModal(false);
                     });
 

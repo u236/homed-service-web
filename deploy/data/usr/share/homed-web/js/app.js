@@ -1,4 +1,4 @@
-let modal, controller, dropdown, guest = true, theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>';
+let modal, controller, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'off', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
@@ -387,7 +387,7 @@ class Controller
                 if (endpointId != 'common')
                     value.endpoint += '/' + endpointId;
 
-                list[name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
+                list[exposeIcon(device, value.endpoint, property) + name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
 
             }); }); });
         });
@@ -854,9 +854,11 @@ window.onload = function()
         });
     });
 
+    document.querySelector('#toggleIcons').addEventListener('click', function() { icons = icons != 'off' ? 'off' : 'on'; setIcons(); localStorage.setItem('homedIcons', icons); });
     document.querySelector('#toggleTheme').addEventListener('click', function() { theme = theme != 'light' ? 'light' : 'dark'; setTheme(); localStorage.setItem('homedTheme', theme); });
     document.querySelector('#toggleWide').addEventListener('click', function() { wide = wide != 'off' ? 'off' : 'on'; setWide(); localStorage.setItem('homedWide', wide); });
 
+    setIcons();
     setTheme();
     setWide();
 
@@ -915,6 +917,7 @@ document.onkeydown = function(event)
         switch (key)
         {
             case 'h': document.querySelector('#hotkeys').click(); return;
+            case 'i': document.querySelector('#toggleIcons').click(); return;
             case 't': document.querySelector('#toggleTheme').click(); return;
             case 'w': document.querySelector('#toggleWide').click(); return;
         }
@@ -990,6 +993,12 @@ function loadHTML(file, context, element, callback)
         element.innerHTML = html;
         callback.bind(context)();
     });
+}
+
+function setIcons()
+{
+    document.querySelector('html').setAttribute('icons', icons);
+    document.querySelector('#toggleIcons').innerHTML = (icons != 'off' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' SHOW ICONS';
 }
 
 function setTheme()
