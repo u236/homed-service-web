@@ -143,8 +143,8 @@ class Modbus extends DeviceService
         let list = data ? data.split('=') : new Array();
         let device;
 
-        menu.innerHTML  = '<span id="list"><i class="mdi mdi-menu"></i> List</span>';
-        menu.innerHTML += '<span id="add"><i class="mdi mdi-plus"></i> Add</span>';
+        menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';
+        menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));

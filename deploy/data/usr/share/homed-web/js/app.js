@@ -71,7 +71,7 @@ class Controller
 
     onclose()
     {
-        document.querySelector('.services').innerHTML = '<span><i class="mdi mdi-close-circle"></i> DISCONNECTED</span>';
+        document.querySelector('.services').innerHTML = '<span><i class="mdi-close-circle"></i> DISCONNECTED</span>';
         document.querySelector('.menu').innerHTML = null;
         this.clearPage('socket closed, reconnecting...');
         this.socket.subscriptions = new Array();
@@ -221,7 +221,7 @@ class Controller
         {
             if (item.classList.contains('trigger'))
             {
-                item.innerHTML = '<i class="mdi mdi-menu"></i> ' + this.service;
+                item.innerHTML = '<i class="mdi-menu"></i> ' + this.service;
                 return;
             }
 
@@ -387,7 +387,7 @@ class Controller
                 if (endpointId != 'common')
                     value.endpoint += '/' + endpointId;
 
-                list[exposeIcon(device, value.endpoint, property) + name + ' <i class="mdi mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
+                list[exposeIcon(device, value.endpoint, property) + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
 
             }); }); });
         });
@@ -658,7 +658,7 @@ class DeviceService
 
         if (this.service.startsWith('zigbee') && key == 'cloud' && data.cloud && data.name == data.ieeeAddress)
         {
-            let warning = '<i class="mdi mdi-alert warning"></i>';
+            let warning = '<i class="mdi-alert warning"></i>';
 
             if (summary)
                 warning += ' device name not set';
@@ -674,7 +674,7 @@ class DeviceService
             case 'interviewFinished':
             case 'real':
             case 'supported':
-                return value != undefined ? '<i class="mdi mdi-' + (value ? 'check-circle' : 'close-circle') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
+                return value != undefined ? '<i class="mdi-' + (value ? 'check-circle' : 'close-circle') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
 
             case 'baudRate':
             case 'portId':
@@ -998,20 +998,20 @@ function loadHTML(file, context, element, callback)
 function setIcons()
 {
     document.querySelector('html').setAttribute('icons', icons);
-    document.querySelector('#toggleIcons').innerHTML = (icons != 'off' ? '<i class="mdi mdi-toggle-switch"></i>' : '<i class="mdi mdi-toggle-switch-off"></i>') + ' SHOW ICONS';
+    document.querySelector('#toggleIcons').innerHTML = (icons != 'off' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' SHOW ICONS';
 }
 
 function setTheme()
 {
     document.querySelector('html').setAttribute('theme', theme);
-    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="mdi mdi-toggle-switch"></i>' : '<i class="mdi mdi-toggle-switch-off"></i>') + ' DARK THEME';
+    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' DARK THEME';
     controller.services.recorder?.updateCharts();
 }
 
 function setWide()
 {
     document.querySelectorAll('.container').forEach(item => item.style.maxWidth = wide != 'off' ? 'none' : '1000px');
-    document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="mdi mdi-toggle-switch"></i>' : '<i class="mdi mdi-toggle-switch-off"></i>') + ' WIDE MODE';
+    document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' WIDE MODE';
     controller.updateMenu(true);
 }
 

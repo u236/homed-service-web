@@ -108,7 +108,7 @@ class Recorder
                 item.name = device.info.name + ' - ' + title;
             });
 
-            cell.innerHTML = (info ? '' : exposeIcon(device, data.endpoint, data.property)) + '<span>' + device.info.name + '</span> <i class="mdi mdi-arrow-right"></i> ' + title;
+            cell.innerHTML = (info ? '' : exposeIcon(device, data.endpoint, data.property)) + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
 
             if (!guest && info)
             {
@@ -546,8 +546,8 @@ class Recorder
 
         if (!guest)
         {
-            menu.innerHTML  = '<span id="list"><i class="mdi mdi-menu"></i> List</span>';
-            menu.innerHTML += '<span id="add"><i class="mdi mdi-plus"></i> Add</span>';
+            menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';
+            menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
 
             menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('recorder'); }.bind(this));
             menu.querySelector('#add').addEventListener('click', function() { this.showItemEdit(true); }.bind(this));
@@ -597,7 +597,7 @@ class Recorder
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="mdi mdi-arrow-right"></i> ' + item.property + '</span>';
+                            cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="mdi-arrow-right"></i> ' + item.property + '</span>';
                             cell.colSpan = 2;
                             this.devicePromise(item, cell, false, table);
                             break;
@@ -643,7 +643,7 @@ class Recorder
             datepicker = this.content.querySelector('.datepicker');
             chart = this.content.querySelector('.chart');
 
-            name.innerHTML = this.data.endpoint + ' <i class="mdi mdi-arrow-right"></i> ' + this.data.property;
+            name.innerHTML = this.data.endpoint + ' <i class="mdi-arrow-right"></i> ' + this.data.property;
             datepicker.querySelector('input[name="start"]').value = start;
             datepicker.querySelector('input[name="end"]').value = end;
 
@@ -718,12 +718,12 @@ class Recorder
                 let element = this.content.querySelector('.change');
 
                 canvas.dataset.change = true;
-                element.innerHTML = '<i class="mdi mdi-toggle-switch"></i> SHOW CHANGE';
+                element.innerHTML = '<i class="mdi-toggle-switch"></i> SHOW CHANGE';
 
                 element.addEventListener('click', function()
                 {
                     canvas.dataset.change = canvas.dataset.change != 'true';
-                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="mdi mdi-toggle-switch"></i>' : '<i class="mdi mdi-toggle-switch-off"></i>') + ' SHOW CHANGE';
+                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' SHOW CHANGE';
                     this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
                     this.chartQuery(this.data, chart, canvas.dataset.interval);
 
@@ -749,7 +749,7 @@ class Recorder
             if (data)
             {
                 let element = modal.querySelector('.property');
-                element.innerHTML = data.endpoint + ' <i class="mdi mdi-arrow-right"></i> ' + data.property;
+                element.innerHTML = data.endpoint + ' <i class="mdi-arrow-right"></i> ' + data.property;
                 this.devicePromise(data, element);
             }
 
@@ -771,7 +771,7 @@ class Recorder
             else
             {
                 item = structuredClone(this.data);
-                name.innerHTML = item.endpoint + ' <i class="mdi mdi-arrow-right"></i> ' + item.property;
+                name.innerHTML = item.endpoint + ' <i class="mdi-arrow-right"></i> ' + item.property;
                 this.devicePromise(item, name);
             }
 
@@ -818,7 +818,7 @@ class Recorder
         {
             let name = modal.querySelector('.name');
 
-            name.innerHTML = this.data.endpoint + ' <i class="mdi mdi-arrow-right"></i> ' + this.data.property;
+            name.innerHTML = this.data.endpoint + ' <i class="mdi-arrow-right"></i> ' + this.data.property;
             modal.querySelector('.remove').addEventListener('click', function() { this.controller.socket.publish('command/recorder', {action: 'removeItem', endpoint: this.data.endpoint, property: this.data.property}); this.controller.clearPage(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 

@@ -69,6 +69,15 @@
     input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
 }
 
+[class^="mdi-"] {
+    position: relative;
+    top: 1px;
+    line-height: 0;
+    font-family: 'Material Design Icons';
+    font-style: normal;
+    font-size: 1.15em;
+}
+
 html {
     --color-success:    #008000;
     --color-warning:    #fbb040;
@@ -884,6 +893,10 @@ td.remove:hover {
     padding: 0 5px;
 }
 
+.exposeIcon {
+    color: var(--color-shade);
+}
+
 .exposes td .buttons {
     display: block;
 }
@@ -1047,17 +1060,6 @@ td.remove:hover {
 
 .shift span:hover {
     color: var(--color-highlight);
-}
-
-.mdi {
-    position: relative;
-    top: 1px;
-    line-height: 0;
-    font-size: 1.15em;
-}
-
-.exposeIcon {
-    color: var(--color-shade);
 }
 
 th:first-child, td:first-child {

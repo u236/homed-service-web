@@ -121,7 +121,7 @@ class Automation
                     case 1: cell.innerHTML = '<span class="value">' + this.status.states[state] + '</span>'; break;
 
                     case 2:
-                        cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
+                        cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                         cell.classList.add('remove');
                         cell.addEventListener('click', function() { cell.innerHTML = '<div class="dataLoader"></div>'; this.controller.socket.publish('command/' + this.service, {action: 'removeState', state: state}); this.removeState = true; }.bind(this));
                         break;
@@ -230,9 +230,9 @@ class Automation
             let device = this.controller.findDevice(item);
 
             if (form)
-                return exposeIcon(device, item.endpoint, item.property) + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
+                return exposeIcon(device, item.endpoint, item.property) + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
 
-            return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="mdi mdi-arrow-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
+            return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="mdi-arrow-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
         }
 
         return form ? '<i>Trigger Property</i>' : '<span class="value"><i>Trigger Property</i></span>';
@@ -292,7 +292,7 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="mdi mdi-arrow-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + this.statementString(statement);
+                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + this.statementString(statement);
 
                     if (statement == 'updates')
                         break;
@@ -352,7 +352,7 @@ class Automation
             {
                 case 'property':
                 case 'mqtt':
-                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="mdi mdi-arrow-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + this.statementString(statement) + ' <span class="value">' + value + '</span>';
+                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + this.statementString(statement) + ' <span class="value">' + value + '</span>';
 
                 case 'state':
                 case 'pattern':
@@ -382,7 +382,7 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = this.itemProperty(action) + ' <i class="mdi mdi-arrow-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + this.shieldValue(action[statement]) + '</span>';
+                    data = this.itemProperty(action) + ' <i class="mdi-arrow-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + this.shieldValue(action[statement]) + '</span>';
                 }
 
                 break;
@@ -453,7 +453,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + ' "><i class="mdi mdi-subdirectory-arrow-right"></i></span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + ' "><i class="mdi-subdirectory-arrow-right"></i></span> ';
                         cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type ?? '<span class="shade"><i>no conditions</i></span>';
                         break;
 
@@ -464,7 +464,7 @@ class Automation
 
                         if (['AND', 'OR', 'NOT'].includes(condition.type))
                         {
-                            cell.innerHTML = '<div class="dropdown right"><i class="mdi mdi-plus"></i></div>';
+                            cell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';
                             cell.classList.add('right');
                             addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 7);
                             automation.conditionList(automation, condition.conditions, table, level + 1);
@@ -485,7 +485,7 @@ class Automation
                             break;
                         }
 
-                        cell.innerHTML = '<i class="mdi mdi-arrow-down"></i>';
+                        cell.innerHTML = '<i class="mdi-arrow-down"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
                         break;
@@ -499,7 +499,7 @@ class Automation
                             break;
                         }
 
-                        cell.innerHTML = '<i class="mdi mdi-arrow-up"></i>';
+                        cell.innerHTML = '<i class="mdi-arrow-up"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
                         break;
@@ -509,7 +509,7 @@ class Automation
                         if (!condition.type)
                             break;
 
-                        cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
+                        cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                         cell.classList.add('remove', 'right');
                         cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
                         break;
@@ -542,7 +542,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="mdi mdi-subdirectory-arrow-right"></i></span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
                         cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
                         break;
 
@@ -565,10 +565,10 @@ class Automation
                             let actionCell = actionRow.insertCell();
 
                             for (let k = 0; k <= level - 1; k++)
-                                nameCell.innerHTML += '<span class="tiny ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi mdi-subdirectory-arrow-right"></i></span> ';
+                                nameCell.innerHTML += '<span class="tiny ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
 
                             nameCell.colSpan = 4;
-                            actionCell.innerHTML = '<div class="dropdown right"><i class="mdi mdi-plus"></i></div>';
+                            actionCell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';
 
                             switch (j)
                             {
@@ -603,7 +603,7 @@ class Automation
                             break;
                         }
 
-                        cell.innerHTML = '<i class="mdi mdi-arrow-down"></i>';
+                        cell.innerHTML = '<i class="mdi-arrow-down"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
                         break;
@@ -617,7 +617,7 @@ class Automation
                             break;
                         }
 
-                        cell.innerHTML = '<i class="mdi mdi-arrow-up"></i>';
+                        cell.innerHTML = '<i class="mdi-arrow-up"></i>';
                         cell.classList.add('move');
                         cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
                         break;
@@ -627,7 +627,7 @@ class Automation
                         if (!action.type)
                             break;
 
-                        cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
+                        cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                         cell.classList.add('remove');
                         cell.addEventListener('click', function() { list.splice(index, 1); automation.showAutomationInfo(); });
                         break;
@@ -644,10 +644,10 @@ class Automation
         let list = data ? data.split('=') : new Array();
         let automation;
 
-        menu.innerHTML  = '<span id="states"><i class="mdi mdi-cog"></i> States</span>';
-        menu.innerHTML += '<span id="list"><i class="mdi mdi-menu"></i> List</span>';
-        menu.innerHTML += '<span id="add"><i class="mdi mdi-plus"></i> Add</span>';
-        menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi mdi-tray-arrow-up"></i> Import</span>';
+        menu.innerHTML  = '<span id="states"><i class="mdi-cog"></i> States</span>';
+        menu.innerHTML += '<span id="list"><i class="mdi-menu"></i> List</span>';
+        menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
+        menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-tray-arrow-up"></i> Import</span>';
 
         menu.querySelector('#states').addEventListener('click', function() { this.showStates(); }.bind(this));
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
@@ -836,8 +836,8 @@ class Automation
             this.content.querySelector('.note').innerHTML = this.data.note ?? '';
             this.content.querySelector('.mode').innerHTML = '<span class="value">' + this.data.mode + '</span>';
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';
-            this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="mdi mdi-check-circle success"></i>' : '<i class="mdi mdi-close-circle shade"></i>';
-            this.content.querySelector('.log').innerHTML = this.data.log ? '<i class="mdi mdi-check-circle success"></i>' : '<i class="mdi mdi-close-circle shade"></i>';
+            this.content.querySelector('.active').innerHTML = this.data.active ? '<i class="mdi-check-circle success"></i>' : '<i class="mdi-close-circle shade"></i>';
+            this.content.querySelector('.log').innerHTML = this.data.log ? '<i class="mdi-check-circle success"></i>' : '<i class="mdi-close-circle shade"></i>';
 
             triggers = this.content.querySelector('.triggers');
             conditions = this.content.querySelector('.conditions');
@@ -877,7 +877,7 @@ class Automation
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="mdi mdi-arrow-down"></i>';
+                            cell.innerHTML = '<i class="mdi-arrow-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.data.triggers[index + 1] = this.data.triggers.splice(index, 1, this.data.triggers[index + 1])[0]; this.showAutomationInfo(); }.bind(this));
                             break;
@@ -891,13 +891,13 @@ class Automation
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="mdi mdi-arrow-up"></i>';
+                            cell.innerHTML = '<i class="mdi-arrow-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.data.triggers[index - 1] = this.data.triggers.splice(index, 1, this.data.triggers[index - 1])[0]; this.showAutomationInfo(); }.bind(this));
                             break;
 
                         case 4:
-                            cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
+                            cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { this.data.triggers.splice(index, 1); this.showAutomationInfo(); }.bind(this));
                             break;
@@ -1005,7 +1005,7 @@ class Automation
             let data;
 
             modal.querySelector('.name').innerHTML = 'Property ' + type;
-            modal.querySelector('.property').innerHTML = append ? 'Select property there <i class="mdi mdi-arrow-right"></i>' : this.itemProperty(item, true);
+            modal.querySelector('.property').innerHTML = append ? 'Select property there <i class="mdi-arrow-right"></i>' : this.itemProperty(item, true);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
             {

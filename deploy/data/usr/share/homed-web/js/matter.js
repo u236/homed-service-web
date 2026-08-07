@@ -144,8 +144,8 @@ class Matter extends DeviceService
         let list = data ? data.split('=') : new Array();
         let device;
 
-        menu.innerHTML  = '<span id="list"><i class="mdi mdi-menu"></i> List</span>';
-        menu.innerHTML += '<span id="connect"><i class="mdi mdi-plus"></i> Connect</span>';
+        menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';
+        menu.innerHTML += '<span id="connect"><i class="mdi-plus"></i> Connect</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
         menu.querySelector('#connect').addEventListener('click', function() { this.showDeviceConnect(); }.bind(this));
