@@ -79,7 +79,7 @@ class Recorder
         return this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.unit ?? '';
     }
 
-    devicePromise(data, cell, info, table)
+    devicePromise(data, cell, icon = false, info = false, table)
     {
         let device;
 
@@ -108,7 +108,7 @@ class Recorder
                 item.name = device.info.name + ' - ' + title;
             });
 
-            cell.innerHTML = (info ? '' : exposeIcon(device, data.endpoint, data.property)) + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
+            cell.innerHTML = (icon ? exposeIcon(device, data.endpoint, data.property) : '') + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
 
             if (!guest && info)
             {
@@ -599,7 +599,7 @@ class Recorder
                         case 0:
                             cell.innerHTML = '<span class="shade">' + item.endpoint + ' <i class="mdi-arrow-right"></i> ' + item.property + '</span>';
                             cell.colSpan = 2;
-                            this.devicePromise(item, cell, false, table);
+                            this.devicePromise(item, cell, true, false, table);
                             break;
 
                         case 1: cell.innerHTML = '<span class="value">' + item.debounce + '</span>'; cell.classList.add('center'); break;
@@ -734,7 +734,7 @@ class Recorder
 
             chart.querySelector('canvas').dataset.unit = true;
 
-            this.devicePromise(this.data, name, true);
+            this.devicePromise(this.data, name, false, true);
             this.chartQuery(this.data, chart, interval, undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);
         });
     }

@@ -419,7 +419,7 @@ class ZigBee extends DeviceService
             case 'powerSource':
             {
                 let battery = ![1, 4].includes(value & 127);
-                return data.logicalType ? '<i class="mdi-' + (battery ? 'battery' : 'power-plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="mdi-battery"></i>' : '') : empty;
+                return data.logicalType ? '<i class="mdi-' + (battery ? 'battery-charging' : 'power-plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="mdi-battery-charging"></i>' : '') : empty;
             }
 
             default: return super.parseValue(data, key, summary);
@@ -433,7 +433,7 @@ class ZigBee extends DeviceService
         let device;
 
         menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';
-        menu.innerHTML += '<span id="map"><i class="mdi-map"></i> Map</span>';
+        menu.innerHTML += '<span id="map"><i class="mdi-asterisk"></i> Map</span>';
         menu.innerHTML += '<span id="permitJoin"><i class="mdi-power-standby"></i> Permit Join</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));

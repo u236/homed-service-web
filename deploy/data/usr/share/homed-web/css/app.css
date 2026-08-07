@@ -156,7 +156,7 @@ button {
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
     background-color: var(--background-shade);
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     font-weight: 400;
     text-transform: uppercase;
     color: var(--color-main);
@@ -198,7 +198,7 @@ textarea {
     margin-bottom: 5px;
     padding: 5px;
     font-family: 'Roboto Mono';
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     resize: vertical;
 }
 
@@ -246,7 +246,7 @@ label {
     align-items: center;
     margin-bottom: 2px;
     margin-left: 1px;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     text-transform: uppercase;
 }
 
@@ -293,7 +293,7 @@ table {
 
 th {
     padding: 5px;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     font-weight: normal;
     text-transform: uppercase;
     text-align: left;
@@ -420,12 +420,12 @@ td.remove:hover {
 
 .note {
     padding: 0 5px;
-    font-size: 0.875rem;
+    font-size: 0.875em;
     color: var(--color-shade);
 }
 
 .tiny {
-    font-size: 0.875rem;
+    font-size: 0.875em;
 }
 
 .lockScroll {
@@ -592,7 +592,7 @@ td.remove:hover {
     line-height: var(--footer-height);
     padding: 0 15px;
     background-color: var(--background-shade);
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     white-space: nowrap;
     color: var(--color-shade);
 }
@@ -805,6 +805,7 @@ td.remove:hover {
 }
 
 .automationInfo .title a {
+    text-decoration: none;
     color: var(--color-shade);
 }
 
@@ -904,7 +905,7 @@ td.remove:hover {
 .exposes td button {
     height: 18px;
     margin-right: 5px;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
 }
 
 .exposes input[type="number"] {
@@ -913,14 +914,14 @@ td.remove:hover {
     margin-right: 5px;
     margin-bottom: 0;
     padding-right: 0;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
 }
 
 .exposes select {
     width: 150px;
     height: 19px;
     margin-bottom: 0;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
 }
 
 .exposes input[type="time"] {
@@ -988,13 +989,13 @@ td.remove:hover {
 }
 
 .log .timestamp {
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     color: var(--color-shade);
 }
 
 .title .name {
     overflow: hidden;
-    font-size: 1.25rem;
+    font-size: 1.25em;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
@@ -1034,7 +1035,7 @@ td.remove:hover {
 
 .title .change {
     cursor: pointer;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     color: var(--color-shade);
 }
 
@@ -1043,7 +1044,7 @@ td.remove:hover {
 }
 
 .title .status {
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
     color: var(--color-shade);
 }
 
@@ -1054,7 +1055,7 @@ td.remove:hover {
 
 .shift span {
     cursor: pointer;
-    font-size: 1.25rem;
+    font-size: 1.25em;
     color: var(--color-shade);
 }
 
@@ -1089,6 +1090,7 @@ tr:first-child td {
 
 #modal label a, #modal label .extend, #modal label .dropdown {
     cursor: pointer;
+    text-decoration: none;
     color: var(--color-shade);
 }
 
@@ -1197,7 +1199,7 @@ tr:first-child td {
 
 #modal .note {
     padding: 0;
-    font-size: 0.8125rem;
+    font-size: 0.8125em;
 }
 
 #modal .legend, #modal .log, #modal .states {
@@ -1275,4 +1277,10 @@ tr:first-child td {
 
 #hotkeys:hover, #toggleIcons:hover, #toggleTheme:hover, #toggleWide:hover, #logout:hover {
     color: var(--color-main);
+}
+
+#toggleIcons i, #toggleTheme i, #toggleWide i, #logout i {
+    display: inline-block;
+    top: 3px;
+    font-size: 1.6em;
 }

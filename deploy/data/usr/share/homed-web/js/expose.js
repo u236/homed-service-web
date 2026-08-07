@@ -2,69 +2,123 @@ let colorPicker;
 
 const defaultIcons =
 {
-    binary:            'checkbox-marked-circle-outline',
-    button:            'gesture-tap-button',
+    // expose type
+    binary:            'radiobox-marked',
+    button:            'button-pointer',
     number:            'numeric',
-    select:            'format-list-bulleted',
-    sensor:            'information-outline',
+    select:            'cog',
+    sensor:            'eye-outline',
     toggle:            'toggle-switch-outline',
 
+    // special exposes
     color:             'palette',
-    colorTemperature:  'white-balance-incandescent',
+    colorMode:         'palette-outline',
+    colorTemperature:  'invert-colors',
     cover:             'window-shutter',
     fanMode:           'fan',
     heatMode:          'fire',
     level:             'brightness-6',
     light:             'lightbulb',
     lock:              'lock',
-    operationMode:     'calendar-clock',
-    outlet:            'power-socket',
+    operationMode:     'tune-variant',
+    outlet:            'power-plug',
     position:          'arrow-up-down',
-    running:           'radiator',
-    switch:            'light-switch',
-    systemMode:        'power',
-    thermostat:        'thermostat',
+    running:           'fire',
+    switch:            'lightbulb',
+    systemMode:        'knob',
+    thermostat:        'thermometer',
     valve:             'pipe-valve',
 
-    battery:           'battery',
-    batteryLow:        'battery',
+    // common exposes
+    battery:           'battery-charging',
+    batteryLow:        'battery-low',
     co2:               'molecule-co2',
     contact:           'door',
     current:           'current-ac',
     eco2:              'molecule-co2',
-    energy:            'meter-electric',
-    energyT1:          'meter-electric',
-    energyT2:          'meter-electric',
-    energyT3:          'meter-electric',
-    energyT4:          'meter-electric',
+    energy:            'lightning-bolt',
     flow:              'waves-arrow-right',
     formaldehyde:      'molecule',
     frequency:         'sine-wave',
     gas:               'gas-cylinder',
     humidity:          'water-percent',
     illuminance:       'brightness-5',
+    linkQuality:       'signal',
     moisture:          'water',
     motion:            'motion-sensor',
     occupancy:         'home',
     power:             'flash',
     pressure:          'gauge',
-    producedEnergy:    'meter-electric',
-    smoke:             'smoke',
+    smoke:             'smoke-detector',
     tamper:            'shield-alert',
     targetDistance:    'arrow-left-right',
     temperature:       'thermometer',
     vibration:         'vibrate',
     voc:               'molecule',
     voltage:           'sine-wave',
-    volume:            'water',
+    volume:            'counter',
     waterLeak:         'water'
 };
 
 const coverIcons =
 {
-    blind:   {cover: 'window-shutter', position: 'arrow-up-down'},
-    curtain: {cover: 'curtains',       position: 'arrow-left-right'}
+    blind:             {cover: 'window-shutter', position: 'arrow-up-down'},
+    curtain:           {cover: 'curtains',       position: 'arrow-left-right'}
 };
+
+function iconName(device, endpoint, itemName)
+{
+    let meta = exposeMeta(itemName);
+    let endpointId = endpoint.split('/')[2] ?? 'common';
+    let options = device.options(endpointId);
+    let option = options[itemName] ?? options[meta.name] ?? new Object();
+
+    if (option.icon)
+        return option.icon.replace(/^mdi:/, '');
+
+    if (typeof option == 'string' && defaultIcons[option])
+        return defaultIcons[option];
+
+    if (meta.name == 'status')
+    {
+        let list = ['light', 'lock', 'switch'];
+
+        for (let i = 0; i < list.length; i++)
+        {
+            let name = meta.id ? list[i] + '_' + meta.id : list[i];
+
+            if (!device.items(endpointId).includes(name))
+                continue;
+
+            return defaultIcons[typeof options[name] == 'string' ? options[name] : list[i]];
+        }
+    }
+
+    if (['cover', 'position'].includes(meta.name))
+    {
+        let name = meta.id ? 'cover_' + meta.id : 'cover';
+
+        if (device.items(endpointId).includes(name))
+            return coverIcons[options[name] == 'blind' ? 'blind' : 'curtain'][meta.name];
+    }
+
+    if (defaultIcons[meta.name])
+        return defaultIcons[meta.name];
+
+    if (meta.name.startsWith('schedule'))
+        return 'calendar-week';
+
+    if (meta.name.match(/(start|end)$/i))
+        return 'clock-outline';
+
+    if (meta.name.match(/energy/i))
+        return defaultIcons.energy;
+
+    if (meta.name.match(/temperature$/i))
+        return defaultIcons.temperature;
+
+    return defaultIcons[option.type] ?? defaultIcons.sensor;
+}
 
 function temperatureToColor(value)
 {
@@ -91,49 +145,7 @@ function exposeMeta(expose)
 
 function exposeIcon(device, endpoint, itemName)
 {
-    let meta = exposeMeta(itemName);
-    let endpointId = endpoint.split('/')[2] ?? 'common';
-    let options = device.options(endpointId);
-    let option = options[itemName] ?? options[meta.name] ?? new Object();
-    let icon = option.icon;
-
-    if (!icon && meta.name == 'status')
-    {
-        let list = ['light', 'lock', 'switch'];
-
-        list.forEach(item =>
-        {
-            let name = meta.id ? item + '_' + meta.id : item;
-
-            if (!device.items(endpointId).includes(name))
-                return;
-
-            icon = defaultIcons[typeof options[name] == 'string' ? options[name] : item];
-        });
-    }
-
-    if (!icon && ['cover', 'position'].includes(meta.name))
-    {
-        let name = meta.id ? 'cover_' + meta.id : 'cover';
-
-        if (device.items(endpointId).includes(name))
-            icon = coverIcons[options[name] == 'blind' ? 'blind' : 'curtain'][meta.name];
-    }
-
-    if (!icon)
-    {
-        switch (true)
-        {
-            case meta.name in defaultIcons:                       icon = defaultIcons[meta.name]; break;
-            case meta.name.startsWith('schedule'):                icon = 'calendar-week'; break;
-            case meta.name.toLowerCase().endsWith('start'):       icon = 'clock-outline'; break;
-            case meta.name.toLowerCase().endsWith('end'):         icon = 'clock-outline'; break;
-            case meta.name.toLowerCase().endsWith('temperature'): icon = defaultIcons.temperature; break;
-            default:                                              icon = defaultIcons[option.type] ?? defaultIcons.sensor;
-        }
-    }
-
-    return '<span class="mdi-' + icon.replace(/^mdi:/, '') + ' exposeIcon"> </span>';
+    return '<span class="mdi-' + iconName(device, endpoint, itemName) + ' exposeIcon"> </span>';
 }
 
 function exposeTitle(device, endpoint, itemName, names = true)
@@ -608,7 +620,7 @@ function updateExpose(device, endpointId, property, value)
 
             if (cell)
             {
-                cell.innerHTML = '<i class="mdi-' + (value ? 'play-circle' : 'stop-circle') + '"></i>';
+                cell.innerHTML = '<i class="mdi-fire"></i>';
                 cell.classList.remove('warning', 'shade');
                 cell.classList.add(value ? 'warning' : 'shade');
             }

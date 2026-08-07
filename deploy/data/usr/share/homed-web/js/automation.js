@@ -230,7 +230,7 @@ class Automation
             let device = this.controller.findDevice(item);
 
             if (form)
-                return exposeIcon(device, item.endpoint, item.property) + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
+                return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
 
             return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="mdi-arrow-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
         }
@@ -647,7 +647,7 @@ class Automation
         menu.innerHTML  = '<span id="states"><i class="mdi-cog"></i> States</span>';
         menu.innerHTML += '<span id="list"><i class="mdi-menu"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
-        menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-tray-arrow-up"></i> Import</span>';
+        menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-upload"></i> Import</span>';
 
         menu.querySelector('#states').addEventListener('click', function() { this.showStates(); }.bind(this));
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
@@ -1013,7 +1013,7 @@ class Automation
                 modal.querySelector('.property').innerHTML = this.itemProperty(data, true);
                 modal.querySelector('.property').classList.remove('error');
 
-            }.bind(this));
+            }.bind(this), type != 'trigger' ? 1 : 0);
 
             statements.forEach(statement =>
             {

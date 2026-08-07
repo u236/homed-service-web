@@ -235,9 +235,9 @@ class Dashboard
 
         if (!guest)
         {
-            menu.innerHTML  = '<span id="sort"><i class="mdi-menu"></i> Sort</span>';
+            menu.innerHTML  = '<span id="sort"><i class="mdi-sort-variant"></i> Sort</span>';
             menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
-            menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-tray-arrow-up"></i> Import</span>';
+            menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-upload"></i> Import</span>';
 
             menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
             menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
@@ -858,12 +858,12 @@ class Dashboard
 
             modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
-            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.itemString(item);
+            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.itemString(item, true, false);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {
                 data = list[key];
-                modal.querySelector('.item').innerHTML = this.itemString(data);
+                modal.querySelector('.item').innerHTML = this.itemString(data, true, false);
                 modal.querySelector('.item').classList.remove('error');
 
             }.bind(this));
