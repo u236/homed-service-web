@@ -1,3 +1,74 @@
+@font-face {
+    font-family: 'Material Design Icons';
+    src: url('../font/material-design-icons.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../font/open-sans-cyrillic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../font/open-sans-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url('../font/roboto-mono-cyrillic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url('../font/roboto-mono-latin.woff2') format('woff2');
+}
+
+@keyframes spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes moveIn {
+    0%   { max-height: 0; }
+    100% { max-height: 100px; }
+}
+
+@keyframes moveOut {
+    0%   { max-height: 100px; }
+    100% { max-height: 0; }
+}
+
+@media (max-width: 1030px) {
+    .narrowHidden { display: none; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .dashboardList span:hover { color: var(--color-highlight); }
+}
+
+@media (max-width: 680px) {
+    .header, .footer, .content { padding: 0 5px; }
+    .header .dropdown .list { left: 13px; padding-right: 10px;}
+    .automationInfo td span { max-width: 150px; }
+    .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
+    .mobileHidden { display: none; }
+}
+
+@media (pointer: coarse) {
+    input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; }
+    input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+}
+
 html {
     --color-success:    #008000;
     --color-warning:    #fbb040;
@@ -982,7 +1053,10 @@ td.remove:hover {
     position: relative;
     top: 1px;
     line-height: 0;
-    font-size: 16px;
+    font-size: 1.15em;
+}
+
+.exposeIcon {
     color: var(--color-shade);
 }
 
@@ -1199,50 +1273,4 @@ tr:first-child td {
 
 #hotkeys:hover, #toggleIcons:hover, #toggleTheme:hover, #toggleWide:hover, #logout:hover {
     color: var(--color-main);
-}
-
-@keyframes spin {
-    0%   { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeIn {
-    0%   { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-@keyframes fadeOut {
-    0%   { opacity: 1; }
-    100% { opacity: 0; }
-}
-
-@keyframes moveIn {
-    0%   { max-height: 0; }
-    100% { max-height: 100px; }
-}
-
-@keyframes moveOut {
-    0%   { max-height: 100px; }
-    100% { max-height: 0; }
-}
-
-@media (max-width: 1030px) {
-    .narrowHidden { display: none; }
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .dashboardList span:hover { color: var(--color-highlight); }
-}
-
-@media (max-width: 680px) {
-    .header, .footer, .content { padding: 0 5px; }
-    .header .dropdown .list { left: 13px; padding-right: 10px;}
-    .automationInfo td span { max-width: 150px; }
-    .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
-    .mobileHidden { display: none; }
-}
-
-@media (pointer: coarse) {
-    input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; }
-    input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
 }

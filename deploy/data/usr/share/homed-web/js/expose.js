@@ -352,7 +352,7 @@ function addExpose(table, device, endpointId, expose, names = true)
             let check = false;
             let element;
 
-            labelCell.innerHTML += ' <i class="icon-chart shade"></i>';
+            labelCell.innerHTML += ' <i class="mdi mdi-chart-line-variant shade"></i>';
             element = labelCell.querySelector('i');
 
             recorder.status.items?.forEach((data, index) =>
@@ -380,7 +380,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                     let title = exposeTitle(device, endpoint, property, false);
                     let item = endpoint + '/' + property;
 
-                    modal.querySelector('.name').innerHTML = device.info.name + ' <i class="icon-right"></i> ' + title;
+                    modal.querySelector('.name').innerHTML = device.info.name + ' <i class="mdi mdi-arrow-right"></i> ' + title;
                     modal.querySelector('input[name="name"]').placeholder = title;
                     modal.querySelector('input[name="name"]').value = controller.propertyName(item) ?? '';
 
@@ -608,7 +608,7 @@ function updateExpose(device, endpointId, property, value)
 
             if (cell)
             {
-                cell.innerHTML = '<i class="icon-' + (value ? 'play' : 'stop') + '"></i>';
+                cell.innerHTML = '<i class="mdi mdi-' + (value ? 'play-circle' : 'stop-circle') + '"></i>';
                 cell.classList.remove('warning', 'shade');
                 cell.classList.add(value ? 'warning' : 'shade');
             }
@@ -643,7 +643,7 @@ function updateExpose(device, endpointId, property, value)
                     break;
 
                 case 'status':
-                    cell.innerHTML = '<i class="icon-enable ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
+                    cell.innerHTML = '<i class="mdi mdi-power-standby ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
                     break;
 
                 default:

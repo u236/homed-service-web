@@ -42,7 +42,7 @@ class Dashboard
 
     devicePromise(item, cell, icon = true)
     {
-        cell.innerHTML = item.name ?? (item.endpoint ? item.endpoint + ' <i class="icon-right"></i> ' + (item.expose ?? item.property) : 'New item');
+        cell.innerHTML = item.name ?? (item.endpoint ? item.endpoint + ' <i class="mdi mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
 
         if (item.endpoint)
         {
@@ -61,7 +61,7 @@ class Dashboard
                 resolve();
             }
 
-            new Promise(wait.bind(this)).then(function() { cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (item.name ?? device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property)); }.bind(this));
+            new Promise(wait.bind(this)).then(function() { cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (item.name ?? device.info.name + ' <i class="mdi mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property)); }.bind(this));
         }
     }
 
@@ -73,12 +73,12 @@ class Dashboard
     itemString(item, edit = true, icon = true)
     {
         let device = this.controller.findDevice(item);
-        return (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="icon-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        return (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
     dashboardName(dashboard)
     {
-        return (dashboard.overview ? '<i class="icon-group"></i> ' : '') + dashboard.name;
+        return (dashboard.overview ? '<i class="mdi mdi-view-grid"></i> ' : '') + dashboard.name;
     }
 
     setIndex(index)
@@ -173,7 +173,7 @@ class Dashboard
                     break;
 
                 case 'thermostat':
-                    valueCell.innerHTML = '<span data-property="runningStatus"></span> <span data-property="temperature">' + empty + '</span> <i class="icon-right"></i> <span data-property="targetTemperature" data-unit="°C">' + empty + '</span>';
+                    valueCell.innerHTML = '<span data-property="runningStatus"></span> <span data-property="temperature">' + empty + '</span> <i class="mdi mdi-arrow-right"></i> <span data-property="targetTemperature" data-unit="°C">' + empty + '</span>';
                     break;
 
                 default:
@@ -235,9 +235,9 @@ class Dashboard
 
         if (!guest)
         {
-            menu.innerHTML  = '<span id="sort"><i class="icon-list"></i> Sort</span>';
-            menu.innerHTML += '<span id="add"><i class="icon-plus"></i> Add</span>';
-            menu.innerHTML += '<span id="import" class="mobileHidden"><i class="icon-upload"></i> Import</span>';
+            menu.innerHTML  = '<span id="sort"><i class="mdi mdi-menu"></i> Sort</span>';
+            menu.innerHTML += '<span id="add"><i class="mdi mdi-plus"></i> Add</span>';
+            menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi mdi-tray-arrow-up"></i> Import</span>';
 
             menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
             menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
@@ -356,7 +356,7 @@ class Dashboard
 
                     if (!dashboard.overview && !guest)
                     {
-                        element.querySelector('.control').innerHTML += '<span class="edit"><i class="icon-edit"></i></span>';
+                        element.querySelector('.control').innerHTML += '<span class="edit"><i class="mdi mdi-pencil"></i></span>';
                         element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
                     }
 
@@ -438,7 +438,7 @@ class Dashboard
                     {
                         let toggle = document.createElement('span');
 
-                        toggle.innerHTML = '<i class="icon-enable shade"></i>';
+                        toggle.innerHTML = '<i class="mdi mdi-power-standby shade"></i>';
                         toggle.classList.add('toggle');
 
                         toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpointId, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
@@ -454,7 +454,7 @@ class Dashboard
                                 return;
 
                             toggle.dataset.status = status;
-                            toggle.querySelector('i').className = 'icon-enable ' + (status == 'on' ? 'warning' : 'shade');
+                            toggle.querySelector('i').className = 'mdi mdi-power-standby ' + (status == 'on' ? 'warning' : 'shade');
 
                         }, 100));
                     }
@@ -499,7 +499,7 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="icon-down"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-arrow-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.status.dashboards[index + 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index + 1])[0]; showTable(table); }.bind(this));
                             break;
@@ -513,7 +513,7 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="icon-up"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-arrow-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { this.status.dashboards[index - 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index - 1])[0]; showTable(table); }.bind(this));
                             break;
@@ -565,7 +565,7 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="icon-down"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-arrow-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { dashboard.blocks[index + 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index + 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
@@ -579,13 +579,13 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="icon-up"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-arrow-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { dashboard.blocks[index - 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index - 1])[0]; showTable(table, dashboard); }.bind(this));
                             break;
 
                         case 3:
-                            cell.innerHTML = '<i class="icon-trash"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { dashboard.blocks.splice(index, 1); showTable(table, dashboard); });
                             break;
@@ -702,7 +702,7 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="icon-down"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-arrow-down"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { block.items[index + 1] = block.items.splice(index, 1, block.items[index + 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
@@ -716,13 +716,13 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="icon-up"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-arrow-up"></i>';
                             cell.classList.add('move');
                             cell.addEventListener('click', function() { block.items[index - 1] = block.items.splice(index, 1, block.items[index - 1])[0]; showTable(table, dashboard, block); }.bind(this));
                             break;
 
                         case 3:
-                            cell.innerHTML = '<i class="icon-trash"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { block.items.splice(index, 1); showTable(table, dashboard, block); });
                             break;
@@ -739,7 +739,7 @@ class Dashboard
 
         loadHTML('html/dashboard/blockEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name;
+            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="mdi mdi-arrow-right"></i> ' + block.name;
             modal.querySelector('input[name="name"]').value = block.name;
             modal.querySelector('textarea[name="note"]').value = block.note ?? '';
 
@@ -824,7 +824,7 @@ class Dashboard
                 if (endpointId != 'common')
                     value.endpoint += '/' + endpointId;
 
-                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="icon-right"></i> ' + name + ' <i class="icon-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
+                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="mdi mdi-arrow-right"></i> ' + name + ' <i class="mdi mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
 
             }); });
         });
@@ -840,7 +840,7 @@ class Dashboard
                 if (!device.info)
                     return;
 
-                items[exposeIcon(device, item.endpoint, item.property) + 'Recorder <i class="icon-right"></i> ' + device.info.name + ' <i class="icon-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
+                items[exposeIcon(device, item.endpoint, item.property) + 'Recorder <i class="mdi mdi-arrow-right"></i> ' + device.info.name + ' <i class="mdi mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
             });
 
             Object.keys(items).sort().forEach(id => list[id] = items[id]);
@@ -851,14 +851,14 @@ class Dashboard
             let name = modal.querySelector('.name');
             let data;
 
-            name.innerHTML = dashboard.name + ' <i class="icon-right"></i> ' + block.name + ' <i class="icon-right"></i> <span>New item</span>';
+            name.innerHTML = dashboard.name + ' <i class="mdi mdi-arrow-right"></i> ' + block.name + ' <i class="mdi mdi-arrow-right"></i> <span>New item</span>';
 
             if (!item.add)
                 this.devicePromise(item, name.querySelector('span'), false);
 
             modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
-            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="icon-right"></i>' : this.itemString(item);
+            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi mdi-arrow-right"></i>' : this.itemString(item);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {
@@ -1016,12 +1016,12 @@ class Dashboard
                 let element = modal.querySelector('.change');
 
                 canvas.dataset.change = true;
-                element.innerHTML = '<i class="icon-on"></i> SHOW CHANGE';
+                element.innerHTML = '<i class="mdi mdi-toggle-switch"></i> SHOW CHANGE';
 
                 element.addEventListener('click', function()
                 {
                     canvas.dataset.change = canvas.dataset.change != 'true';
-                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="icon-on"></i>' : '<i class="icon-off"></i>') + ' SHOW CHANGE';
+                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="mdi mdi-toggle-switch"></i>' : '<i class="mdi mdi-toggle-switch-off"></i>') + ' SHOW CHANGE';
                     modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
                     this.controller.services.recorder.chartQuery(item, chart, canvas.dataset.interval);
 

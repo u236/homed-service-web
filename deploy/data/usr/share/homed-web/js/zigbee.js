@@ -125,7 +125,7 @@ class ZigBee extends DeviceService
                         case 1: cell.innerHTML = '<span class="value">' + groupId + '</span>'; break;
 
                         case 2:
-                            cell.innerHTML = '<i class="icon-trash"></i>';
+                            cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { cell.innerHTML = '<div class="dataLoader"></div>'; this.serviceCommand({action: 'removeGroup', device: device.id, endpointId: parseInt(item.endpointId), groupId: groupId}); }.bind(this));
                             break;
@@ -173,7 +173,7 @@ class ZigBee extends DeviceService
 
                     case 3:
 
-                        cell.innerHTML = '<i class="icon-trash"></i>';
+                        cell.innerHTML = '<i class="mdi mdi-trash-can-outline"></i>';
                         cell.classList.add('remove');
 
                         cell.addEventListener('click', function()
@@ -207,7 +207,7 @@ class ZigBee extends DeviceService
 
     updatePage()
     {
-        document.querySelector('#permitJoin i').className = 'icon-enable ' + (this.permitJoin ? 'warning' : 'shade');
+        document.querySelector('#permitJoin i').className = 'mdi mdi-power-standby ' + (this.permitJoin ? 'warning' : 'shade');
         document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : '<i>unknown</i>';
     }
 
@@ -419,7 +419,7 @@ class ZigBee extends DeviceService
             case 'powerSource':
             {
                 let battery = ![1, 4].includes(value & 127);
-                return data.logicalType ? '<i class="icon-' + (battery ? 'battery' : 'plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="icon-battery"></i>' : '') : empty;
+                return data.logicalType ? '<i class="icon-' + (battery ? 'battery' : 'plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="mdi mdi-battery"></i>' : '') : empty;
             }
 
             default: return super.parseValue(data, key, summary);
@@ -432,13 +432,13 @@ class ZigBee extends DeviceService
         let list = data ? data.split('=') : new Array();
         let device;
 
-        menu.innerHTML  = '<span id="list"><i class="icon-list"></i> List</span>';
-        menu.innerHTML += '<span id="map"><i class="icon-map"></i> Map</span>';
-        menu.innerHTML += '<span id="permitJoin"><i class="icon-enable"></i> Permit Join</span>';
+        menu.innerHTML  = '<span id="list"><i class="mdi mdi-menu"></i> List</span>';
+        menu.innerHTML += '<span id="map"><i class="mdi mdi-map"></i> Map</span>';
+        menu.innerHTML += '<span id="permitJoin"><i class="mdi mdi-power-standby"></i> Permit Join</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage(this.service); }.bind(this));
         menu.querySelector('#map').addEventListener('click', function() { this.controller.showPage(this.service + '?map'); }.bind(this));
-        menu.querySelector('#permitJoin').addEventListener('click', function() { menu.querySelector('#permitJoin i').className = 'icon-enable'; this.serviceCommand({action: 'togglePermitJoin'}); }.bind(this));
+        menu.querySelector('#permitJoin').addEventListener('click', function() { menu.querySelector('#permitJoin i').className = 'mdi mdi-power-standby'; this.serviceCommand({action: 'togglePermitJoin'}); }.bind(this));
 
         switch (list[0])
         {
