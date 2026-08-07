@@ -42,6 +42,8 @@ class Dashboard
 
     devicePromise(item, cell, icon = true)
     {
+        let deadline = Date.now() + 5000;
+
         cell.innerHTML = item.name ?? (item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
 
         if (item.endpoint)
@@ -52,7 +54,7 @@ class Dashboard
             {
                 device = this.controller.findDevice(item);
 
-                if (!device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes)
+                if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes)
                 {
                     setTimeout(wait.bind(this, resolve), 10);
                     return;
@@ -61,7 +63,7 @@ class Dashboard
                 resolve();
             }
 
-            new Promise(wait.bind(this)).then(function() { cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (item.name ?? device.info.name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property)); }.bind(this));
+            new Promise(wait.bind(this)).then(function() { cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (item.name ?? (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property)); }.bind(this));
         }
     }
 

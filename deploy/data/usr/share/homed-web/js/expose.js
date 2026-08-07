@@ -111,11 +111,14 @@ function iconName(device, endpoint, itemName)
     if (meta.name.match(/(start|end)$/i))
         return 'clock-outline';
 
-    if (meta.name.match(/energy/i))
-        return defaultIcons.energy;
-
     if (meta.name.match(/temperature$/i))
         return defaultIcons.temperature;
+
+    if (meta.name.match(/power$/i))
+        return defaultIcons.power;
+
+    if (meta.name.match(/energy/i))
+        return defaultIcons.energy;
 
     return defaultIcons[option.type] ?? defaultIcons.sensor;
 }

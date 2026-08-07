@@ -644,7 +644,7 @@ class Automation
         let list = data ? data.split('=') : new Array();
         let automation;
 
-        menu.innerHTML  = '<span id="states"><i class="mdi-cog"></i> States</span>';
+        menu.innerHTML  = '<span id="states"><i class="mdi-variable"></i> States</span>';
         menu.innerHTML += '<span id="list"><i class="mdi-menu"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
         menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-upload"></i> Import</span>';

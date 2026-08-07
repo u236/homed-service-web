@@ -1279,7 +1279,7 @@ tr:first-child td {
     color: var(--color-main);
 }
 
-#toggleIcons i, #toggleTheme i, #toggleWide i, #logout i {
+#toggleIcons i, #toggleTheme i, #toggleWide i {
     display: inline-block;
     top: 3px;
     font-size: 1.6em;

@@ -1,4 +1,4 @@
-let modal, controller, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'off', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>';
+let modal, controller, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>';
 
 class Socket
 {
