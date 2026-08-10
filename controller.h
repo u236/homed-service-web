@@ -5,6 +5,8 @@
 #define COOKIE_MAX_AGE      31536000
 #define REQUEST_TIMEOUT     5000
 
+#include <QDir>
+#include <QJsonArray>
 #include <QMetaEnum>
 #include <QTcpServer>
 #include <QWebSocket>
@@ -50,6 +52,7 @@ private:
 
     void httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers = QMap <QString, QString> (), const QByteArray &response = QByteArray());
     void fileResponse(QTcpSocket *socket, const QString &fileName);
+    void servicesResponse(QTcpSocket *socket);
 
 public slots:
 

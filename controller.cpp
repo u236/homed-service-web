@@ -89,6 +89,14 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
     file.close();
 }
 
+void Controller::servicesResponse(QTcpSocket *socket)
+{
+    QStringList list = QDir(QString(m_frontend).append("/js/services")).entryList(QStringList("*.js"), QDir::Files, QDir::Name);
+    QByteArray data = QString("let homedServiceFiles = %1;").arg(QString(QJsonDocument(QJsonArray::fromStringList(list)).toJson(QJsonDocument::Compact))).toUtf8();
+
+    httpResponse(socket, 200, {{"Content-Type", "text/javascript"}, {"Content-Length", QString::number(data.length())}, {"Cache-Control", "no-cache, no-store"}}, data);
+}
+
 void Controller::quit(void)
 {
     m_webSocket->close();
@@ -311,6 +319,12 @@ void Controller::readyRead(void)
         socket->setProperty("guest", guest);
         m_webSocket->handleConnection(socket);
         m_sockets.removeAll(socket);
+        return;
+    }
+
+    if (url == "/js/services.js")
+    {
+        servicesResponse(socket);
         return;
     }
 

@@ -60,8 +60,13 @@ class Socket
 class Controller
 {
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
-    services = {dashboard: new Dashboard(this)};
-    serviceClasses = [Dashboard, Recorder, Automation, ZigBee, Matter, Modbus, Custom];
+    services = new Object();
+
+    constructor(serviceClasses)
+    {
+        this.serviceClasses = serviceClasses;
+        this.services.dashboard = new (serviceClasses.find(item => item.serviceName == 'dashboard'))(this);
+    }
 
     onopen()
     {
@@ -829,13 +834,49 @@ class Dropdown
     }
 }
 
+function loadServices(callback)
+{
+    let classes = new Array();
+    let index = 0;
+
+    function loadNext()
+    {
+        let script;
+
+        if (index >= homedServiceFiles.length)
+        {
+            callback(classes);
+            return;
+        }
+
+        script = document.createElement('script');
+        script.src = 'js/services/' + homedServiceFiles[index];
+
+        script.onload = function()
+        {
+            classes.push(_homed_service);
+            index++;
+            loadNext();
+        };
+
+        document.head.appendChild(script);
+    }
+
+    loadNext();
+}
+
 window.onload = function()
+{
+    loadServices(onLoad);
+};
+
+function onLoad(serviceClasses)
 {
     let date = new Date();
     let logout = document.querySelector('#logout');
 
     modal = document.querySelector('#modal');
-    controller = new Controller();
+    controller = new Controller(serviceClasses);
 
     window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
 
@@ -880,7 +921,7 @@ window.onload = function()
             showModal(true);
         });
     });
-};
+}
 
 window.onresize = function()
 {
