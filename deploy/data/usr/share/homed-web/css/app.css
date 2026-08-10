@@ -817,7 +817,7 @@ td.value[data-type="status"][data-value="on"] {
     -webkit-line-clamp: 2;
 }
 
-.tiled .dashboardBlock tr:not(.label):not([data-type="status"]) td.label .name {
+.tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name {
     color: var(--color-shade);
 }
 
@@ -1407,7 +1407,7 @@ tr:first-child td {
     .header .dropdown .list { left: 13px; padding-right: 10px;}
     .automationInfo td span { max-width: 150px; }
     .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
-    .tiled .dashboardBlock tr:not(.label):not([data-type="status"]) td.label .name { font-size: 0.875em; }
+    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name { font-size: 0.875em; }
     .mobileHidden { display: none; }
 }
 
