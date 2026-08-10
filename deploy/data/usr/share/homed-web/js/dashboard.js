@@ -3,7 +3,6 @@ class Dashboard
     content = document.querySelector('.content .container');
     index = parseInt(localStorage.getItem('homedDashboardIndex'));
 
-    intervals = new Array();
     status = new Object();
 
     constructor(controller)
@@ -42,9 +41,10 @@ class Dashboard
 
     devicePromise(item, cell, icon = true)
     {
+        let name = item.name ?? (item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
         let deadline = Date.now() + 5000;
 
-        cell.innerHTML = item.name ?? (item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
+        cell.innerHTML = icon ? '<span class="name">' + name + '</span>' : name;
 
         if (item.endpoint)
         {
@@ -63,7 +63,12 @@ class Dashboard
                 resolve();
             }
 
-            new Promise(wait.bind(this)).then(function() { cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (item.name ?? (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property)); }.bind(this));
+            new Promise(wait.bind(this)).then(function()
+            {
+                let name = item.name ?? (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+                cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) + '<span class="name">' + name + '</span>' : name);
+
+            }.bind(this));
         }
     }
 
@@ -78,9 +83,16 @@ class Dashboard
         return (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
-    dashboardName(dashboard)
+    dashboardName(dashboard, icon = true)
     {
-        return (dashboard.overview ? '<i class="mdi-view-grid"></i> ' : '') + dashboard.name;
+        let index = this.status.dashboards.indexOf(dashboard);
+        return (icon && dashboard.overview ? '<i class="mdi-star"></i> ' : '') + (dashboard.name || 'Dashboard ' + ((index < 0 ? this.status.dashboards.length : index) + 1));
+    }
+
+    blockName(dashboard, block)
+    {
+        let index = dashboard.blocks.indexOf(block);
+        return block.name || 'Block ' + ((index < 0 ? dashboard.blocks.length : index) + 1);
     }
 
     setIndex(index)
@@ -163,9 +175,9 @@ class Dashboard
                 case 'switch':
                 {
                     let name = meta.id ? 'status_' + meta.id : 'status';
+                    valueCell.dataset.type = 'status';
                     valueCell.dataset.property = name;
                     valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
-                    row.dataset.type = 'status';
                     break;
                 }
 
@@ -189,23 +201,29 @@ class Dashboard
 
             if (exposeMeta(item.property).name == 'status')
             {
+                valueCell.dataset.type = 'status';
                 valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[item.property]: 'toggle'}); }.bind(this));
-                row.dataset.type = 'status';
             }
         }
 
         return row;
     }
 
-    addChart(table, item, interval, height)
+    addChart(table, row, item, interval, height)
     {
         let deadline = Date.now() + 5000;
-        let row = table.insertRow();
-        let cell = row.insertCell();
+        let cell;
+
+        if (!row)
+        {
+            cell = table.insertRow().insertCell();
+            cell.colSpan = 2;
+        }
+        else
+            cell = row.insertCell();
 
         cell.innerHTML = '<div class="placeholder"></div>';
         cell.classList.add('chart');
-        cell.colSpan = 2;
 
         function wait(resolve)
         {
@@ -222,7 +240,7 @@ class Dashboard
 
         new Promise(wait.bind(this)).then(function()
         {
-            row.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
+            cell.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
             cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '" class="' + (height ?? 'normal') + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
             cell.querySelector('canvas').dataset.change = this.controller.services.recorder.counter(item);
@@ -237,7 +255,7 @@ class Dashboard
 
         if (!guest)
         {
-            menu.innerHTML  = '<span id="sort"><i class="mdi-sort-variant"></i> Sort</span>';
+            menu.innerHTML  = '<span id="sort"><i class="mdi-swap-horizontal-bold"></i> Sort</span>';
             menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
             menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-upload"></i> Import</span>';
 
@@ -268,9 +286,6 @@ class Dashboard
 
     showDashboard()
     {
-        this.intervals.forEach(interval => { clearInterval(interval); });
-        this.intervals = new Array();
-
         if (!guest)
             document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
 
@@ -288,6 +303,10 @@ class Dashboard
             let loader = this.content.querySelector('.pageLoader');
             let list = this.content.querySelector('.dashboardList');
             let dashboard = this.status.dashboards[this.index];
+            let tiled = dashboard.mode == 'tiled';
+
+            if (tiled)
+                this.content.querySelector('.dashboardData').classList.add('tiled');
 
             if (!guest)
             {
@@ -303,7 +322,7 @@ class Dashboard
                         delete data.blocks;
 
                     item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
-                    item.download = dashboard.name + '.json';
+                    item.download = this.dashboardName(dashboard, false) + '.json';
                     item.click();
 
                 }.bind(this));
@@ -354,11 +373,15 @@ class Dashboard
                     let items = new Array();
                     let column;
 
-                    element.innerHTML = '<div class="title"><span class="name">' + block.name + '</span><span class="control"></span></div>';
+                    element.innerHTML = '<div class="title"><span class="name">' + this.blockName(dashboard, block) + '</span><span class="control"></span></div>';
 
                     if (!dashboard.overview && !guest)
                     {
-                        element.querySelector('.control').innerHTML += '<span class="edit"><i class="mdi-pencil"></i></span>';
+                        if (!tiled)
+                            element.querySelector('.control').innerHTML += '<span class="edit"><i class="mdi-pencil"></i></span>';
+                        else
+                            element.querySelector('.name').classList.add('edit');
+
                         element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
                     }
 
@@ -379,10 +402,10 @@ class Dashboard
                         let endpointId = item.endpoint.split('/')[2] ?? 'common';
                         let device;
 
-                        row.classList.add('inactive');
-
-                        if (row.dataset.type != 'status')
+                        if (!row.querySelector('td.value[data-type="status"]'))
                             status = false;
+
+                        row.classList.add('inactive');
 
                         function wait(resolve)
                         {
@@ -405,13 +428,16 @@ class Dashboard
 
                             row.dataset.device = device.service + '/' + device.id;
                             row.dataset.endpointId = endpointId;
-                            row.querySelectorAll(row.dataset.type == 'status' ? 'td.label' : 'td.label, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
+                            row.querySelectorAll(cell.dataset.type == 'status' ? 'td.label' : 'td.label, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
+
+                            if (tiled && item.expose && cell.dataset.type == 'status')
+                                row.addEventListener('click', function(event) { if (event.target.closest('.exposeIcon')) return; event.stopPropagation(); deviceCommand(device, endpointId, {[cell.dataset.property]: 'toggle'}); }, true);
 
                             if (status)
-                                items.push({device: device, endpointId: endpointId, property: row.querySelector('td.value').dataset.property});
+                                items.push({device: device, endpointId: endpointId, property: cell.dataset.property});
 
-                            if (option.type == 'binary' && option.class)
-                                cell.dataset.class = option.class;
+                            if (option.type == 'binary')
+                                cell.dataset.type = 'binary';
 
                             if (!isNaN(option.round))
                                 cell.dataset.round = option.round;
@@ -427,7 +453,7 @@ class Dashboard
                             return;
 
                         row.classList.add('label');
-                        this.addChart(table, item, block.interval, block.height);
+                        this.addChart(table, tiled ? row : null, item, block.interval, block.height);
                     });
 
                     if (!table.rows.length)
@@ -436,36 +462,22 @@ class Dashboard
                         cell.innerHTML = '<i>block is empty<i>';
                         cell.classList.add('center', 'shade');
                     }
-                    else if (table.rows.length > 1 && status)
+                    else if (!tiled && table.rows.length > 1 && status)
                     {
                         let toggle = document.createElement('span');
 
-                        toggle.innerHTML = '<i class="mdi-power-standby shade"></i>';
+                        toggle.innerHTML = '<i class="mdi-power-standby"></i>';
                         toggle.classList.add('toggle');
 
-                        toggle.addEventListener('click', function() { items.forEach(item => { deviceCommand(item.device, item.endpointId, {[item.property]: toggle.dataset.status == 'on' ? 'off' : 'on'}); }); });
+                        toggle.addEventListener('click', function() { let value = items.find(item => item.device.properties(item.endpointId)[item.property] == 'on') ? 'off' : 'on'; items.forEach(item => { deviceCommand(item.device, item.endpointId, {[item.property]: value}); }); });
                         element.querySelector('.control').append(toggle);
-
-                        this.intervals.push(setInterval(function()
-                        {
-                            let status = 'off'
-
-                            items.forEach(item => { if (item.device.properties(item.endpointId)[item.property] == 'on') status = 'on'; });
-
-                            if (toggle.dataset.status == status)
-                                return;
-
-                            toggle.dataset.status = status;
-                            toggle.querySelector('i').className = 'mdi-power-standby ' + (status == 'on' ? 'warning' : 'shade');
-
-                        }, 100));
                     }
 
                     switch (dashboard.columnPriority)
                     {
-                        case 'left':  column = index < dashboard.blocks.length / 1.5 ? 'a' : 'b'; break;
-                        case 'right': column = index < dashboard.blocks.length / 4.0 ? 'a' : 'b'; break;
-                        default:      column = index < dashboard.blocks.length / 2.0 ? 'a' : 'b'; break;
+                        case 'left':  column = tiled || index < dashboard.blocks.length / 1.5 ? 'a' : 'b'; break;
+                        case 'right': column = tiled || index < dashboard.blocks.length / 4.0 ? 'a' : 'b'; break;
+                        default:      column = tiled || index < dashboard.blocks.length / 2.0 ? 'a' : 'b'; break;
                     }
 
                     this.content.querySelector('.column.' + column).append(element);
@@ -553,7 +565,7 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = block.name;
+                            cell.innerHTML = this.blockName(dashboard, block);
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showBlockEdit(dashboard, index, function() { this.showDashboardEdit(dashboard); }.bind(this)); }.bind(this));
                             break;
@@ -602,8 +614,9 @@ class Dashboard
 
         loadHTML('html/dashboard/dashboardEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.name').innerHTML = this.dashboardName(dashboard);
+            modal.querySelector('.name').innerHTML = this.dashboardName(dashboard, false);
             modal.querySelector('input[name="name"]').value = dashboard.name;
+            modal.querySelector('select[name="mode"]').value = dashboard.mode ?? 'default';
             modal.querySelector('select[name="columnPriority"]').value = dashboard.columnPriority ?? 'equal';
 
             modal.querySelector('input[name="overview"]').closest('label').style.display = dashboard.overview || dashboard.add ? 'block' : 'none';
@@ -627,6 +640,7 @@ class Dashboard
                 let form = formData(modal.querySelector('form'));
 
                 dashboard.name = form.name;
+                dashboard.mode = form.mode;
                 dashboard.columnPriority = form.columnPriority;
                 dashboard.overview = form.overview;
 
@@ -664,7 +678,7 @@ class Dashboard
     {
         loadHTML('html/dashboard/dashboardRemove.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.name').innerHTML = this.dashboardName(dashboard);
+            modal.querySelector('.name').innerHTML = this.dashboardName(dashboard, false);
             modal.querySelector('.remove').addEventListener('click', function() { this.status.dashboards.splice(this.index, 1); this.setIndex(0); this.storeDashboards(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
@@ -741,14 +755,14 @@ class Dashboard
 
         loadHTML('html/dashboard/blockEdit.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('.name').innerHTML = dashboard.name + ' <i class="mdi-arrow-right"></i> ' + block.name;
+            modal.querySelector('.name').innerHTML = this.dashboardName(dashboard, false) + ' <i class="mdi-arrow-right"></i> ' + this.blockName(dashboard, block);
             modal.querySelector('input[name="name"]').value = block.name;
             modal.querySelector('textarea[name="note"]').value = block.note ?? '';
 
             this.status.dashboards.forEach((dashboard, index) =>
             {
                 let option = document.createElement('option');
-                option.innerHTML = dashboard.name;
+                option.innerHTML = this.dashboardName(dashboard, false);
                 option.value = index;
                 modal.querySelector('select[name="dashboard"]').append(option);
             });
@@ -853,7 +867,7 @@ class Dashboard
             let name = modal.querySelector('.name');
             let data;
 
-            name.innerHTML = dashboard.name + ' <i class="mdi-arrow-right"></i> ' + block.name + ' <i class="mdi-arrow-right"></i> <span>New item</span>';
+            name.innerHTML = this.dashboardName(dashboard, false) + ' <i class="mdi-arrow-right"></i> ' + this.blockName(dashboard, block) + ' <i class="mdi-arrow-right"></i> <span>New item</span>';
 
             if (!item.add)
                 this.devicePromise(item, name.querySelector('span'), false);

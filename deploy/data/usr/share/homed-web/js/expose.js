@@ -26,7 +26,7 @@ const defaultIcons =
     running:           'fire',
     switch:            'lightbulb',
     systemMode:        'knob',
-    thermostat:        'thermometer',
+    thermostat:        'heat-wave',
     valve:             'pipe-valve',
 
     // common exposes
@@ -463,6 +463,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                 break;
 
             case 'status':
+                valueCell.dataset.type = 'status';
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpointId, {[property]: item.innerHTML}); }) );
                 break;
@@ -475,10 +476,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                 switch (option.type)
                 {
                     case 'binary':
-
-                        if (option.class)
-                            valueCell.dataset.class = option.class;
-
+                        valueCell.dataset.type = 'binary';
                         break;
 
                     case 'button':
@@ -658,7 +656,7 @@ function updateExpose(device, endpointId, property, value)
                     break;
 
                 case 'status':
-                    cell.innerHTML = '<i class="mdi-power-standby ' + (value == 'on' ? 'warning' : 'shade') + '"></i>';
+                    cell.innerHTML = '<i class="mdi-power-standby"></i>';
                     break;
 
                 default:
@@ -666,16 +664,23 @@ function updateExpose(device, endpointId, property, value)
                     if (['battery', 'batteryLow'].includes(name))
                         checkBattery(cell, value);
 
-                    if (typeof value == 'boolean' && cell.dataset.class)
+                    if (cell.dataset.type == 'binary' && typeof value == 'boolean')
                     {
-                        switch (cell.dataset.class)
+                        cell.dataset.binary = value;
+
+                        switch (name)
                         {
-                            case 'battery':   value = value ? 'low' : 'normal'; break;
-                            case 'door':      value = value ? 'open' : 'closed'; break;
-                            case 'occupancy': value = value ? 'occupied' : 'clear'; break;
-                            case 'tamper':    value = value ? 'on' : 'off'; break;
-                            case 'moisture':  value = value ? 'wet' : 'dry'; break;
-                            default:          value = value ? 'detected' : 'clear'; break;
+                            case 'gas':
+                            case 'motion':
+                            case 'smoke':
+                            case 'vibration':
+                                value = value ? 'detected' : 'clear'; break;
+
+                            case 'batteryLow': value = value ? 'low' : 'normal'; break;
+                            case 'contact':    value = value ? 'open' : 'closed'; break;
+                            case 'occupancy':  value = value ? 'occupied' : 'clear'; break;
+                            case 'tamper':     value = value ? 'on' : 'off'; break;
+                            case 'waterLeak':  value = value ? 'wet' : 'dry'; break;
                         }
                     }
 

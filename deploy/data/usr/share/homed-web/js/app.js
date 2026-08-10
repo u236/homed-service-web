@@ -300,7 +300,7 @@ class Controller
         let element = document.createElement('div');
 
         element.innerHTML = '<div class="message">' + message + '</div>';
-        element.classList.add('item', 'fade-in', 'move-in', style);
+        element.classList.add('item', 'fade-in', style);
         element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
 
         setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
@@ -315,7 +315,7 @@ class Controller
             return;
 
         setTimeout(function() { toast?.removeChild(item); }, 200);
-        item.classList.add('fade-out', 'move-out');
+        item.classList.add('fade-out');
     }
 
     findDevice(item)
@@ -1010,7 +1010,7 @@ function setTheme()
 
 function setWide()
 {
-    document.querySelectorAll('.container').forEach(item => item.style.maxWidth = wide != 'off' ? 'none' : '1000px');
+    document.querySelector('html').setAttribute('wide', wide);
     document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' WIDE MODE';
     controller.updateMenu(true);
 }
