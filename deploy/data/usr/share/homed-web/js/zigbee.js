@@ -1,5 +1,8 @@
 class ZigBee extends DeviceService
 {
+    static serviceName = 'zigbee';
+    static shortName = 'zbee';
+
     logicalTypes = ['coordinator', 'router', 'end device'];
     clusterNames =
     {
@@ -934,3 +937,5 @@ class ZigBee extends DeviceService
         });
     }
 }
+
+_homed_service = ZigBee;

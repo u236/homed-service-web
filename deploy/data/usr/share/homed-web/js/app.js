@@ -61,6 +61,7 @@ class Controller
 {
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
     services = {dashboard: new Dashboard(this)};
+    serviceClasses = [Dashboard, Recorder, Automation, ZigBee, Matter, Modbus, Custom];
 
     onopen()
     {
@@ -108,19 +109,17 @@ class Controller
 
             if (message.status == 'online')
             {
+                let serviceClass;
+
                 if (this.services[service])
                     return;
 
-                switch (list[1])
-                {
-                    case 'automation': this.services[service] = new Automation(this, list[2]); break;
-                    case 'recorder':   this.services[service] = new Recorder(this); break;
-                    case 'custom':     this.services[service] = new Custom(this, list[2]); break;
-                    case 'matter':     this.services[service] = new Matter(this, list[2]); break;
-                    case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
-                    case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
-                    default:           return;
-                }
+                serviceClass = this.serviceClasses.find(item => item.serviceName == list[1]);
+
+                if (!serviceClass)
+                    return;
+
+                this.services[service] = new serviceClass(this, list[2]);
 
                 if (service == 'recorder')
                     this.socket.subscribe('recorder');
@@ -165,8 +164,8 @@ class Controller
 
         if (redraw)
         {
-            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
-            let short = ['dash', 'rec', 'auto', 'zbee', 'mtr', 'mbus', 'cst'];
+            let names = this.serviceClasses.map(item => item.serviceName);
+            let short = this.serviceClasses.map(item => item.shortName);
             let services = Object.keys(this.services);
 
             this.serviceList = new Array();

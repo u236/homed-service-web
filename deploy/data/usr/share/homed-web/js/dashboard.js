@@ -1,5 +1,8 @@
 class Dashboard
 {
+    static serviceName = 'dashboard';
+    static shortName = 'dash';
+
     content = document.querySelector('.content .container');
     index = parseInt(localStorage.getItem('homedDashboardIndex'));
 
@@ -1040,3 +1043,5 @@ class Dashboard
         });
     }
 }
+
+_homed_service = Dashboard;

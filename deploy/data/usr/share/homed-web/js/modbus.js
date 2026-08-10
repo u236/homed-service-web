@@ -1,5 +1,8 @@
 class Modbus extends DeviceService
 {
+    static serviceName = 'modbus';
+    static shortName = 'mbus';
+
     deviceType =
     {
         customController:      'Custom Modbus Controller',
@@ -284,3 +287,5 @@ class Modbus extends DeviceService
         });
     }
 }
+
+_homed_service = Modbus;

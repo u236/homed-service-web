@@ -1,5 +1,8 @@
 class Automation
 {
+    static serviceName = 'automation';
+    static shortName = 'auto';
+
     intervals = [setInterval(function() { this.checkDevices(); this.updateLastTriggered(); }.bind(this), 100)];
     service = 'automation';
 
@@ -1752,3 +1755,5 @@ class Automation
         });
     }
 }
+
+_homed_service = Automation;

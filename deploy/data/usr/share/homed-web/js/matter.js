@@ -1,5 +1,8 @@
 class Matter extends DeviceService
 {
+    static serviceName = 'matter';
+    static shortName = 'mtr';
+
     constructor(controller, instance)
     {
         super(controller, 'matter', instance);
@@ -341,3 +344,5 @@ class Matter extends DeviceService
     //     this.shareTimer = setInterval(update, 1000);
     // }
 }
+
+_homed_service = Matter;

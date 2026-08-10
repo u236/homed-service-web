@@ -1,5 +1,8 @@
 class Recorder
 {
+    static serviceName = 'recorder';
+    static shortName = 'rec';
+
     content = document.querySelector('.content .container');
     status = new Object();
     data = new Object();
@@ -827,3 +830,5 @@ class Recorder
         });
     }
 }
+
+_homed_service = Recorder;

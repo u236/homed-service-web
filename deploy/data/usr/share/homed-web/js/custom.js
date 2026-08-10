@@ -1,5 +1,8 @@
 class Custom extends DeviceService
 {
+    static serviceName = 'custom';
+    static shortName = 'cst';
+
     constructor(controller, instance)
     {
         super(controller, 'custom', instance);
@@ -222,3 +225,5 @@ class Custom extends DeviceService
         });
     }
 }
+
+_homed_service = Custom;
