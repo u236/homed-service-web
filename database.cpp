@@ -32,6 +32,7 @@ void Database::init(void)
     m_adminToken = json.value("adminToken").toString();
     m_guestToken = json.value("guestToken").toString();
     m_dashboards = json.value("dashboards").toArray();
+    m_icons = json.value("icons").toObject();
     m_names = json.value("names").toObject();
 
     if (m_adminToken.isEmpty())
@@ -77,6 +78,9 @@ void Database::write(void)
 
     if (!m_dashboards.isEmpty())
         json.insert("dashboards", m_dashboards);
+
+    if (!m_icons.isEmpty())
+        json.insert("icons", m_icons);
 
     if (!m_names.isEmpty())
         json.insert("names", m_names);

@@ -22,6 +22,7 @@ public:
     {
         restartService,
         updateDashboards,
+        updateIcons,
         updateNames
     };
 

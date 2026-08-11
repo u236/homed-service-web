@@ -146,6 +146,13 @@ void Controller::mqttReceived(const QByteArray &message, const QMqttTopicName &t
                 break;
             }
 
+            case Command::updateIcons:
+            {
+                m_database->updateIcons(json.value("data").toObject());
+                m_database->store(true);
+                break;
+            }
+
             case Command::updateNames:
             {
                 m_database->updateNames(json.value("data").toObject());
