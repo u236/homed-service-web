@@ -395,6 +395,26 @@ class Controller
         return list;
     }
 
+    propertyIcon(item)
+    {
+        return this.services.dashboard.status.icons[item];
+    }
+
+    setPropertyIcon(item, icon)
+    {
+        let icons = this.services.dashboard.status.icons;
+
+        if (icons[item] == icon)
+            return;
+
+        if (icon)
+            icons[item] = icon;
+        else
+            delete icons[item];
+
+        this.services.dashboard.storeIcons();
+    }
+
     propertyName(item)
     {
         return this.services.dashboard.status.names[item];

@@ -26,6 +26,9 @@ class Dashboard
                 if (!this.status.dashboards)
                     this.status.dashboards = new Array();
 
+                if (!this.status.icons)
+                    this.status.icons = new Object();
+
                 if (!this.status.names)
                     this.status.names = new Object();
 
@@ -105,6 +108,11 @@ class Dashboard
     {
         this.controller.socket.publish('command/web', {action: 'updateDashboards', data: this.status.dashboards});
         this.controller.clearPage();
+    }
+
+    storeIcons()
+    {
+        this.controller.socket.publish('command/web', {action: 'updateIcons', data: this.status.icons});
     }
 
     storeNames()

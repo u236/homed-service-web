@@ -320,7 +320,13 @@ td.remove {
     text-align: right;
 }
 
-td.edit:hover, td.move:hover, td.edit:hover .shade {
+td.restore {
+    cursor: pointer;
+    width: 14px;
+    padding-right: 0;
+}
+
+td.edit:hover, td.move:hover, td.restore:hover, td.edit:hover .shade {
     color: var(--color-warning);
 }
 
@@ -344,7 +350,12 @@ td.value[data-type="status"][data-value="on"] {
     animation: fadeOut linear 0.2s;
 }
 
-.shade, .exposeIcon {
+.exposeIcon {
+    margin-right: 6px;
+    color: var(--color-shade);
+}
+
+.shade {
     color: var(--color-shade);
 }
 
@@ -1232,6 +1243,10 @@ tr:first-child td {
     margin-bottom: 10px;
 }
 
+#modal table.select td.icon i {
+    margin-right: 6px;
+}
+
 #modal table.select td.item {
     overflow: hidden;
     max-width: 100px;
@@ -1332,6 +1347,10 @@ tr:first-child td {
 
 #modal .dropdown .list input[type="text"] {
     margin: 10px 0;
+}
+
+#modal .dropdown .item i:first-child {
+    margin-right: 6px;
 }
 
 #toast {

@@ -66,12 +66,46 @@ const coverIcons =
     curtain:           {cover: 'curtains',       position: 'arrow-left-right'}
 };
 
-function iconName(device, endpoint, itemName)
+function itemProperty(endpoint, itemName)
+{
+    let meta = exposeMeta(itemName);
+    let list = ['light', 'lock', 'switch'];
+    return endpoint + '/' + (list.includes(meta.name) ? itemName.replace(meta.name, 'status') : itemName);
+}
+
+function iconList()
+{
+    let list = new Object();
+
+    Array.from(document.styleSheets).forEach(sheet =>
+    {
+        if (!sheet.href?.endsWith('css/mdi.css'))
+            return;
+
+        Array.from(sheet.cssRules).forEach(rule =>
+        {
+            let icon = rule.selectorText?.match(/^\.mdi-([a-z0-9-]+)::?before$/)?.[1];
+
+            if (!icon)
+                return;
+
+            list['<i class="mdi-' + icon + '"></i>mdi:' + icon] = 'mdi:' + icon;
+        });
+    });
+
+    return list;
+}
+
+function iconName(device, endpoint, itemName, icons = true)
 {
     let meta = exposeMeta(itemName);
     let endpointId = endpoint.split('/')[2] ?? 'common';
     let options = device.options(endpointId);
     let option = options[itemName] ?? options[meta.name] ?? new Object();
+    let propertyIcon = controller.propertyIcon(itemProperty(endpoint, itemName));
+
+    if (icons && propertyIcon)
+        return propertyIcon.replace(/^mdi:/, '');
 
     if (option.icon)
         return option.icon.replace(/^mdi:/, '');
@@ -148,7 +182,7 @@ function exposeMeta(expose)
 
 function exposeIcon(device, endpoint, itemName)
 {
-    return '<span class="mdi-' + iconName(device, endpoint, itemName) + ' exposeIcon"> </span>';
+    return '<span class="mdi-' + iconName(device, endpoint, itemName) + ' exposeIcon"></span>';
 }
 
 function exposeTitle(device, endpoint, itemName, names = true)
@@ -157,7 +191,7 @@ function exposeTitle(device, endpoint, itemName, names = true)
     let list = ['switch', 'lock'];
     let endpointId = endpoint.split('/')[2] ?? 'common';
     let endpointName = device.options(endpointId).name;
-    let propertyName = controller.propertyName(endpoint + '/' + (list.includes(meta.name) ? itemName.replace(meta.name, 'status') : itemName));
+    let propertyName = controller.propertyName(itemProperty(endpoint, itemName));
     let title;
 
     if (names && propertyName)
@@ -390,24 +424,43 @@ function addExpose(table, device, endpointId, expose, names = true)
         {
             labelCell.querySelector('.name').addEventListener('click', function()
             {
-                loadHTML('names.html', this, modal.querySelector('.data'), function()
+                loadHTML('customize.html', this, modal.querySelector('.data'), function()
                 {
                     let title = exposeTitle(device, endpoint, property, false);
-                    let item = endpoint + '/' + property;
+                    let item = itemProperty(endpoint, property);
+                    let icon = controller.propertyIcon(item);
+                    let icons = iconList();
+
+                    function showIcon()
+                    {
+                        let value = (icon ?? iconName(device, endpoint, property, false)).replace(/^mdi:/, '');
+                        modal.querySelector('.icon').innerHTML = '<i class="mdi-' + value + '"></i>' + (icon ? 'mdi:' + value : '<span class="shade">mdi:' + value + ' [default]</span>');
+                        modal.querySelector('.restore').style.display = icon ? 'table-cell' : 'none';
+                    }
 
                     modal.querySelector('.name').innerHTML = device.info.name + ' <i class="mdi-arrow-right"></i> ' + title;
                     modal.querySelector('input[name="name"]').placeholder = title;
                     modal.querySelector('input[name="name"]').value = controller.propertyName(item) ?? '';
+                    modal.querySelector('.restore').addEventListener('click', function() { icon = null; showIcon(); });
+
+                    addDropdown(modal.querySelector('.dropdown'), Object.keys(icons), function(key)
+                    {
+                        icon = icons[key];
+                        showIcon();
+                    });
 
                     modal.querySelector('.save').addEventListener('click', function()
                     {
+                        controller.setPropertyIcon(item, icon);
                         controller.setPropertyName(item, modal.querySelector('input[name="name"]').value.trim());
+                        labelCell.querySelector('.exposeIcon').className = 'mdi-' + iconName(device, endpoint, property) + ' exposeIcon';
                         labelCell.querySelector('.name').innerHTML = exposeTitle(device, endpoint, property);
                         showModal(false);
                     });
 
                     modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
                     showModal(true, 'input[name="name"]');
+                    showIcon();
                 });
             });
         }
