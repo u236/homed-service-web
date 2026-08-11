@@ -1,3 +1,4 @@
+#include <QDir>
 #include "controller.h"
 #include "logger.h"
 
@@ -29,6 +30,16 @@ Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, confi
     m_database->init();
 }
 
+QString Controller::includeList(const QString &path, const QString &type, const QString &pattern)
+{
+    QStringList list = QDir(QString(m_frontend).append(path)).entryList({QString("*.").append(type)}, QDir::Files, QDir::Name), items;
+
+    for (int i = 0; i < list.count(); i++)
+        items.append(pattern.arg(QString(path).mid(1).append('/').append(list.at(i))));
+
+    return items.join(QString("\n").append(QString(8, 0x20)));
+}
+
 void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers, const QByteArray &response)
 {
     QByteArray data;
@@ -52,6 +63,7 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
 void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
 {
     QFile file(QString(m_frontend).append(fileName));
+    QMap <QString, QString> headers;
     QByteArray type, data;
 
     if (!file.exists())
@@ -81,11 +93,14 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
 
     if (fileName == "/index.html")
     {
-        QString css = "<link rel=\"stylesheet\" href=\"css/custom.css\">";
-        data = QString(data).arg(m_title, QFile::exists(QString(m_frontend).append("/css/custom.css")) ? css : QString("<!-- %1 -->").arg(css), SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"mdi-logout\"></i> LOGOUT</span>" : QString()).toUtf8();
+        headers.insert("Cache-Control", "no-cache, no-store");
+        data = QString(data).arg(m_title, includeList("/plugin/css", "css", "<link rel=\"stylesheet\" href=\"%1\">"), includeList("/plugin/js", "js", "<script src=\"%1\"></script>"), SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"mdi-logout\"></i> LOGOUT</span>" : QString()).remove(QRegExp("\n[ ]+(?=\n)")).toUtf8();
     }
 
-    httpResponse(socket, 200, {{"Content-Type", type}, {"Content-Length", QString::number(data.length())}}, data);
+    headers.insert("Content-Type", type);
+    headers.insert("Content-Length", QString::number(data.length()));
+
+    httpResponse(socket, 200, headers, data);
     file.close();
 }
 

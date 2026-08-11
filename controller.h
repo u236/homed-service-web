@@ -49,6 +49,8 @@ private:
     QList <QTcpSocket*> m_sockets;
     QMap <QWebSocket*, QList <QString>> m_clients;
 
+    QString includeList(const QString &path, const QString &filter, const QString &tag);
+
     void httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers = QMap <QString, QString> (), const QByteArray &response = QByteArray());
     void fileResponse(QTcpSocket *socket, const QString &fileName);
 

@@ -1,4 +1,4 @@
-let modal, controller, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>';
+let modal, controller, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', plugins = new Array();
 
 class Socket
 {
@@ -119,7 +119,18 @@ class Controller
                     case 'matter':     this.services[service] = new Matter(this, list[2]); break;
                     case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
                     case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
-                    default:           return;
+
+                    default:
+                    {
+                        let plugin = plugins.find(item => item.serviceName == list[1]);
+
+                        if (!plugin)
+                            return;
+
+                        this.services[service] = new plugin(this, list[2]);
+                        this.services[service].service = service;
+                        break;
+                    }
                 }
 
                 if (service == 'recorder')
@@ -168,6 +179,8 @@ class Controller
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
             let short = ['dash', 'rec', 'auto', 'zbee', 'mtr', 'mbus', 'cst'];
             let services = Object.keys(this.services);
+
+            plugins.forEach(item => { if (names.includes(item.serviceName)) return; names.push(item.serviceName); short.push(item.shortName); });
 
             this.serviceList = new Array();
             menu.innerHTML = null;
@@ -264,6 +277,9 @@ class Controller
             this.services[this.service].showAlert(page);
             return;
         }
+
+        document.querySelector('.menu').innerHTML = null;
+        document.querySelector('#serviceVersion').innerHTML = '<i>unknown</i>';
 
         localStorage.setItem('homedPage', page);
         location.hash = page;
@@ -1006,9 +1022,21 @@ document.onkeydown = function(event)
     }
 };
 
+function registerPlugin(plugin)
+{
+    if (!plugin.serviceName)
+    {
+        console.log('plugin registration failed: serviceName is not defined');
+        return;
+    }
+
+    plugin.htmlPath = 'plugin/html/' + plugin.serviceName + '/';
+    plugins.push(plugin);
+}
+
 function loadHTML(file, context, element, callback)
 {
-    fetch(file + '?' + Date.now()).then(response => response.text()).then(html =>
+    fetch((context?.constructor?.htmlPath ?? '') + file + '?' + Date.now()).then(response => response.text()).then(html =>
     {
         element.innerHTML = html;
         callback.bind(context)();

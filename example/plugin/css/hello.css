@@ -1,0 +1,6 @@
+.helloWorld
+{
+    color: var(--color-warning);
+    padding: 50px;
+    text-align: center;
+}
