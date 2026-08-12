@@ -868,7 +868,12 @@ td.value[data-type="status"][data-value="on"] {
     display: none;
 }
 
+.tiled .dashboardBlock tr:not(.label):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) {
+    background-color: var(--background-hover);
+}
+
 .tiled .dashboardBlock tr:not(.label):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) .exposeIcon {
+    background-color: var(--border-edge);
     color: var(--color-warning);
 }
 

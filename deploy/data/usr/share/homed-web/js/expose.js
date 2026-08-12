@@ -124,7 +124,7 @@ function iconName(device, endpoint, itemName, icons = true)
             if (!device.items(endpointId).includes(name))
                 continue;
 
-            return defaultIcons[typeof options[name] == 'string' ? options[name] : list[i]];
+            return options[name]?.icon ? options[name].icon.replace(/^mdi:/, '') : defaultIcons[typeof options[name] == 'string' ? options[name] : list[i]];
         }
     }
 
@@ -261,7 +261,7 @@ function exposeList(expose, options)
             let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'heatMode'];
             controls.forEach(item => { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
-            options['temperature'] = {type: 'sensor', unit: '°C'};
+            options['temperature'] = {...options['temperature'], type: 'sensor', unit: '°C'};
             break;
         }
 
