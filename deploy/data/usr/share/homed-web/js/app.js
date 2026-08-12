@@ -477,7 +477,7 @@ class Device
 
     items(endpointId)
     {
-        return this.exposes(endpointId).items ?? new Array();
+        return this.exposes(endpointId).items?.filter(item => typeof item == 'string') ?? new Array();
     }
 
     options(endpointId)
@@ -662,6 +662,9 @@ class DeviceService
 
                     Object.keys(message).forEach(endpointId =>
                     {
+                        if (!message[endpointId]?.items?.length || (endpointId != 'common' && (endpointId % 1 != 0 || endpointId < 1 || endpointId > 255)))
+                            return;
+
                         this.controller.socket.subscribe('fd/' + this.service + '/' + (endpointId != 'common' ? item + '/' + endpointId : item));
                         device.setExposes(endpointId, message[endpointId]);
                     });

@@ -245,8 +245,11 @@ function exposeList(expose, options)
             break;
 
         case 'light':
-            list = ['status'].concat(options[meta.id ? 'light_' + meta.id : 'light'] ?? new Array());
+        {
+            let controls = options[meta.id ? 'light_' + meta.id : 'light'];
+            list = ['status'].concat(Array.isArray(controls) ? controls : new Array());
             break;
+        }
 
         case 'lock':
         case 'switch':
