@@ -1033,17 +1033,21 @@ function registerPlugin(plugin)
         return;
     }
 
-    plugin.htmlPath = 'plugin/html/' + plugin.serviceName + '/';
+    plugin.html = 'plugin/html/' + plugin.serviceName + '/';
     plugins.push(plugin);
 }
 
 function loadHTML(file, context, element, callback)
 {
-    fetch((context?.constructor?.htmlPath ?? '') + file + '?' + Date.now()).then(response => response.text()).then(html =>
+    if (context?.constructor?.html)
+        file = file.startsWith('html/') ? 'plugin/' + file : context.constructor.html + file;
+
+    fetch(file + '?' + Date.now()).then(response => response.ok ? response.text() : Promise.reject(file)).then(html =>
     {
         element.innerHTML = html;
         callback.bind(context)();
-    });
+
+    }).catch(file => { console.log('failed to load file ' + file); });
 }
 
 function setIcons()
