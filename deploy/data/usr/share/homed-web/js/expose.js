@@ -62,8 +62,14 @@ const defaultIcons =
 
 const coverIcons =
 {
-    blind:             {cover: 'window-shutter', position: 'arrow-up-down'},
-    curtain:           {cover: 'curtains',       position: 'arrow-left-right'}
+    awning:            {cover: 'awning-outline',         position: 'arrow-left-right'},
+    blind:             {cover: 'blinds',                 position: 'arrow-up-down'},
+    curtain:           {cover: 'curtains',               position: 'arrow-left-right'},
+    garage:            {cover: 'garage',                 position: 'arrow-up-down'},
+    gate:              {cover: 'gate',                   position: 'arrow-left-right'},
+    screen:            {cover: 'projector-screen',       position: 'arrow-up-down'},
+    shutter:           {cover: 'window-shutter',         position: 'arrow-up-down'},
+    window:            {cover: 'window-closed-variant',  position: 'arrow-up-down'}
 };
 
 function itemProperty(endpoint, itemName)
@@ -133,7 +139,7 @@ function iconName(device, endpoint, itemName, icons = true)
         let name = meta.id ? 'cover_' + meta.id : 'cover';
 
         if (device.items(endpointId).includes(name))
-            return coverIcons[options[name] == 'blind' ? 'blind' : 'curtain'][meta.name];
+            return (coverIcons[options[name]] ?? coverIcons.curtain)[meta.name];
     }
 
     if (defaultIcons[meta.name])
