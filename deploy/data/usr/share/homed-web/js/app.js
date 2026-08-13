@@ -1053,20 +1053,20 @@ function loadHTML(file, context, element, callback)
 function setIcons()
 {
     document.querySelector('html').setAttribute('icons', icons);
-    document.querySelector('#toggleIcons').innerHTML = (icons != 'off' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' SHOW ICONS';
+    document.querySelector('#toggleIcons').innerHTML = '<i class="' + (icons != 'off' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW ICONS';
 }
 
 function setTheme()
 {
     document.querySelector('html').setAttribute('theme', theme);
-    document.querySelector('#toggleTheme').innerHTML = (theme != 'light' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' DARK THEME';
+    document.querySelector('#toggleTheme').innerHTML = '<i class="' + (theme != 'light' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> DARK THEME';
     controller.services.recorder?.updateCharts();
 }
 
 function setWide()
 {
     document.querySelector('html').setAttribute('wide', wide);
-    document.querySelector('#toggleWide').innerHTML = (wide != 'off' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' WIDE MODE';
+    document.querySelector('#toggleWide').innerHTML = '<i class="' + (wide != 'off' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> WIDE MODE';
     controller.updateMenu(true);
 }
 

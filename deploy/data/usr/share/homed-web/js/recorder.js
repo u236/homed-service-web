@@ -718,12 +718,12 @@ class Recorder
                 let element = this.content.querySelector('.change');
 
                 canvas.dataset.change = true;
-                element.innerHTML = '<i class="mdi-toggle-switch"></i> SHOW CHANGE';
+                element.innerHTML = '<i class="mdi-toggle-switch toggleIcon"></i> SHOW CHANGE';
 
                 element.addEventListener('click', function()
                 {
                     canvas.dataset.change = canvas.dataset.change != 'true';
-                    element.innerHTML = (canvas.dataset.change == 'true' ? '<i class="mdi-toggle-switch"></i>' : '<i class="mdi-toggle-switch-off"></i>') + ' SHOW CHANGE';
+                    element.innerHTML = '<i class="' + (canvas.dataset.change == 'true' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
                     this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
                     this.chartQuery(this.data, chart, canvas.dataset.interval);
 

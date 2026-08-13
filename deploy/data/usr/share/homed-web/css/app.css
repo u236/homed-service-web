@@ -355,6 +355,12 @@ td.value[data-type="status"][data-value="on"] {
     color: var(--color-shade);
 }
 
+.toggleIcon {
+    display: inline-block;
+    top: 3px;
+    font-size: 1.6em;
+}
+
 .shade {
     color: var(--color-shade);
 }
@@ -1410,12 +1416,6 @@ tr:first-child td {
 
 #hotkeys:hover, #toggleIcons:hover, #toggleTheme:hover, #toggleWide:hover, #logout:hover {
     color: var(--color-main);
-}
-
-#toggleIcons i, #toggleTheme i, #toggleWide i {
-    display: inline-block;
-    top: 3px;
-    font-size: 1.6em;
 }
 
 @media (max-width: 1030px) {
