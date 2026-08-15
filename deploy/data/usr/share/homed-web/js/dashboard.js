@@ -89,13 +89,13 @@ class Dashboard
     dashboardName(dashboard, icon = true)
     {
         let index = this.status.dashboards.indexOf(dashboard);
-        return (icon && dashboard.overview ? '<i class="mdi-star"></i> ' : '') + (dashboard.name || 'Dashboard ' + ((index < 0 ? this.status.dashboards.length : index) + 1));
+        return (icon && dashboard.overview ? '<i class="mdi-star"></i> ' : '') + (dashboard.name?.trim() || 'Dashboard ' + ((index < 0 ? this.status.dashboards.length : index) + 1));
     }
 
     blockName(dashboard, block)
     {
         let index = dashboard.blocks.indexOf(block);
-        return block.name || 'Block ' + ((index < 0 ? dashboard.blocks.length : index) + 1);
+        return block.name?.trim() || 'Block ' + ((index < 0 ? dashboard.blocks.length : index) + 1);
     }
 
     setIndex(index)
