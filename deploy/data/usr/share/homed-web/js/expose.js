@@ -215,12 +215,15 @@ function exposeTitle(device, endpoint, itemName, names = true)
         switch (list[0])
         {
             case 'co2':  list[0] = 'CO2'; break;
+            case 'ec':   list[0] = 'EC'; break;
             case 'eco2': list[0] = 'eCO2'; break;
             case 'pm':   list[0] = 'PM'; break;
             case 'pm1':  list[0] = 'PM1'; break;
             case 'pm4':  list[0] = 'PM4'; break;
             case 'pm10': list[0] = 'PM10'; break;
             case 'pm25': list[0] = 'PM2.5'; break;
+            case 'sg':   list[0] = 'SG'; break;
+            case 'tds':  list[0] = 'TDS'; break;
             case 'uv':   list[0] = 'UV'; break;
             case 'voc':  list[0] = 'VOC'; break;
             default:     list[0] = list[0].charAt(0).toUpperCase() + list[0].slice(1).toLowerCase(); break;
