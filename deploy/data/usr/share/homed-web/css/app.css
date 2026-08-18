@@ -111,10 +111,15 @@ html[wide="on"] .container {
 }
 
 body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     background-color: var(--background-main);
+    box-sizing: border-box;
     font-family: 'Open Sans';
     font-weight: 400;
     color: var(--color-main);
@@ -498,6 +503,7 @@ td.value[data-type="status"][data-value="on"] {
 .login {
     max-width: 300px;
     min-height: calc(100vh - 20px);
+    min-height: calc(100dvh - 20px);
     margin: 0 auto;
     padding: 10px;
     text-align: center;
@@ -519,12 +525,13 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .content {
-    min-height: calc(100vh - var(--header-height) - var(--footer-height) - 1px);
+    flex: 1 0 auto;
     padding: 0 15px;
 }
 
 .header
 {
+    flex: none;
     height: var(--header-height);
     line-height: var(--header-height);
     padding: 0 15px;
@@ -582,6 +589,7 @@ td.value[data-type="status"][data-value="on"] {
 
 .footer
 {
+    flex: none;
     height: var(--footer-height);
     line-height: var(--footer-height);
     padding: 0 15px;
@@ -979,6 +987,7 @@ td.value[data-type="status"][data-value="on"] {
     display: block;
     width: calc(100% - 10px);
     height: calc(100vh - var(--header-height) - var(--footer-height) - 48px);
+    height: calc(100dvh - var(--header-height) - var(--footer-height) - 48px);
     margin: 10px 5px;
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
