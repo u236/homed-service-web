@@ -489,7 +489,8 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .dropdown .item {
-    padding: 2px 0;
+    height: 23px;
+    line-height: 23px;
     white-space: nowrap;
     text-transform: none;
     text-align: left;
@@ -561,6 +562,12 @@ td.value[data-type="status"][data-value="on"] {
 
 .header .services {
     margin-right: 10px;
+}
+
+.header .services .search i {
+    position: relative;
+    top: 1px;
+    left: -2px;
 }
 
 .header .menu {
@@ -1362,15 +1369,39 @@ tr:first-child td {
     overflow-x: auto;
     min-width: min(400px, calc(100vw - 50px));
     max-width: calc(100vw - 50px);
-    max-height: 305px;
+    max-height: clamp(148px, calc(round(down, 100vh - 220px, 23px) + 56px), 424px);
+    box-sizing: border-box;
 }
 
 #modal .dropdown .list input[type="text"] {
-    margin: 10px 0;
+    margin: 8px 0;
 }
 
 #modal .dropdown .item i:first-child {
     margin-right: 6px;
+}
+
+#modal .search {
+    overflow-y: auto;
+    max-height: clamp(100px, calc(round(down, 100vh - 220px, 25px)), 400px);
+    margin-bottom: 10px;
+}
+
+#modal .search .item {
+    overflow: hidden;
+    cursor: pointer;
+    height: 25px;
+    line-height: 25px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#modal .search .item i:first-child {
+    margin-right: 6px;
+}
+
+#modal .search .current {
+    color: var(--color-warning);
 }
 
 #toast {

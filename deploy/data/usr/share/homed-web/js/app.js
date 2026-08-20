@@ -215,18 +215,29 @@ class Controller
                 });
             });
 
-            if (!guest && menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 275)
+            if (!guest)
             {
-                let item = document.createElement('span');
-                let element = document.createElement('div');
+                let search = document.createElement('span');
 
-                item.classList.add('trigger');
-                element.classList.add('dropdown');
+                search.innerHTML = '<i class="mdi-magnify"></i>';
+                search.classList.add('search');
+                search.addEventListener('click', function(event) { event.stopPropagation(); this.showSearch(); }.bind(this));
 
-                addDropdown(element, this.serviceList, function(service) { this.showPage(service); }.bind(this), 0, item);
+                if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 350)
+                {
+                    let item = document.createElement('span');
+                    let element = document.createElement('div');
 
-                menu.innerHTML = null;
-                menu.append(item, element);
+                    item.classList.add('trigger');
+                    element.classList.add('dropdown');
+
+                    addDropdown(element, this.serviceList, function(service) { this.showPage(service); }.bind(this), 0, item);
+
+                    menu.innerHTML = null;
+                    menu.append(item, element);
+                }
+
+                menu.append('|', search);
             }
         }
 
@@ -334,6 +345,60 @@ class Controller
         item.classList.add('fade-out');
     }
 
+    showSearch()
+    {
+        let dashboard = this.services.dashboard;
+        let devices = this.devicesList();
+        let list = new Object();
+
+        dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
+
+        Object.keys(devices).forEach(name => { let device = devices[name]; list[this.searchTitle('Device', name)] = device.service + '?device=' + device.id; });
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach((automation, index) => { list[this.searchTitle('Automation', automation.name)] = service + '?index=' + index; }); });
+
+        this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false, false))] = 'recorder?index=' + index; });
+        this.serviceList?.forEach(service => { let name = service.replace('zigbee', 'ZigBee'); list[this.searchTitle('Service', name.charAt(0).toUpperCase() + name.slice(1))] = service; });
+
+        loadHTML('search.html', this, modal.querySelector('.data'), function()
+        {
+            let element = modal.querySelector('.search');
+            let input = modal.querySelector('input');
+
+            Object.keys(list).forEach(key =>
+            {
+                let item = document.createElement('div');
+
+                item.innerHTML = key;
+                item.classList.add('item');
+                item.addEventListener('click', function() { dropdown = undefined; showModal(false); this.showPage(list[key]); }.bind(this));
+
+                element.append(item);
+            });
+
+            input.addEventListener('input', function() { dropdown.setIndex(-1); element.querySelectorAll('.item').forEach(item => { item.style.display = input.value && !searchMatch(item.textContent, input.value) ? 'none' : 'block'; }); });
+
+            dropdown = new Dropdown(element, modal.querySelector('.data'));
+            dropdown.close = function() { showModal(false); };
+
+            modal.querySelector('.close').addEventListener('click', function() { dropdown = undefined; showModal(false); });
+            showModal(true, 'input');
+        });
+    }
+
+    searchTitle(type, name)
+    {
+        let icon =
+        {
+            automation: 'auto-fix',
+            dashboard:  'view-dashboard',
+            device:     'devices',
+            recorder:   'chart-line-variant',
+            service:    'puzzle-outline'
+        }
+
+        return '<i class="mdi-' + (icon[type.toLowerCase()] ?? 'help') + '"></i> ' + type + ' <i class="mdi-arrow-right"></i> ' + name;
+    }
+
     findDevice(item)
     {
         let list = item.endpoint.split('/');
@@ -387,7 +452,7 @@ class Controller
         let list = new Object();
 
         if (triggerProperty)
-            list['<i>Trigger Property</i>'] = {endpoint: "triggerEndpoint", property: "triggerProperty"};
+            list['<i>Trigger Property</i>'] = {endpoint: 'triggerEndpoint', property: 'triggerProperty'};
 
         Object.keys(devices).forEach(name =>
         {
@@ -770,7 +835,7 @@ class DeviceService
             this.content.querySelector('.export').addEventListener('click', function()
             {
                 let data = {exposes: device.info.exposes, real: device.info.real};
-                let item = document.createElement("a");
+                let item = document.createElement('a');
 
                 if (device.info.options)
                     data.options = device.info.options;
@@ -943,12 +1008,12 @@ document.onkeydown = function(event)
 
     if (!['input', 'textarea'].includes(event.target.tagName.toLowerCase()))
     {
-        if ((event.ctrlKey || event.metaKey) && (key == 'arrowleft' || key == 'arrowright'))
+        if (!guest && (event.ctrlKey || event.metaKey) && ['k', 'arrowleft', 'arrowright'].includes(key))
         {
             event.preventDefault();
 
             if (modal.style.display != 'block')
-                controller.switchService(key == 'arrowright');
+                key == 'k' ? controller.showSearch() : controller.switchService(key == 'arrowright');
 
             return;
         }
@@ -1070,6 +1135,17 @@ function setWide()
     controller.updateMenu(true);
 }
 
+function searchMatch(value, search)
+{
+    let en = 'qwertyuiop[]asdfghjkl;\'zxcvbnm,.';
+    let ru = 'йцукенгшщзхъфывапролджэячсмитьбю';
+
+    value = value.toLowerCase();
+    search = search.toLowerCase();
+
+    return value.includes(search) || value.includes(Array.from(search).map(item => en.includes(item) ? ru[en.indexOf(item)] : ru.includes(item) ? en[ru.indexOf(item)] : item).join(''));
+}
+
 function sortTable(table, index, first = true, once = false)
 {
     let invert = once && index == table.dataset.index ? true : false;
@@ -1166,7 +1242,7 @@ function addTableSearch(table, plural, single, colspan, cells = [0])
         table.querySelectorAll('tbody tr').forEach(row =>
         {
             let check = false;
-            row.querySelectorAll('td').forEach((cell, index) => { if (!check && cells.includes(index) && cell.innerHTML.toLowerCase().includes(input.value.toLowerCase())) { count++; check = true; } });
+            row.querySelectorAll('td').forEach((cell, index) => { if (!check && cells.includes(index) && searchMatch(cell.innerHTML, input.value)) { count++; check = true; } });
             row.style.display = check ? 'table-row' : 'none';
         });
 
@@ -1195,7 +1271,7 @@ function addDropdown(element, options, callback, separator, trigger)
         search = document.createElement('input');
         search.type = 'text';
         search.placeholder = 'Type to search';
-        search.addEventListener('input', function() { dropdown.setIndex(-1); list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !item.innerHTML.toLowerCase().includes(search.value.toLowerCase()) ? 'none' : 'block'; }); });
+        search.addEventListener('input', function() { dropdown.setIndex(-1); list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !searchMatch(item.textContent, search.value) ? 'none' : 'block'; }); });
         list.append(search);
     }
 

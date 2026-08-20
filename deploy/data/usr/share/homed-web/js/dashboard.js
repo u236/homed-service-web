@@ -257,9 +257,10 @@ class Dashboard
         }.bind(this));
     }
 
-    showPage()
+    showPage(data)
     {
         let menu = document.querySelector('.menu');
+        let list = data ? data.split('=') : new Array();
 
         if (!guest)
         {
@@ -287,6 +288,9 @@ class Dashboard
 
         if (!this.status.version)
             return;
+
+        if (list[0] == 'index')
+            this.setIndex(parseInt(list[1]));
 
         this.showDashboard();
         this.updatePage();
