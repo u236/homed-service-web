@@ -349,7 +349,11 @@ class Dashboard
                 let element = document.createElement('span');
 
                 if (list.innerHTML)
-                    list.append('|');
+                {
+                    let separator = document.createElement('i');
+                    separator.classList.add('separator');
+                    list.append(separator);
+                }
 
                 if (this.index == index)
                     element.classList.add('highlight');

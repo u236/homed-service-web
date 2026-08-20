@@ -202,7 +202,11 @@ class Controller
                     let itemName = service;
 
                     if (menu.innerHTML)
-                        menu.append('|');
+                    {
+                        let separator = document.createElement('i');
+                        separator.classList.add('separator');
+                        menu.append(separator);
+                    }
 
                     if (services.length > 7 && itemName.length > 6)
                         itemName = itemName.replace(name, short[index]);
@@ -218,10 +222,13 @@ class Controller
             if (!guest)
             {
                 let search = document.createElement('span');
+                let separator = document.createElement('i');
 
                 search.innerHTML = '<i class="mdi-magnify"></i>';
                 search.classList.add('search');
                 search.addEventListener('click', function(event) { event.stopPropagation(); this.showSearch(); }.bind(this));
+
+                separator.classList.add('separator');
 
                 if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 350)
                 {
@@ -237,7 +244,7 @@ class Controller
                     menu.append(item, element);
                 }
 
-                menu.append('|', search);
+                menu.append(separator, search);
             }
         }
 
