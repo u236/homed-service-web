@@ -82,13 +82,13 @@ class Controller
     {
         let list = topic.split('/');
 
-        if (topic == "error")
+        if (topic == 'error')
         {
             this.clearPage(message);
             return;
         }
 
-        if (topic == "setup")
+        if (topic == 'setup')
         {
             guest = message.guest;
 
@@ -964,7 +964,7 @@ document.onkeydown = function(event)
 
     if (modal.style.display != 'block')
     {
-        let search = document.querySelector("#search");
+        let search = document.querySelector('#search');
 
         switch (key)
         {

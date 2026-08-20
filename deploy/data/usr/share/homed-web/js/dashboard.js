@@ -323,7 +323,7 @@ class Dashboard
 
                 this.content.querySelector('.export').addEventListener('click', function()
                 {
-                    let item = document.createElement("a");
+                    let item = document.createElement('a');
                     let data = {...dashboard};
 
                     if (data.overview)
@@ -430,7 +430,7 @@ class Dashboard
 
                         new Promise(wait.bind(this)).then(function()
                         {
-                            let cell = row.querySelector("td.value");
+                            let cell = row.querySelector('td.value');
                             let option = device.options(endpointId)[item.expose ?? item.property] ?? new Object();
                             let properties = device.properties(endpointId);
 

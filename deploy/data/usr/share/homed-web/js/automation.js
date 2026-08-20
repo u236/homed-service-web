@@ -218,7 +218,7 @@ class Automation
     shieldValue(value)
     {
         if (typeof(value) == 'string')
-            value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            value = value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         return value;
     }
@@ -817,7 +817,7 @@ class Automation
             this.content.querySelector('.export').addEventListener('click', function()
             {
                 let data = structuredClone(this.data);
-                let item = document.createElement("a");
+                let item = document.createElement('a');
 
                 delete data.active;
                 delete data.lastTriggered;
