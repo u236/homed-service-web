@@ -356,11 +356,12 @@ class Controller
     {
         let dashboard = this.services.dashboard;
         let devices = this.devicesList();
+        let names = new Object();
         let list = new Object();
 
         dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
 
-        Object.keys(devices).forEach(name => { let device = devices[name]; list[this.searchTitle('Device', name)] = device.service + '?device=' + device.id; });
+        Object.keys(devices).forEach(name => { let device = devices[name]; let key = this.searchTitle('Device', name); names[key] = this.searchNames(device); list[key] = device.service + '?device=' + device.id; });
         Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach((automation, index) => { list[this.searchTitle('Automation', automation.name)] = service + '?index=' + index; }); });
 
         this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false, false))] = 'recorder?index=' + index; });
@@ -379,10 +380,32 @@ class Controller
                 item.classList.add('item');
                 item.addEventListener('click', function() { dropdown = undefined; showModal(false); this.showPage(list[key]); }.bind(this));
 
+                if (names[key]?.length)
+                {
+                    item.key = key;
+                    item.names = names[key];
+                }
+
                 element.append(item);
             });
 
-            input.addEventListener('input', function() { dropdown.setIndex(-1); element.querySelectorAll('.item').forEach(item => { item.style.display = input.value && !searchMatch(item.textContent, input.value) ? 'none' : 'block'; }); });
+            input.addEventListener('input', function()
+            {
+                dropdown.setIndex(-1);
+
+                element.querySelectorAll('.item').forEach(item =>
+                {
+                    let names = new Array();
+
+                    if (item.names)
+                    {
+                        names = input.value && item.names.filter(name => searchMatch(name, input.value));
+                        item.innerHTML = item.key + (names.length ? ' <i class="mdi-arrow-right shade"></i> <span class="shade">' + names.join(', ') + '</span>' : '');
+                    }
+
+                    item.style.display = input.value && !names.length && !searchMatch(item.textContent, input.value) ? 'none' : 'block';
+                });
+            });
 
             dropdown = new Dropdown(element, modal.querySelector('.data'));
             dropdown.close = function() { showModal(false); };
@@ -390,6 +413,15 @@ class Controller
             modal.querySelector('.close').addEventListener('click', function() { dropdown = undefined; showModal(false); });
             showModal(true, 'input');
         });
+    }
+
+    searchNames(device)
+    {
+        let endpoint = device.service.split('/')[0] + '/' + device.id + '/';
+        let names = this.services.dashboard.status.names ?? new Object();
+        let list = new Array();
+        Object.keys(names).forEach(item => { if (item.startsWith(endpoint) && !list.includes(names[item])) list.push(names[item]); });
+        return list;
     }
 
     searchTitle(type, name)

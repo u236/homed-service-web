@@ -1411,7 +1411,7 @@ tr:first-child td {
     margin-right: 6px;
 }
 
-#modal .search .current {
+#modal .search .current, #modal .search .current .shade {
     color: var(--color-warning);
 }
 
