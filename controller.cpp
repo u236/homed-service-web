@@ -224,12 +224,12 @@ void Controller::readyRead(void)
 
     for (int i = 1; i < head.count(); i++)
     {
-        QList <QString> header = head.at(i).split(':');
+        int index = head.at(i).indexOf(':');
 
-        if (header.count() < 2)
+        if (index < 0)
             continue;
 
-        headers.insert(header.value(0).toLower().trimmed(), header.value(1).trimmed());
+        headers.insert(head.at(i).mid(0, index).trimmed().toLower(), head.at(i).mid(index + 1).trimmed());
         logDebug(m_debug) << "Header received:" << head.at(i);
     }
 
@@ -269,7 +269,7 @@ void Controller::readyRead(void)
 
     if (m_auth)
     {
-        QString address = socket->peerAddress().toString(), token = cookies.value("homed-auth-token");
+        QString address = !headers.value("x-real-ip").isEmpty() ? headers.value("x-real-ip") : !headers.value("x-forwarded-for").isEmpty() ? headers.value("x-forwarded-for").split(',').value(0).trimmed() : socket->peerAddress().toString(), token = cookies.value("homed-auth-token");
 
         if (address.startsWith("::ffff:"))
             address = address.mid(7);
