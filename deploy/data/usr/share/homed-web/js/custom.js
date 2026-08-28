@@ -12,65 +12,70 @@ class Custom extends DeviceService
 
     parseMessage(list, message)
     {
-        if (list[0] == 'status')
+        switch (list[0])
         {
-            let check = Object.keys(this.devices).length ? false : true;
-
-            this.names = message.names;
-            this.version = message.version;
-
-            message.devices.forEach(device =>
+            case 'status':
             {
-                if (!device.name)
-                    device.name = device.id;
+                let check = Object.keys(this.devices).length ? false : true;
 
-                if (!this.devices[device.id])
+                this.names = message.names;
+                this.version = message.version;
+
+                message.devices.forEach(device =>
                 {
-                    let item = this.names ? device.name : device.id;
+                    if (!device.name)
+                        device.name = device.id;
 
-                    this.devices[device.id] = new Device(this.service, device.id);
-                    this.controller.socket.subscribe('expose/' + this.service + '/' + item);
-                    this.controller.socket.subscribe('device/' + this.service + '/' + item);
+                    if (!this.devices[device.id])
+                    {
+                        let item = this.names ? device.name : device.id;
 
+                        this.devices[device.id] = new Device(this.service, device.id);
+                        this.controller.socket.subscribe('expose/' + this.service + '/' + item);
+                        this.controller.socket.subscribe('device/' + this.service + '/' + item);
+
+                        check = true;
+                    }
+                    else if (this.names && this.devices[device.id].info.name != device.name)
+                    {
+                        this.controller.socket.unsubscribe('expose/' + this.service + '/' + this.devices[device.id].info.name);
+                        this.controller.socket.unsubscribe('device/' + this.service + '/' + this.devices[device.id].info.name);
+                        this.controller.socket.subscribe('expose/' + this.service + '/' + device.name);
+                        this.controller.socket.subscribe('device/' + this.service + '/' + device.name);
+                    }
+
+                    this.devices[device.id].info = device;
+
+                    if (this.controller.service != this.service || this.devices[device.id] != this.device)
+                        return;
+
+                    this.showDeviceInfo(this.device);
+                });
+
+                Object.keys(this.devices).forEach(id =>
+                {
+                    if (message.devices.filter(device => device.id == id).length)
+                        return;
+
+                    delete this.devices[id];
                     check = true;
-                }
-                else if (this.names && this.devices[device.id].info.name != device.name)
+                });
+
+                if (this.controller.service == this.service)
                 {
-                    this.controller.socket.unsubscribe('expose/' + this.service + '/' + this.devices[device.id].info.name);
-                    this.controller.socket.unsubscribe('device/' + this.service + '/' + this.devices[device.id].info.name);
-                    this.controller.socket.subscribe('expose/' + this.service + '/' + device.name);
-                    this.controller.socket.subscribe('device/' + this.service + '/' + device.name);
+                    if (check)
+                        this.controller.showPage(this.service);
+
+                    this.updatePage();
                 }
 
-                this.devices[device.id].info = device;
-
-                if (this.controller.service != this.service || this.devices[device.id] != this.device)
-                    return;
-
-                this.showDeviceInfo(this.device);
-            });
-
-            Object.keys(this.devices).forEach(id =>
-            {
-                if (message.devices.filter(device => device.id == id).length)
-                    return;
-
-                delete this.devices[id];
-                check = true;
-            });
-
-            if (this.controller.service == this.service)
-            {
-                if (check)
-                    this.controller.showPage(this.service);
-
-                this.updatePage();
+                break;
             }
 
-            return;
+            default:
+                super.parseMessage(list, message);
+                break;
         }
-
-        super.parseMessage(list, message);
     }
 
     showPage(data)

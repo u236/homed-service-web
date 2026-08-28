@@ -35,6 +35,11 @@ class Recorder
         setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.dataset.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000);
     }
 
+    updatePage()
+    {
+        document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
+    }
+
     updateCharts()
     {
         document.querySelectorAll('canvas').forEach(canvas =>
@@ -46,134 +51,6 @@ class Recorder
 
             chart.update();
         });
-    }
-
-    updatePage()
-    {
-        document.querySelector('#serviceVersion').innerHTML = 'Recorder ' + this.status.version;
-    }
-
-    timestampString(timestamp, seconds = true)
-    {
-        let date = new Date(timestamp);
-        let data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
-
-        if (seconds)
-            data += ':' + ('0' + date.getSeconds()).slice(-2);
-
-        return data;
-    }
-
-    daily(canvas)
-    {
-        return (canvas.dataset.end - canvas.dataset.start) / 86400000 >= 7; // TODO: check this
-    }
-
-    counter(item)
-    {
-        return ['increasing', 'total_increasing'].includes(this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.state); // TODO: remove backward compatibility for legacy total_increasing
-    }
-
-    unit(item)
-    {
-        return this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.unit ?? '';
-    }
-
-    devicePromise(data, cell, icon = false, info = false, table)
-    {
-        let device;
-
-        function wait(resolve)
-        {
-            device = this.controller.findDevice(data);
-
-            if (!device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes)
-            {
-                setTimeout(wait.bind(this, resolve), 10);
-                return;
-            }
-
-            resolve();
-        }
-
-        new Promise(wait.bind(this)).then(function()
-        {
-            let title = exposeTitle(device, data.endpoint, data.property);
-
-            this.status.items.forEach(item =>
-            {
-                if (item.endpoint != data.endpoint || item.property != data.property || item.name)
-                    return;
-
-                item.name = device.info.name + ' - ' + title;
-            });
-
-            cell.innerHTML = (icon ? exposeIcon(device, data.endpoint, data.property) : '') + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
-
-            if (!guest && info)
-            {
-                cell.querySelector('span').classList.add('info');
-                cell.querySelector('span').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); }.bind(this));
-            }
-
-            if (!table)
-                return;
-
-            sortTable(table, 0);
-
-        }.bind(this));
-    }
-
-    dataRequest(canvas)
-    {
-        if (canvas.dataset.interval != 'custom')
-        {
-            let date = new Date();
-            let offset = parseInt(canvas.dataset.offset) || 0;
-
-            switch (canvas.dataset.interval)
-            {
-                case '2h':    date.setHours(date.getHours() - 2); break;
-                case '8h':    date.setHours(date.getHours() - 8); break;
-                case 'week':  date.setDate(date.getDate() - 7); break;
-                case 'month': date.setMonth(date.getMonth() - 1); break;
-                default:      date.setHours(date.getHours() - 24); break;
-            }
-
-            offset *= Math.max((Date.now() - date.getTime()) / 10, 7200000);
-            canvas.dataset.start = date.getTime() - offset;
-            canvas.dataset.end = Date.now() - offset;
-        }
-
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.change == 'true' && this.daily(canvas) ? new Date(parseInt(canvas.dataset.start)).setHours(0, 0, 0, 0) : canvas.dataset.start, end: canvas.dataset.end, change: canvas.dataset.change == 'true'});
-    }
-
-    chartQuery(item, element, interval, shift, start, end)
-    {
-        let canvas = element.querySelector('canvas');
-        let offset = parseInt(canvas.dataset.offset) || 0;
-
-        if (interval)
-            canvas.dataset.interval = interval;
-
-        if (interval == 'custom')
-        {
-            canvas.dataset.start = start;
-            canvas.dataset.end = end;
-        }
-
-        switch (shift)
-        {
-            case 'left': offset += 1; break;
-            case 'right': if (offset > 0) offset -= 1; break;
-            default: offset = 0; break;
-        }
-
-        canvas.dataset.offset = offset;
-        canvas.dataset.endpoint = item.endpoint;
-        canvas.dataset.property = item.property;
-
-        this.dataRequest(canvas);
     }
 
     parseData(message)
@@ -536,6 +413,129 @@ class Recorder
 
             // TODO: add events
         }
+    }
+
+    timestampString(timestamp, seconds = true)
+    {
+        let date = new Date(timestamp);
+        let data = date.toLocaleString('default', { month: 'short' }) + ' ' + date.getDate() + ', ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+
+        if (seconds)
+            data += ':' + ('0' + date.getSeconds()).slice(-2);
+
+        return data;
+    }
+
+    daily(canvas)
+    {
+        return (canvas.dataset.end - canvas.dataset.start) / 86400000 >= 7; // TODO: check this
+    }
+
+    counter(item)
+    {
+        return ['increasing', 'total_increasing'].includes(this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.state); // TODO: remove backward compatibility for legacy total_increasing
+    }
+
+    unit(item)
+    {
+        return this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.unit ?? '';
+    }
+
+    dataRequest(canvas)
+    {
+        if (canvas.dataset.interval != 'custom')
+        {
+            let date = new Date();
+            let offset = parseInt(canvas.dataset.offset) || 0;
+
+            switch (canvas.dataset.interval)
+            {
+                case '2h':    date.setHours(date.getHours() - 2); break;
+                case '8h':    date.setHours(date.getHours() - 8); break;
+                case 'week':  date.setDate(date.getDate() - 7); break;
+                case 'month': date.setMonth(date.getMonth() - 1); break;
+                default:      date.setHours(date.getHours() - 24); break;
+            }
+
+            offset *= Math.max((Date.now() - date.getTime()) / 10, 7200000);
+            canvas.dataset.start = date.getTime() - offset;
+            canvas.dataset.end = Date.now() - offset;
+        }
+
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.change == 'true' && this.daily(canvas) ? new Date(parseInt(canvas.dataset.start)).setHours(0, 0, 0, 0) : canvas.dataset.start, end: canvas.dataset.end, change: canvas.dataset.change == 'true'});
+    }
+
+    chartQuery(item, element, interval, shift, start, end)
+    {
+        let canvas = element.querySelector('canvas');
+        let offset = parseInt(canvas.dataset.offset) || 0;
+
+        if (interval)
+            canvas.dataset.interval = interval;
+
+        if (interval == 'custom')
+        {
+            canvas.dataset.start = start;
+            canvas.dataset.end = end;
+        }
+
+        switch (shift)
+        {
+            case 'left': offset += 1; break;
+            case 'right': if (offset > 0) offset -= 1; break;
+            default: offset = 0; break;
+        }
+
+        canvas.dataset.offset = offset;
+        canvas.dataset.endpoint = item.endpoint;
+        canvas.dataset.property = item.property;
+
+        this.dataRequest(canvas);
+    }
+
+    devicePromise(data, cell, icon = false, info = false, table)
+    {
+        let device;
+
+        function wait(resolve)
+        {
+            device = this.controller.findDevice(data);
+
+            if (!device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes)
+            {
+                setTimeout(wait.bind(this, resolve), 10);
+                return;
+            }
+
+            resolve();
+        }
+
+        new Promise(wait.bind(this)).then(function()
+        {
+            let title = exposeTitle(device, data.endpoint, data.property);
+
+            this.status.items.forEach(item =>
+            {
+                if (item.endpoint != data.endpoint || item.property != data.property || item.name)
+                    return;
+
+                item.name = device.info.name + ' - ' + title;
+            });
+
+            cell.innerHTML = (icon ? exposeIcon(device, data.endpoint, data.property) : '') + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
+
+            if (!guest && info)
+            {
+                cell.querySelector('span').classList.add('info');
+                cell.querySelector('span').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); }.bind(this));
+            }
+
+            if (!table)
+                return;
+
+            sortTable(table, 0);
+
+        }.bind(this));
     }
 
     showPage(data)

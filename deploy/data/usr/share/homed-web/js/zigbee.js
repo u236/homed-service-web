@@ -51,6 +51,12 @@ class ZigBee extends DeviceService
         this.intervals.push(setInterval(function() { this.updateBattery(); this.updateLastSeen(); }.bind(this), 100));
     }
 
+    updatePage()
+    {
+        document.querySelector('#permitJoin i').className = 'mdi-power-standby ' + (this.permitJoin ? 'warning' : 'shade');
+        document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : '<i>unknown</i>';
+    }
+
     updateBattery()
     {
         if (this.controller.service != this.service)
@@ -203,12 +209,6 @@ class ZigBee extends DeviceService
         table.querySelectorAll('tr').forEach(row => { if (row.dataset.id && !list.includes(row.dataset.id)) row.remove(); });
         table.style.display = list.length ? 'table' : 'none';
         sortTable(table, 0);
-    }
-
-    updatePage()
-    {
-        document.querySelector('#permitJoin i').className = 'mdi-power-standby ' + (this.permitJoin ? 'warning' : 'shade');
-        document.querySelector('#serviceVersion').innerHTML = this.version ? 'ZigBee ' + this.version : '<i>unknown</i>';
     }
 
     updateOtaData(device)

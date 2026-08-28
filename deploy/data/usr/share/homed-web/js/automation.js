@@ -26,50 +26,9 @@ class Automation
         this.service += '/' + instance;
     }
 
-    isArrayStatement(statement)
+    updatePage()
     {
-        return statement == 'between' || statement == 'outside';
-    }
-
-    statementString(statement)
-    {
-        switch (statement)
-        {
-            case 'outside': return 'is outside';
-            case 'changes': return 'changes for';
-            default: return statement;
-        }
-    }
-
-    checkDevices()
-    {
-        if (this.controller.page != this.service || !this.status.automations)
-            return;
-
-        this.status.automations.forEach((item, index) =>
-        {
-            let row = document.querySelector('tr[data-index="' + index + '"]');
-            let check = false;
-
-            if (!row)
-                return;
-
-            Object.keys(item).forEach(key =>
-            {
-                if (!Array.isArray(item[key]))
-                    return;
-
-                item[key].forEach(element => { if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty' && !this.controller.findDevice(element).info) check = true; });
-            });
-
-            if (check)
-            {
-                row.classList.add('incomplete');
-                return;
-            }
-
-            row.classList.remove('incomplete');
-        });
+        document.querySelector('#serviceVersion').innerHTML = 'Automation ' + this.status.version;
     }
 
     updateLastTriggered()
@@ -137,11 +96,6 @@ class Automation
         sortTable(table, 0);
     }
 
-    updatePage()
-    {
-        document.querySelector('#serviceVersion').innerHTML = 'Automation ' + this.status.version;
-    }
-
     parseMessage(list, message)
     {
         switch (list[0])
@@ -151,6 +105,7 @@ class Automation
                 let check = this.status.automations?.map(automation => automation.uuid);
 
                 this.status = message;
+
                 this.status.automations?.forEach(item =>
                 {
                     if (!item.conditions)
@@ -213,6 +168,52 @@ class Automation
     parseValue(value)
     {
         return value ? value == 'true' || value == 'false' ? value == 'true' : parseFloat(value) == value ? parseFloat(value) : value : null;
+    }
+
+    isArrayStatement(statement)
+    {
+        return statement == 'between' || statement == 'outside';
+    }
+
+    statementString(statement)
+    {
+        switch (statement)
+        {
+            case 'outside': return 'is outside';
+            case 'changes': return 'changes for';
+            default: return statement;
+        }
+    }
+
+    checkDevices()
+    {
+        if (this.controller.page != this.service || !this.status.automations)
+            return;
+
+        this.status.automations.forEach((item, index) =>
+        {
+            let row = document.querySelector('tr[data-index="' + index + '"]');
+            let check = false;
+
+            if (!row)
+                return;
+
+            Object.keys(item).forEach(key =>
+            {
+                if (!Array.isArray(item[key]))
+                    return;
+
+                item[key].forEach(element => { if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty' && !this.controller.findDevice(element).info) check = true; });
+            });
+
+            if (check)
+            {
+                row.classList.add('incomplete');
+                return;
+            }
+
+            row.classList.remove('incomplete');
+        });
     }
 
     shieldValue(value)
