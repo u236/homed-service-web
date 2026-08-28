@@ -521,7 +521,8 @@ class ZigBee extends DeviceService
     {
         loadHTML('html/zigbee/deviceMap.html', this, this.content, function()
         {
-            let map, width, height, link, text, node, routerLinks = false;
+            let map, width, height, link, text, node;
+            let routerLinks = false;
             let data = {nodes: new Array(), links: new Array()};
             let drag = d3.drag();
             let simulation = d3.forceSimulation();
@@ -595,8 +596,7 @@ class ZigBee extends DeviceService
     {
         loadHTML('html/zigbee/deviceInfo.html', this, this.content, function()
         {
-            let ota;
-            let table;
+            let ota, table;
 
             this.content.querySelector('.name').innerHTML = device.info.name;
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));

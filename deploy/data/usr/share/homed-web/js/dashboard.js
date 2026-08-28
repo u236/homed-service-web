@@ -44,10 +44,10 @@ class Dashboard
 
     devicePromise(item, cell, icon = true)
     {
-        let name = item.name ?? (item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
+        let name = item.name ?? (item.camera ? this.cameraTitle(item.camera, icon) : item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
         let deadline = Date.now() + 5000;
 
-        cell.innerHTML = icon ? '<span class="name">' + name + '</span>' : name;
+        cell.innerHTML = icon ? (item.camera ? '<span class="mdi-video exposeIcon"></span>' : '') + '<span class="name">' + name + '</span>' : name;
 
         if (item.endpoint)
         {
@@ -80,10 +80,15 @@ class Dashboard
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
 
-    itemString(item, edit = true, icon = true)
+    itemString(item, edit = true)
     {
-        let device = this.controller.findDevice(item);
-        return (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '') + (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        if (!item.camera)
+        {
+            let device = this.controller.findDevice(item);
+            return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        }
+
+        return (edit ? 'Camera <i class="mdi-arrow-right"></i> ' : '') + this.cameraTitle(item.camera);
     }
 
     dashboardName(dashboard, icon = true)
@@ -96,6 +101,12 @@ class Dashboard
     {
         let index = dashboard.blocks.indexOf(block);
         return block.name?.trim() || 'Block ' + ((index < 0 ? dashboard.blocks.length : index) + 1);
+    }
+
+    cameraTitle(id, prefix = false)
+    {
+        let device = this.controller.services.camera?.findDevice(id);
+        return device ? device.name : '<span class="error">' + (prefix ? 'camera/' : '') + id + '</span>';
     }
 
     setIndex(index)
@@ -217,6 +228,35 @@ class Dashboard
         return row;
     }
 
+    addCamera(table, item)
+    {
+        let camera = this.controller.services.camera;
+        let label = document.createElement('div');
+        let row = table.insertRow();
+        let cell = row.insertCell();
+        let video;
+
+        label.classList.add('label');
+        this.devicePromise(item, label);
+
+        cell.colSpan = 2;
+        cell.classList.add('camera');
+        cell.append(label);
+
+        if (!camera?.findDevice(item.camera))
+        {
+            let placeholder = document.createElement('div');
+            placeholder.classList.add('placeholder');
+            row.classList.add('inactive');
+            cell.append(placeholder);
+            return;
+        }
+
+        video = camera.addVideo(cell);
+        cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen() : video.webkitEnterFullscreen(); });
+        camera.play(video, item.camera);
+    }
+
     addChart(table, row, item, interval, height)
     {
         let deadline = Date.now() + 5000;
@@ -269,7 +309,7 @@ class Dashboard
             menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-upload"></i> Import</span>';
 
             menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
-            menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(null); }.bind(this));
+            menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(); }.bind(this));
 
             menu.querySelector('#import').addEventListener('click', function()
             {
@@ -298,6 +338,8 @@ class Dashboard
 
     showDashboard()
     {
+        this.controller.services.camera?.stop();
+
         if (!guest)
             document.querySelector('#sort').style.display = this.status.dashboards.length > 1 ? 'inline-block' : 'none';
 
@@ -414,9 +456,17 @@ class Dashboard
 
                     block.items.forEach(item =>
                     {
-                        let row = this.addBlockItem(table, item);
-                        let endpointId = item.endpoint.split('/')[2] ?? 'common';
-                        let device;
+                        let row, endpointId, device;
+
+                        if (item.camera)
+                        {
+                            this.addCamera(table, item);
+                            status = false;
+                            return;
+                        }
+
+                        row = this.addBlockItem(table, item);
+                        endpointId = item.endpoint.split('/')[2] ?? 'common';
 
                         if (!row.querySelector('td.value[data-type="status"]'))
                             status = false;
@@ -719,7 +769,7 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
-                            cell.innerHTML = '<span></span><div class="note">' + this.itemString(item, true, false) + '</div>';
+                            cell.innerHTML = '<span></span><div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
                             this.devicePromise(item, cell.querySelector('span'), false);
@@ -837,6 +887,7 @@ class Dashboard
     {
         let devices = this.controller.devicesList();
         let recorder = this.controller.services.recorder;
+        let camera = this.controller.services.camera;
         let list = new Object();
 
         if (!item)
@@ -878,6 +929,9 @@ class Dashboard
             Object.keys(items).sort().forEach(id => list[id] = items[id]);
         }
 
+        if (camera?.status?.devices?.length)
+            camera.status.devices.forEach(device => { list['<i class="mdi-video exposeIcon"></i>Camera <i class="mdi-arrow-right"></i> ' + device.name] = {camera: device.id}; });
+
         loadHTML('html/dashboard/itemEdit.html', this, modal.querySelector('.data'), function()
         {
             let name = modal.querySelector('.name');
@@ -890,12 +944,12 @@ class Dashboard
 
             modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
-            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.itemString(item, true, false);
+            modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.itemString(item);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {
                 data = list[key];
-                modal.querySelector('.item').innerHTML = this.itemString(data, true, false);
+                modal.querySelector('.item').innerHTML = this.itemString(data);
                 modal.querySelector('.item').classList.remove('error');
 
             }.bind(this));
@@ -909,21 +963,15 @@ class Dashboard
 
                 if (data)
                 {
-                    item.endpoint = data.endpoint;
+                    delete item.camera;
+                    delete item.endpoint;
+                    delete item.expose;
+                    delete item.property;
 
-                    if (data.expose)
-                    {
-                        item.expose = data.expose;
-                        delete item.property;
-                    }
-                    else
-                    {
-                        item.property = data.property;
-                        delete item.expose;
-                    }
+                    Object.keys(data).forEach(key => item[key] = data[key]);
                 }
 
-                if (!item.endpoint || (!item.expose && !item.property))
+                if (!item.camera && (!item.endpoint || (!item.expose && !item.property)))
                 {
                     modal.querySelector('.item').classList.add('error');
                     return;
@@ -979,7 +1027,7 @@ class Dashboard
         {
             let table;
 
-            modal.querySelector('.name').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false, false);
+            modal.querySelector('.name').innerHTML = this.itemString({endpoint: item.endpoint, expose: expose}, false);
 
             table = modal.querySelector('table.exposes');
             addExpose(table, device, endpointId, expose, false);
@@ -1004,7 +1052,7 @@ class Dashboard
             let id = 'chart-' + randomString(8);
             let chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = this.itemString(item, false, false);
+            modal.querySelector('.name').innerHTML = this.itemString(item, false);
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {

@@ -751,9 +751,7 @@ class Automation
     {
         loadHTML('html/automation/automationInfo.html', this, this.content, function()
         {
-            let triggers;
-            let conditions;
-            let actions;
+            let triggers, conditions, actions;
 
             if (updated)
             {

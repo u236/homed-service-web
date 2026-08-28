@@ -277,7 +277,7 @@ class Modbus extends DeviceService
                 else
                     delete form.options;
 
-                this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
+                this.serviceCommand({action: 'updateDevice', device: add ? null : device.id, data: form});
 
             }.bind(this));
 

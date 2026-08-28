@@ -114,11 +114,12 @@ class Controller
                 switch (list[1])
                 {
                     case 'automation': this.services[service] = new Automation(this, list[2]); break;
-                    case 'recorder':   this.services[service] = new Recorder(this); break;
                     case 'custom':     this.services[service] = new Custom(this, list[2]); break;
                     case 'matter':     this.services[service] = new Matter(this, list[2]); break;
                     case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
                     case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
+                    case 'camera':     this.services[service] = new Camera(this); break;
+                    case 'recorder':   this.services[service] = new Recorder(this); break;
 
                     default:
                     {
@@ -133,8 +134,8 @@ class Controller
                     }
                 }
 
-                if (service == 'recorder')
-                    this.socket.subscribe('recorder');
+                if (service == 'camera' || service == 'recorder')
+                    this.socket.subscribe(service);
 
                 this.socket.subscribe('status/' + service);
                 this.socket.subscribe('event/' + service);
@@ -144,8 +145,8 @@ class Controller
                 if (this.service == service)
                     this.clearPage(service + ' service is unavailable');
 
-                if (service == 'recorder')
-                    this.socket.unsubscribe('recorder');
+                if (service == 'camera' || service == 'recorder')
+                    this.socket.unsubscribe(service);
 
                 this.removeService(service);
             }
@@ -154,14 +155,20 @@ class Controller
             return;
         }
 
-        if (topic != 'recorder' || !this.services.recorder)
+        switch (topic)
         {
-            let service = list[1] != 'web' ? this.services[list[1] + '/' + list[2]] ?? this.services[list[1]] : this.services.dashboard;
-            service?.parseMessage(list, message);
-            return;
-        }
+            case 'camera':
+            case 'recorder':
+                this.services[topic]?.parseData(message);
+                break;
 
-        this.services.recorder.parseData(message);
+            default:
+            {
+                let service = list[1] != 'web' ? this.services[list[1] + '/' + list[2]] ?? this.services[list[1]] : this.services.dashboard;
+                service?.parseMessage(list, message);
+                break;
+            }
+        }
     }
 
     removeService(item)
@@ -176,8 +183,8 @@ class Controller
 
         if (redraw)
         {
-            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
-            let short = ['dash', 'rec', 'auto', 'zbee', 'mtr', 'mbus', 'cst'];
+            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom', 'camera'];
+            let short = ['dash', 'rec', 'auto', 'zbee', 'mtr', 'mbus', 'cst', 'cam'];
             let services = Object.keys(this.services);
 
             plugins.forEach(item => { if (names.includes(item.serviceName)) return; names.push(item.serviceName); short.push(item.shortName); });
@@ -301,6 +308,9 @@ class Controller
 
         localStorage.setItem('homedPage', page);
         location.hash = page;
+
+        if (this.service != service)
+            this.services.camera?.stop();
 
         this.service = service;
         this.page = page;
@@ -901,7 +911,7 @@ class DeviceService
         loadHTML('html/' + this.service.split('/')[0] + '/deviceRemove.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('.name').innerHTML = device.info.name;
-            modal.querySelector('.remove').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: this.names ? device.info.name : device.id}, true); }.bind(this));
+            modal.querySelector('.remove').addEventListener('click', function() { this.serviceCommand({action: 'removeDevice', device: device.id}, true); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });

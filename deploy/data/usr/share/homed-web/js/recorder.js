@@ -55,6 +55,7 @@ class Recorder
 
     parseData(message)
     {
+        let counter, unit, options;
         let canvas = document.querySelector('canvas#' + message.id);
         let status = document.querySelector('.status#' + message.id);
         let total = document.querySelector('.total#' + message.id);
@@ -64,9 +65,6 @@ class Recorder
         let numeric = true;
         let average = false;
         let daily = false;
-        let counter;
-        let unit;
-        let options;
 
         if (!canvas)
             return;
@@ -339,8 +337,7 @@ class Recorder
 
                 if (!row)
                 {
-                    let circleCell;
-                    let recordCell;
+                    let circleCell, recordCell;
 
                     row = table.insertRow(0);
                     row.dataset.timestamp = record.timestamp;
@@ -616,16 +613,13 @@ class Recorder
     {
         loadHTML('html/recorder/itemInfo.html', this, this.content, function()
         {
+            let current, name, datepicker, chart;
             let interval = localStorage.getItem('homedRecorderInterval') ?? '24h';
             let start = localStorage.getItem('homedRecorderStart');
             let end = localStorage.getItem('homedRecorderEnd');
             let id = 'chart-' + randomString(8);
             let items = new Array();
             let list = new Array();
-            let current;
-            let name;
-            let datepicker;
-            let chart;
 
             this.status.items.forEach((item, index) => { items.push([index, item.name ? item.name.toLowerCase() : item.endpoint + ' - ' + item.property]); });
 
@@ -743,8 +737,8 @@ class Recorder
     {
         loadHTML('html/recorder/itemEdit.html', this, modal.querySelector('.data'), function()
         {
-            let item;
             let name = modal.querySelector('.name');
+            let item;
 
             if (data)
             {

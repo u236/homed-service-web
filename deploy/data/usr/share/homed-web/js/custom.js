@@ -216,7 +216,7 @@ class Custom extends DeviceService
                 else
                     delete form.bindings;
 
-                this.serviceCommand({action: 'updateDevice', device: add ? null : this.names ? device.info.name : device.id, data: form});
+                this.serviceCommand({action: 'updateDevice', device: add ? null : device.id, data: form});
 
             }.bind(this));
 
