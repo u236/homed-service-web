@@ -854,7 +854,7 @@ td.value[data-type="status"][data-value="on"] {
 
 .dashboardBlock .offline {
     background-color: var(--background-shade);
-    color: var(--color-shade);
+    opacity: 0.5;
 }
 
 .tiled .column.b {

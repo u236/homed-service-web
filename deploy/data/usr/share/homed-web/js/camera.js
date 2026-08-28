@@ -123,6 +123,7 @@ class Camera
         connection = new RTCPeerConnection({iceServers: new Array()});
         connection.addTransceiver('video', {direction: 'recvonly'});
         connection.ontrack = function(event) { video.srcObject = event.streams[0]; };
+        connection.oniceconnectionstatechange = function() { if (['disconnected', 'failed'].includes(connection.iceConnectionState)) { this.stop(connection); this.play(video, id, subStream); } }.bind(this);
 
         connection.createOffer().then(offer => connection.setLocalDescription(offer)).then(function()
         {

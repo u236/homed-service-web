@@ -184,8 +184,8 @@ class Controller
         if (redraw)
         {
             let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom', 'camera'];
-            let short = ['dash', 'rec', 'auto', 'zbee', 'mtr', 'mbus', 'cst', 'cam'];
-            let services = Object.keys(this.services);
+            let short = ['dash', 'rec', 'auto', 'zbee', 'mttr', 'mbus', 'cust', 'cam'];
+            let services = Object.keys(this.services).filter(service => !guest || ['dashboard', 'recorder'].includes(service));
 
             plugins.forEach(item => { if (names.includes(item.serviceName)) return; names.push(item.serviceName); short.push(item.shortName); });
 
@@ -195,12 +195,7 @@ class Controller
 
             names.forEach((name, index) =>
             {
-                let list;
-
-                if (guest && !['dashboard', 'recorder'].includes(name))
-                    return;
-
-                list = services.filter(service => { return service.startsWith(name); });
+                let list = services.filter(service => { return service.startsWith(name); });
                 this.serviceList.push(...list);
 
                 list.forEach(service =>
@@ -215,7 +210,7 @@ class Controller
                         menu.append(separator);
                     }
 
-                    if (services.length > 7 && itemName.length > 6)
+                    if (services.length > 7)
                         itemName = itemName.replace(name, short[index]);
 
                     item.innerHTML = itemName;

@@ -47,7 +47,7 @@ class Dashboard
         let name = item.name ?? (item.camera ? this.cameraTitle(item.camera, icon) : item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
         let deadline = Date.now() + 5000;
 
-        cell.innerHTML = icon ? (item.camera ? '<span class="mdi-video exposeIcon"></span>' : '') + '<span class="name">' + name + '</span>' : name;
+        cell.innerHTML = icon ? (item.camera ? '<span class="mdi-video exposeIcon"></span>' : item.endpoint ? exposeIcon(this.controller.findDevice(item), item.endpoint, item.expose ?? item.property) : '') + '<span class="name">' + name + '</span>' : name;
 
         if (item.endpoint)
         {
