@@ -369,7 +369,8 @@ class Controller
         Object.keys(devices).forEach(name => { let device = devices[name]; let key = this.searchTitle('Device', name); names[key] = this.searchNames(device); list[key] = device.service + '?device=' + device.id; });
         Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach((automation, index) => { list[this.searchTitle('Automation', automation.name)] = service + '?index=' + index; }); });
 
-        this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false, false))] = 'recorder?index=' + index; });
+        this.services.camera?.status.devices?.forEach(device => { list[this.searchTitle('Camera', device.name)] = 'camera?device=' + device.id; });
+        this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false))] = 'recorder?index=' + index; });
         this.serviceList?.forEach(service => { let name = service.replace('zigbee', 'ZigBee'); list[this.searchTitle('Service', name.charAt(0).toUpperCase() + name.slice(1))] = service; });
 
         loadHTML('search.html', this, modal.querySelector('.data'), function()
@@ -434,6 +435,7 @@ class Controller
         let icon =
         {
             automation: 'auto-fix',
+            camera:     'video',
             dashboard:  'view-dashboard',
             device:     'devices',
             recorder:   'chart-line-variant',
