@@ -76,6 +76,7 @@ class Camera
                 {
                     case 'nameDuplicate':  this.controller.showToast(html + 'new name is already in use', 'error'); break;
                     case 'incompleteData': this.controller.showToast(html + 'data is incomplete', 'error'); break;
+                    case 'missingStream':  this.controller.showToast(html + 'stream not found', 'error'); break;
                     case 'removed':        this.controller.showToast(html + 'removed', 'warning'); break;
 
                     case 'added':
