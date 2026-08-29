@@ -56,6 +56,7 @@ html {
     --footer-height:    40px;
     --font-mono:        'Roboto Mono';
     --font-size-mono:   13px;
+    --font-size-small:  0.875em;
     --font-size-tiny:   0.8125em;
     scrollbar-width:    thin;
     scrollbar-color:    var(--color-shade) var(--background-main);
@@ -282,7 +283,7 @@ th {
 }
 
 thead input[type="text"] {
-   margin-bottom: 5px;
+    margin-bottom: 5px;
 }
 
 tfoot th {
@@ -302,7 +303,7 @@ td.edge {
     border-top: 2px solid var(--border-edge);
 }
 
-td.edit {
+td.edit, td.move, td.remove, td.restore {
     cursor: pointer;
 }
 
@@ -314,19 +315,16 @@ td.empty {
 }
 
 td.move {
-    cursor: pointer;
     width: 10px;
     color: var(--color-shade);
 }
 
 td.remove {
-    cursor: pointer;
     width: 16px;
     text-align: right;
 }
 
 td.restore {
-    cursor: pointer;
     width: 14px;
     padding-right: 0;
 }
@@ -345,6 +343,18 @@ td.value[data-type="status"] {
 
 td.value[data-type="status"][data-value="on"] {
     color: var(--color-warning);
+}
+
+th:first-child, td:first-child {
+    padding-left: 5px;
+}
+
+th:last-child, td:last-child {
+    padding-right: 5px;
+}
+
+tr:first-child td {
+    border: none;
 }
 
 .fade-in {
@@ -429,35 +439,34 @@ td.value[data-type="status"][data-value="on"] {
 
 .note {
     padding: 0 5px;
-    font-size: 0.875em;
+    font-size: var(--font-size-small);
     color: var(--color-shade);
 }
 
-.tiny {
-    font-size: 0.875em;
+.small {
+    font-size: var(--font-size-small);
 }
 
 .lockScroll {
     overflow: hidden;
 }
 
-.pageLoader {
-    width: 20px;
-    height: 20px;
-    margin: 20px auto;
+.pageLoader, .dataLoader {
     border: 2px solid var(--border-main);
     border-top: 2px solid var(--border-loader);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
+.pageLoader {
+    width: 20px;
+    height: 20px;
+    margin: 20px auto;
+}
+
 .dataLoader {
     width: 10px;
     height: 10px;
-    border: 2px solid var(--border-main);
-    border-top: 2px solid var(--border-loader);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
 
 .placeholder {
@@ -467,6 +476,68 @@ td.value[data-type="status"][data-value="on"] {
     border-radius: var(--border-radius);
     background: repeating-linear-gradient(135deg, var(--color-shade), var(--color-shade) 5px, transparent 5px, transparent 10px);
     opacity: 0.75;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.title .name {
+    overflow: hidden;
+    font-size: 1.25em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.title .name .info:hover {
+    cursor: pointer;
+    color: var(--color-highlight);
+}
+
+.title .value {
+    position: relative;
+    bottom: 3px;
+}
+
+.title .interval {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-mono);
+    color: var(--color-shade);
+}
+
+.title .interval span {
+    cursor: pointer;
+    margin: 0px 2px;
+}
+
+.title .interval span:first-child {
+    margin-left: 0;
+}
+
+.title .interval span:last-child {
+    margin-right: 0;
+}
+
+.title .interval span:hover {
+    color: var(--color-highlight);
+}
+
+.title .change {
+    cursor: pointer;
+    font-size: var(--font-size-tiny);
+    color: var(--color-shade);
+}
+
+.title .change:hover {
+    color: var(--color-main);
+}
+
+.title .status {
+    font-size: var(--font-size-tiny);
+    color: var(--color-shade);
 }
 
 .dropdown {
@@ -541,8 +612,7 @@ td.value[data-type="status"][data-value="on"] {
     padding: 0 15px;
 }
 
-.header
-{
+.header {
     flex: none;
     height: var(--header-height);
     line-height: var(--header-height);
@@ -605,8 +675,7 @@ td.value[data-type="status"][data-value="on"] {
     text-transform: uppercase;
 }
 
-.footer
-{
+.footer {
     flex: none;
     height: var(--footer-height);
     line-height: var(--footer-height);
@@ -681,14 +750,17 @@ td.value[data-type="status"][data-value="on"] {
     margin-top: 20px;
 }
 
-.cameraItem {
-    position: relative;
+.cameraItem, .cameraView {
     overflow: hidden;
-    cursor: pointer;
-    aspect-ratio: 16 / 9;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
     background-color: #000000;
+}
+
+.cameraItem {
+    position: relative;
+    cursor: pointer;
+    aspect-ratio: 16 / 9;
 }
 
 .cameraItem video {
@@ -699,6 +771,7 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .cameraItem .title {
+    display: block;
     position: absolute;
     left: 0;
     right: 0;
@@ -706,13 +779,6 @@ td.value[data-type="status"][data-value="on"] {
     padding: 15px 8px 5px 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
     color: #ffffff;
-}
-
-.cameraView {
-    overflow: hidden;
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    background-color: #000000;
 }
 
 .cameraView video {
@@ -762,10 +828,6 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .dashboardBlock .title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
     margin: 0 5px 10px 5px;
 }
 
@@ -833,7 +895,7 @@ td.value[data-type="status"][data-value="on"] {
     text-align: right;
 }
 
-.dashboardBlock .edit {
+.dashboardBlock .edit, .dashboardBlock .toggle {
     cursor: pointer;
     color: var(--color-shade);
 }
@@ -843,9 +905,7 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .dashboardBlock .toggle {
-    cursor: pointer;
     margin-left: 8px;
-    color: var(--color-shade);
 }
 
 .dashboardBlock:has(td.value[data-type="status"][data-value="on"]) .toggle {
@@ -1007,7 +1067,7 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .automationInfo td:first-child, .itemInfo td:first-child {
-   width: 150px;
+    width: 150px;
 }
 
 .automationInfo td {
@@ -1025,10 +1085,6 @@ td.value[data-type="status"][data-value="on"] {
 }
 
 .automationInfo .title, .itemInfo .title, .deviceInfo .title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
     margin: 10px 5px 10px 4px;
 }
 
@@ -1137,20 +1193,16 @@ td.value[data-type="status"][data-value="on"] {
     font-size: var(--font-size-tiny);
 }
 
-.exposes input[type="number"] {
+.exposes input[type="number"], .exposes select {
     width: 150px;
     height: 19px;
-    margin-right: 5px;
     margin-bottom: 0;
-    padding-right: 0;
     font-size: var(--font-size-tiny);
 }
 
-.exposes select {
-    width: 150px;
-    height: 19px;
-    margin-bottom: 0;
-    font-size: var(--font-size-tiny);
+.exposes input[type="number"] {
+    margin-right: 5px;
+    padding-right: 0;
 }
 
 .exposes input[type="time"] {
@@ -1222,61 +1274,6 @@ td.value[data-type="status"][data-value="on"] {
     color: var(--color-shade);
 }
 
-.title .name {
-    overflow: hidden;
-    font-size: 1.25em;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.title .name .info:hover {
-    cursor: pointer;
-    color: var(--color-highlight);
-}
-
-.title .value {
-    position: relative;
-    bottom: 3px;
-}
-
-.title .interval {
-    font-family: var(--font-mono);
-    font-size: var(--font-size-mono);
-    color: var(--color-shade);
-}
-
-.title .interval span {
-    cursor: pointer;
-    margin: 0px 2px;
-}
-
-.title .interval span:first-child {
-    margin-left: 0;
-}
-
-.title .interval span:last-child {
-    margin-right: 0;
-}
-
-.title .interval span:hover {
-    color: var(--color-highlight);
-}
-
-.title .change {
-    cursor: pointer;
-    font-size: var(--font-size-tiny);
-    color: var(--color-shade);
-}
-
-.title .change:hover {
-    color: var(--color-main);
-}
-
-.title .status {
-    font-size: var(--font-size-tiny);
-    color: var(--color-shade);
-}
-
 .datepicker {
     display: none;
     padding: 0 5px 10px 5px;
@@ -1290,18 +1287,6 @@ td.value[data-type="status"][data-value="on"] {
 
 .shift span:hover {
     color: var(--color-highlight);
-}
-
-th:first-child, td:first-child {
-    padding-left: 5px;
-}
-
-th:last-child, td:last-child {
-    padding-right: 5px;
-}
-
-tr:first-child td {
-    border: none;
 }
 
 #modal {
@@ -1397,10 +1382,6 @@ tr:first-child td {
 }
 
 #modal .title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
     margin: 0;
     margin-bottom: 10px;
 }
@@ -1412,7 +1393,7 @@ tr:first-child td {
 
 #modal .table {
     position: relative;
-    left:  -5px;
+    left: -5px;
     width: calc(100% + 10px);
 }
 
@@ -1426,7 +1407,6 @@ tr:first-child td {
 }
 
 #modal .copy:hover {
-    cursor: pointer;
     color: var(--color-warning);
 }
 
@@ -1527,12 +1507,11 @@ tr:first-child td {
     padding: 0 5px;
 }
 
-#hotkeys {
+#hotkeys, #toggleIcons, #toggleTheme, #toggleWide, #logout {
     cursor: pointer;
 }
 
 #toggleIcons, #toggleTheme, #toggleWide, #logout {
-    cursor: pointer;
     padding: 0 5px;
 }
 
@@ -1553,7 +1532,7 @@ tr:first-child td {
     .header .dropdown .list { left: 13px; padding-right: 10px;}
     .automationInfo td span { max-width: 150px; }
     .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
-    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name { font-size: 0.875em; }
+    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name { font-size: var(--font-size-small); }
     .mobileHidden { display: none; }
 }
 

@@ -454,7 +454,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + ' "><i class="mdi-subdirectory-arrow-right"></i></span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="small ' + (j < level - 1 ? 'shade' : 'warning') + ' "><i class="mdi-subdirectory-arrow-right"></i></span> ';
                         cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type ?? '<span class="shade"><i>no conditions</i></span>';
                         break;
 
@@ -543,7 +543,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="tiny ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
+                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="small ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
                         cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
                         break;
 
@@ -566,7 +566,7 @@ class Automation
                             let actionCell = actionRow.insertCell();
 
                             for (let k = 0; k <= level - 1; k++)
-                                nameCell.innerHTML += '<span class="tiny ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
+                                nameCell.innerHTML += '<span class="small ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
 
                             nameCell.colSpan = 4;
                             actionCell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';
