@@ -25,8 +25,10 @@ class Camera
             if (item.type != 'inbound-rtp')
                 return;
 
-            video.alert.className = 'mdi-' + (video.paused ? 'pause' : 'video-off') + ' streamAlert';
-            video.alert.style.display = video.paused || video.frames == item.framesDecoded ? 'block' : 'none';
+            if (video.paused && !video.webkitDisplayingFullscreen && document.fullscreenElement != video)
+                video.play();
+
+            video.alert.style.display = video.frames == item.framesDecoded ? 'block' : 'none';
             video.frames = item.framesDecoded;
 
         }); }); });
@@ -128,6 +130,7 @@ class Camera
         video.playsInline = true;
         video.alert = alert;
 
+        alert.classList.add('mdi-video-off', 'streamAlert');
         alert.style.display = 'none';
 
         element.append(video);
