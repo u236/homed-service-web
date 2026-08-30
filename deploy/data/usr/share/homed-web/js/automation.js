@@ -1038,15 +1038,15 @@ class Automation
                 this.valueForm(modal, statement);
             });
 
-            modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
+            modal.querySelector('#value.dropdown').style.display = type != 'trigger' ? 'inline' : 'none';
 
             modal.querySelector('.hold').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="hold"]').value = item.hold ?? '';
 
-            modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
+            modal.querySelector('.triggerName').style.display = type != 'condition' ? 'block' : 'none';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
-            modal.querySelector('input[name="force"]').closest('label').style.display = type != 'trigger' ? 'none' : 'block';
+            modal.querySelector('input[name="force"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
 
             modal.querySelector('input[name="active"]').checked = item.active ?? true;
@@ -1134,15 +1134,15 @@ class Automation
                 this.valueForm(modal, statement);
             });
 
-            modal.querySelector('#value.dropdown').style.display = type == 'trigger' ? 'none' : 'inline';
+            modal.querySelector('#value.dropdown').style.display = type != 'trigger' ? 'inline' : 'none';
 
             modal.querySelector('.hold').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="hold"]').value = item.hold ?? '';
 
-            modal.querySelector('.triggerName').style.display = type == 'condition' ? 'none' : 'block';
+            modal.querySelector('.triggerName').style.display = type != 'condition' ? 'block' : 'none';
             modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
-            modal.querySelector('input[name="force"]').closest('label').style.display = type != 'trigger' ? 'none' : 'block';
+            modal.querySelector('input[name="force"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
 
             modal.querySelector('input[name="active"]').checked = item.active ?? true;

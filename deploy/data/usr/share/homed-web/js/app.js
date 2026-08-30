@@ -281,146 +281,6 @@ class Controller
         this.showPage(this.serviceList[index]);
     }
 
-    showPage(page)
-    {
-        let list = page.split('?');
-        let service = list[0];
-
-        if (!service)
-            service = 'dashboard';
-
-        if (guest && !['dashboard', 'recorder'].includes(service))
-            return;
-
-        if (this.services[this.service]?.updated)
-        {
-            this.services[this.service].showAlert(page);
-            return;
-        }
-
-        document.querySelector('.menu').innerHTML = null;
-        document.querySelector('#serviceVersion').innerHTML = '<i>unknown</i>';
-
-        localStorage.setItem('homedPage', page);
-        location.hash = page;
-
-        if (this.service != service)
-            this.services.camera?.stop();
-
-        this.service = service;
-        this.page = page;
-
-        this.updateMenu(false);
-        this.clearPage();
-
-        if (!this.services[service])
-            return;
-
-        this.services[service].showPage(list[1]);
-    }
-
-    clearPage(warning)
-    {
-        let content = document.querySelector('.content .container');
-
-        content.innerHTML = '<div class="pageLoader"></div><div class="center warning"></div>';
-
-        if (warning)
-        {
-            content.querySelector('.warning').innerHTML = warning;
-            console.log(warning);
-        }
-
-        showModal(false);
-    }
-
-    showToast(message, style = 'success')
-    {
-        let element = document.createElement('div');
-
-        element.innerHTML = '<div class="message">' + message + '</div>';
-        element.classList.add('item', 'fade-in', style);
-        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
-
-        setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
-        document.querySelector('#toast').appendChild(element);
-    }
-
-    clearToast(item)
-    {
-        let toast = document.querySelector('#toast');
-
-        if (!toast.contains(item))
-            return;
-
-        setTimeout(function() { toast?.removeChild(item); }, 200);
-        item.classList.add('fade-out');
-    }
-
-    showSearch()
-    {
-        let dashboard = this.services.dashboard;
-        let devices = this.devicesList();
-        let names = new Object();
-        let list = new Object();
-
-        dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
-
-        Object.keys(devices).forEach(name => { let device = devices[name]; let key = this.searchTitle('Device', name); names[key] = this.searchNames(device); list[key] = device.service + '?device=' + device.id; });
-        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach((automation, index) => { list[this.searchTitle('Automation', automation.name)] = service + '?index=' + index; }); });
-
-        this.services.camera?.status.devices?.forEach(device => { list[this.searchTitle('Camera', device.name)] = 'camera?device=' + device.id; });
-        this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false))] = 'recorder?index=' + index; });
-        this.serviceList?.forEach(service => { let name = service.replace('zigbee', 'ZigBee'); list[this.searchTitle('Service', name.charAt(0).toUpperCase() + name.slice(1))] = service; });
-
-        loadHTML('search.html', this, modal.querySelector('.data'), function()
-        {
-            let element = modal.querySelector('.search');
-            let input = modal.querySelector('input');
-
-            Object.keys(list).forEach(key =>
-            {
-                let item = document.createElement('div');
-
-                item.innerHTML = key;
-                item.classList.add('item');
-                item.addEventListener('click', function() { dropdown = undefined; showModal(false); this.showPage(list[key]); }.bind(this));
-
-                if (names[key]?.length)
-                {
-                    item.key = key;
-                    item.names = names[key];
-                }
-
-                element.append(item);
-            });
-
-            input.addEventListener('input', function()
-            {
-                dropdown.setIndex(-1);
-
-                element.querySelectorAll('.item').forEach(item =>
-                {
-                    let names = new Array();
-
-                    if (item.names)
-                    {
-                        names = input.value && item.names.filter(name => searchMatch(name, input.value));
-                        item.innerHTML = item.key + (names.length ? ' <i class="mdi-arrow-right shade"></i> <span class="shade">' + names.join(', ') + '</span>' : '');
-                    }
-
-                    item.style.display = input.value && !names.length && !searchMatch(item.textContent, input.value) ? 'none' : 'block';
-                });
-            });
-
-            dropdown = new Dropdown(element, modal.querySelector('.data'));
-            dropdown.close = function() { showModal(false); };
-
-            modal.querySelector('.close').addEventListener('click', function() { dropdown = undefined; showModal(false); });
-            showModal(true, 'input');
-        });
-    }
-
     searchNames(device)
     {
         let endpoint = device.service.split('/')[0] + '/' + device.id + '/';
@@ -560,6 +420,146 @@ class Controller
             delete names[item];
 
         this.services.dashboard.storeNames();
+    }
+
+    showPage(page)
+    {
+        let list = page.split('?');
+        let service = list[0];
+
+        if (!service)
+            service = 'dashboard';
+
+        if (guest && !['dashboard', 'recorder'].includes(service))
+            return;
+
+        if (this.services[this.service]?.updated)
+        {
+            this.services[this.service].showAlert(page);
+            return;
+        }
+
+        document.querySelector('.menu').innerHTML = null;
+        document.querySelector('#serviceVersion').innerHTML = '<i>unknown</i>';
+
+        localStorage.setItem('homedPage', page);
+        location.hash = page;
+
+        if (this.service != service)
+            this.services.camera?.stop();
+
+        this.service = service;
+        this.page = page;
+
+        this.updateMenu(false);
+        this.clearPage();
+
+        if (!this.services[service])
+            return;
+
+        this.services[service].showPage(list[1]);
+    }
+
+    clearPage(warning)
+    {
+        let content = document.querySelector('.content .container');
+
+        content.innerHTML = '<div class="pageLoader"></div><div class="center warning"></div>';
+
+        if (warning)
+        {
+            content.querySelector('.warning').innerHTML = warning;
+            console.log(warning);
+        }
+
+        showModal(false);
+    }
+
+    showToast(message, style = 'success')
+    {
+        let element = document.createElement('div');
+
+        element.innerHTML = '<div class="message">' + message + '</div>';
+        element.classList.add('item', 'fade-in', style);
+        element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
+
+        setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
+        document.querySelector('#toast').appendChild(element);
+    }
+
+    clearToast(item)
+    {
+        let toast = document.querySelector('#toast');
+
+        if (!toast.contains(item))
+            return;
+
+        setTimeout(function() { toast?.removeChild(item); }, 200);
+        item.classList.add('fade-out');
+    }
+
+    showSearch()
+    {
+        let dashboard = this.services.dashboard;
+        let devices = this.devicesList();
+        let names = new Object();
+        let list = new Object();
+
+        dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
+
+        Object.keys(devices).forEach(name => { let device = devices[name]; let key = this.searchTitle('Device', name); names[key] = this.searchNames(device); list[key] = device.service + '?device=' + device.id; });
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach((automation, index) => { list[this.searchTitle('Automation', automation.name)] = service + '?index=' + index; }); });
+
+        this.services.camera?.status.devices?.forEach(device => { list[this.searchTitle('Camera', device.name)] = 'camera?device=' + device.id; });
+        this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false))] = 'recorder?index=' + index; });
+        this.serviceList?.forEach(service => { let name = service.replace('zigbee', 'ZigBee'); list[this.searchTitle('Service', name.charAt(0).toUpperCase() + name.slice(1))] = service; });
+
+        loadHTML('search.html', this, modal.querySelector('.data'), function()
+        {
+            let element = modal.querySelector('.search');
+            let input = modal.querySelector('input');
+
+            Object.keys(list).forEach(key =>
+            {
+                let item = document.createElement('div');
+
+                item.innerHTML = key;
+                item.classList.add('item');
+                item.addEventListener('click', function() { dropdown = undefined; showModal(false); this.showPage(list[key]); }.bind(this));
+
+                if (names[key]?.length)
+                {
+                    item.key = key;
+                    item.names = names[key];
+                }
+
+                element.append(item);
+            });
+
+            input.addEventListener('input', function()
+            {
+                dropdown.setIndex(-1);
+
+                element.querySelectorAll('.item').forEach(item =>
+                {
+                    let names = new Array();
+
+                    if (item.names)
+                    {
+                        names = input.value && item.names.filter(name => searchMatch(name, input.value));
+                        item.innerHTML = item.key + (names.length ? ' <i class="mdi-arrow-right shade"></i> <span class="shade">' + names.join(', ') + '</span>' : '');
+                    }
+
+                    item.style.display = input.value && !names.length && !searchMatch(item.textContent, input.value) ? 'none' : 'block';
+                });
+            });
+
+            dropdown = new Dropdown(element, modal.querySelector('.data'));
+            dropdown.close = function() { showModal(false); };
+
+            modal.querySelector('.close').addEventListener('click', function() { dropdown = undefined; showModal(false); });
+            showModal(true, 'input');
+        });
     }
 }
 
@@ -940,8 +940,8 @@ class Dropdown
 
         if (index >= 0 && scroll)
         {
-            var list = this.list.getBoundingClientRect();
-            var item = this.items[this.index].getBoundingClientRect();
+            let list = this.list.getBoundingClientRect();
+            let item = this.items[this.index].getBoundingClientRect();
 
             if (list.top <= item.top && list.bottom >= item.bottom)
                 return;

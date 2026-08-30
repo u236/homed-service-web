@@ -1,6 +1,8 @@
 class Camera
 {
+    intervals = [setInterval(function() { this.updateStreams(); }.bind(this), 1000)];
     content = document.querySelector('.content .container');
+
     status = new Object();
     connections = new Array();
 
@@ -12,6 +14,22 @@ class Camera
     updatePage()
     {
         document.querySelector('#serviceVersion').innerHTML = 'Camera ' + this.status.version;
+    }
+
+    updateStreams()
+    {
+        this.connections.forEach(connection => { connection.getStats().then(stats => { stats.forEach(item =>
+        {
+            let video = connection.video;
+
+            if (item.type != 'inbound-rtp')
+                return;
+
+            video.alert.className = 'mdi-' + (video.paused ? 'pause' : 'video-off') + ' streamAlert';
+            video.alert.style.display = video.paused || video.frames == item.framesDecoded ? 'block' : 'none';
+            video.frames = item.framesDecoded;
+
+        }); }); });
     }
 
     parseData(message)
@@ -103,12 +121,18 @@ class Camera
     addVideo(element)
     {
         let video = document.createElement('video');
+        let alert = document.createElement('i');
 
         video.autoplay = true;
         video.muted = true;
         video.playsInline = true;
+        video.alert = alert;
+
+        alert.style.display = 'none';
 
         element.append(video);
+        element.append(alert);
+
         return video;
     }
 
@@ -142,6 +166,8 @@ class Camera
             new Promise(wait.bind(this)).then(function() { this.controller.socket.publish('command/camera', {action: 'getStream', id: video.id, device: id, subStream: subStream && device.subStream ? true : false, sdp: connection.localDescription.sdp}); }.bind(this));
 
         }.bind(this));
+
+        connection.video = video;
 
         video.connection = connection;
         video.id = 'stream-' + randomString(8);
@@ -212,7 +238,7 @@ class Camera
                 let item = document.createElement('div');
                 let video = this.addVideo(item);
 
-                title.innerHTML = device.name;
+                title.innerHTML = '<span class="mdi-video exposeIcon"></span>' + device.name;
                 title.classList.add('title');
 
                 item.classList.add('cameraItem');

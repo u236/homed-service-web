@@ -751,6 +751,7 @@ tr:first-child td {
 }
 
 .cameraItem, .cameraView {
+    position: relative;
     overflow: hidden;
     border: 1px solid var(--border-main);
     border-radius: var(--border-radius);
@@ -758,7 +759,6 @@ tr:first-child td {
 }
 
 .cameraItem {
-    position: relative;
     cursor: pointer;
     aspect-ratio: 16 / 9;
 }
@@ -781,10 +781,22 @@ tr:first-child td {
     color: #ffffff;
 }
 
+.cameraItem .title .exposeIcon {
+    color: inherit;
+}
+
 .cameraView video {
     display: block;
     cursor: pointer;
     width: 100%;
+}
+
+.streamAlert {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    line-height: 1;
+    color: var(--color-error);
 }
 
 .dashboardMenu {
@@ -866,6 +878,7 @@ tr:first-child td {
 }
 
 .dashboardBlock .camera {
+    position: relative;
     padding: 5px 5px 10px 5px;
 }
 
@@ -883,6 +896,10 @@ tr:first-child td {
     width: 100%;
     border-radius: var(--border-radius);
     background-color: #000000;
+}
+
+.dashboardBlock .camera .streamAlert {
+    right: 5px;
 }
 
 .dashboardBlock .chart {
@@ -1043,6 +1060,11 @@ tr:first-child td {
 
 .tiled .dashboardBlock td.camera .label {
     margin-bottom: 10px;
+}
+
+.tiled .dashboardBlock td.camera .streamAlert {
+    top: 2px;
+    right: 0;
 }
 
 .tiled .dashboardBlock tr:has(td.chart) {
