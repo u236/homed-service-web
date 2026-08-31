@@ -760,7 +760,7 @@ tr:first-child td {
 
 .cameraItem {
     cursor: pointer;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1.778;
 }
 
 .cameraItem video {
@@ -958,6 +958,10 @@ tr:first-child td {
     color: var(--color-highlight);
 }
 
+.tiled .dashboardBlock .title .edit:hover .invisible {
+    opacity: 1;
+}
+
 .tiled .dashboardBlock table {
     display: grid;
     gap: 10px;
@@ -1056,6 +1060,37 @@ tr:first-child td {
 .tiled .dashboardBlock tr:has(td.camera), .tiled .dashboardBlock tr:has(td.chart), .tiled .dashboardBlock tr:has(td.center) {
     grid-column: 1 / -1;
     aspect-ratio: auto;
+}
+
+.tiled .dashboardBlock tr[data-size="small"]:has(td.camera) {
+    grid-column: span 3;
+    grid-row: span 2;
+    aspect-ratio: 1.518;
+}
+
+.tiled .dashboardBlock tr[data-size="large"]:has(td.camera) {
+    grid-column: span 5;
+    grid-row: span 3;
+    aspect-ratio: 1.682;
+}
+
+.tiled .dashboardBlock tr[data-size] td.camera {
+    display: flex;
+    overflow: hidden;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.tiled .dashboardBlock tr[data-size] td.camera video, .tiled .dashboardBlock tr[data-size] td.camera .placeholder {
+    flex: 1;
+    min-height: 0;
+    height: 0;
+    margin: 0;
+}
+
+.tiled .dashboardBlock tr[data-size] td.camera video:not(:fullscreen) {
+    object-fit: cover;
 }
 
 .tiled .dashboardBlock td.camera .label {
@@ -1541,24 +1576,28 @@ tr:first-child td {
     color: var(--color-main);
 }
 
-@media (max-width: 1030px) {
-    .narrowHidden { display: none; }
-}
-
 @media (hover: hover) and (pointer: fine) {
     .dashboardList span:hover { color: var(--color-highlight); }
-}
-
-@media (max-width: 680px) {
-    .header, .footer, .content { padding: 0 5px; }
-    .header .dropdown .list { left: 13px; padding-right: 10px;}
-    .automationInfo td span { max-width: 150px; }
-    .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
-    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name { font-size: var(--font-size-small); }
-    .mobileHidden { display: none; }
 }
 
 @media (pointer: coarse) {
     input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; }
     input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+}
+
+@media (max-width: 1030px) {
+    .narrowHidden { display: none; }
+}
+
+@media (max-width: 680px) {
+    .mobileHidden { display: none; }
+    .header, .footer, .content { padding: 0 5px; }
+    .header .dropdown .list { left: 13px; padding-right: 10px;}
+    .automationInfo td span { max-width: 150px; }
+    .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
+    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name { font-size: var(--font-size-small); }
+    .tiled .dashboardBlock tr[data-size]:has(td.camera) { grid-column: 1 / -1; grid-row: auto; aspect-ratio: auto; }
+    .tiled .dashboardBlock tr[data-size] td.camera { display: block; }
+    .tiled .dashboardBlock tr[data-size] td.camera video { height: auto; }
+    .tiled .dashboardBlock tr[data-size] td.camera .placeholder { height: 20px; }
 }

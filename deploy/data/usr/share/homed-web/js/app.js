@@ -1044,6 +1044,9 @@ document.onkeydown = function(event)
 {
     let key = event.key.toLowerCase();
 
+    if (document.fullscreenElement ?? document.webkitFullscreenElement)
+        return;
+
     if (dropdown)
     {
         if (!dropdown.handleKey(event))

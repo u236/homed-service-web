@@ -228,7 +228,7 @@ class Dashboard
         return row;
     }
 
-    addCamera(table, item)
+    addCamera(table, item, size)
     {
         let camera = this.controller.services.camera;
         let label = document.createElement('div');
@@ -238,6 +238,9 @@ class Dashboard
 
         label.classList.add('label');
         this.devicePromise(item, label);
+
+        if (['large', 'small'].includes(size))
+            row.dataset.size = size;
 
         cell.colSpan = 2;
         cell.classList.add('camera');
@@ -435,10 +438,13 @@ class Dashboard
 
                     if (!dashboard.overview && !guest)
                     {
-                        if (!tiled)
-                            element.querySelector('.control').innerHTML += '<span class="edit"><i class="mdi-pencil"></i></span>';
-                        else
+                        if (tiled)
+                        {
                             element.querySelector('.name').classList.add('edit');
+                            element.querySelector('.name').innerHTML += ' <i class="mdi-pencil invisible shade"></i>';
+                        }
+                        else
+                            element.querySelector('.control').innerHTML += '<span class="edit"><i class="mdi-pencil"></i></span>';
 
                         element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
                     }
@@ -460,7 +466,7 @@ class Dashboard
 
                         if (item.camera)
                         {
-                            this.addCamera(table, item);
+                            this.addCamera(table, item, tiled ? block.camera : null);
                             status = false;
                             return;
                         }
@@ -837,6 +843,7 @@ class Dashboard
             modal.querySelector('select[name="dashboard"]').value = this.index;
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
             modal.querySelector('select[name="height"]').value = block.height ?? 'normal';
+            modal.querySelector('select[name="camera"]').value = block.camera ?? 'full';
             modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -846,6 +853,7 @@ class Dashboard
                 block.name = form.name;
                 block.interval = form.interval;
                 block.height = form.height;
+                block.camera = form.camera;
 
                 if (form.note)
                     block.note = form.note;

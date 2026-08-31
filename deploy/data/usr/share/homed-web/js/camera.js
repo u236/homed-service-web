@@ -25,7 +25,7 @@ class Camera
             if (item.type != 'inbound-rtp')
                 return;
 
-            if (video.paused && !video.webkitDisplayingFullscreen && document.fullscreenElement != video)
+            if (video.paused && document.fullscreenElement != video && !video.webkitDisplayingFullscreen)
                 video.play();
 
             video.alert.style.display = video.frames == item.framesDecoded ? 'block' : 'none';
