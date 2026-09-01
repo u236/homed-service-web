@@ -1388,12 +1388,14 @@ function showModal(show, focus)
             ...controller.propertiesList(false, true)
         };
 
+        controller.services.camera?.status.devices?.forEach(device => { list['<span class="mdi-video exposeIcon"></span>Camera <i class="mdi-arrow-right"></i> ' + device.name] = '{{ camera | ' + device.id + ' }}'; });
+
         modal.style.display = 'block';
         modal.classList.remove('fade-out');
         modal.classList.add('fade-in');
 
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
-        modal.querySelectorAll('label .dropdown').forEach(item => { addDropdown(item, Object.keys(list), function(key) {let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, 7); });
+        modal.querySelectorAll('label .dropdown').forEach(item => { addDropdown(item, Object.keys(list), function(key) {let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, 10); });
         modal.querySelector(focus)?.focus();
 
         document.querySelector('body').classList.add('lockScroll');

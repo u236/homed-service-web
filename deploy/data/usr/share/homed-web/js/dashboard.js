@@ -256,7 +256,7 @@ class Dashboard
         }
 
         video = camera.addVideo(cell);
-        cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen() : video.webkitEnterFullscreen(); });
+        cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen().catch(() => {}) : video.webkitEnterFullscreen(); });
         camera.play(video, item.camera);
     }
 
