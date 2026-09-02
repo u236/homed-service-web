@@ -688,7 +688,7 @@ tr:first-child td {
 
 .footer a {
     text-decoration: none;
-    color: var(--color-shade);
+    color: inherit;
 }
 
 .footer a:hover {
@@ -1171,6 +1171,15 @@ tr:first-child td {
 .deviceInfo td:last-child {
     font-family: var(--font-mono);
     font-size: var(--font-size-mono);
+}
+
+.deviceInfo td a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.deviceInfo td a:hover {
+    text-decoration: underline;
 }
 
 .deviceInfo .summary tr {
