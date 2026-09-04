@@ -183,8 +183,8 @@ class Controller
 
         if (redraw)
         {
-            let names = ['dashboard', 'recorder', 'automation', 'zigbee', 'matter', 'modbus', 'custom', 'camera'];
-            let short = ['dash', 'rec', 'auto', 'zbee', 'mttr', 'mbus', 'cust', 'cam'];
+            let names = ['dashboard', 'recorder', 'camera', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
+            let short = ['dash', 'rec', 'cam', 'auto', 'zbee', 'mttr', 'mbus', 'cust'];
             let services = Object.keys(this.services).filter(service => !guest || ['dashboard', 'recorder'].includes(service));
 
             plugins.forEach(item => { if (names.includes(item.serviceName)) return; names.push(item.serviceName); short.push(item.shortName); });

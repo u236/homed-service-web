@@ -1163,6 +1163,15 @@ tr:first-child td {
     margin: 0 3px;
 }
 
+.itemInfo td a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.itemInfo td a:hover {
+    text-decoration: underline;
+}
+
 .deviceInfo td:first-child {
     width: 25%;
     min-width: 150px;
@@ -1171,15 +1180,6 @@ tr:first-child td {
 .deviceInfo td:last-child {
     font-family: var(--font-mono);
     font-size: var(--font-size-mono);
-}
-
-.deviceInfo td a {
-    text-decoration: none;
-    color: inherit;
-}
-
-.deviceInfo td a:hover {
-    text-decoration: underline;
 }
 
 .deviceInfo .summary tr {

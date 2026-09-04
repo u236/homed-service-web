@@ -272,8 +272,9 @@ class Camera
             this.content.querySelector('.name').innerHTML = device.name;
             this.content.querySelector('.id').innerHTML = device.id;
             this.content.querySelector('.mainStream').innerHTML = device.mainStream;
-            this.content.querySelector('.subStream').innerHTML = device.subStream ?? empty;
-            this.content.querySelector('.frame').innerHTML = device.frame ? '<a href="' + device.frame + '" target="_blank">' + device.frame + '</a>' : empty;
+            this.content.querySelector('.subStream').innerHTML = device.subStream ?? '<i class="mdi-close-circle shade"></i>';
+            this.content.querySelector('.frame').innerHTML = device.frame ? '<a href="' + device.frame + '" target="_blank">' + device.frame + '</a>' : '<i class="mdi-close-circle shade"></i>';
+            this.content.querySelector('.preload').innerHTML = '<i class="mdi-' + (device.preload ? 'check-circle success' : 'close-circle shade') + '"></i>';
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
@@ -303,6 +304,7 @@ class Camera
             modal.querySelector('input[name="mainStream"]').value = device.mainStream ?? '';
             modal.querySelector('input[name="subStream"]').value = device.subStream ?? '';
             modal.querySelector('input[name="frame"]').value = device.frame ?? '';
+            modal.querySelector('input[name="preload"]').checked = device.preload ?? false;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
