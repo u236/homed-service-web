@@ -24,6 +24,7 @@ const defaultIcons =
     outlet:            'power-plug',
     position:          'arrow-up-down',
     running:           'fire',
+    swingMode:         'weather-windy',
     switch:            'lightbulb',
     systemMode:        'knob',
     thermostat:        'heat-wave',
@@ -267,7 +268,7 @@ function exposeList(expose, options)
 
         case 'thermostat':
         {
-            let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'heatMode'];
+            let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'swingMode', 'heatMode'];
             controls.forEach(item => { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
             options['temperature'] = {...options['temperature'], type: 'sensor', unit: '°C'};

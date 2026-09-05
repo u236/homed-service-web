@@ -1019,7 +1019,7 @@ class Dashboard
                 light:      ['status', 'level', 'color', 'colorTemperature', 'colorMode'],
                 lock:       ['status'],
                 switch:     ['status'],
-                thermostat: ['systemMode', 'operationMode', 'targetTemperature', 'temperature', 'running']
+                thermostat: ['systemMode', 'operationMode', 'fanMode', 'swingMode', 'targetTemperature', 'temperature', 'running']
             };
 
             Object.keys(list).forEach(key => { if (list[key].includes(meta.name) && device.items(endpointId).includes(meta.id ? key + '_' + meta.id : key)) expose = key; });
