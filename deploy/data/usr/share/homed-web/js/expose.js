@@ -382,6 +382,9 @@ function addExpose(table, device, endpointId, expose, names = true)
     let properties = device.properties(endpointId);
     let list = exposeList(expose, options);
 
+    if (device.items(endpointId).includes('thermostat') && ['fanMode', 'swingMode', 'heatMode'].includes(expose))
+        return;
+
     list.forEach(property =>
     {
         let recorder = controller.services.recorder;
