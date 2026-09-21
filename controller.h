@@ -4,6 +4,7 @@
 #define SERVICE_VERSION     "2.16.3"
 #define COOKIE_MAX_AGE      31536000
 #define REQUEST_TIMEOUT     5000
+#define WEBSOCKET_TICKET_AGE 30
 
 #include <QMetaEnum>
 #include <QTcpServer>
@@ -32,6 +33,12 @@ public:
 
 private:
 
+    struct WebSocketTicket
+    {
+        qint64 expiresAt;
+        bool guest;
+    };
+
     Database *m_database;
 
     QTcpServer *m_tcpServer;
@@ -48,10 +55,15 @@ private:
 
     QList <QTcpSocket*> m_sockets;
     QMap <QWebSocket*, QList <QString>> m_clients;
+    QMap <QString, WebSocketTicket> m_webSocketTickets;
 
     QString includeList(const QString &path, const QString &filter, const QString &tag);
+    QString createWebSocketTicket(bool guest);
+    bool consumeWebSocketTicket(const QString &ticket, bool &guest);
+    void removeExpiredWebSocketTickets(void);
 
     void httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers = QMap <QString, QString> (), const QByteArray &response = QByteArray());
+    void jsonResponse(QTcpSocket *socket, quint16 code, const QJsonObject &json);
     void fileResponse(QTcpSocket *socket, const QString &fileName);
 
 public slots:
