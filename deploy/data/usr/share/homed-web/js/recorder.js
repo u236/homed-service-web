@@ -1,6 +1,8 @@
 class Recorder
 {
+    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.dataset.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000)];
     content = document.querySelector('.content .container');
+
     status = new Object();
     data = new Object();
 
@@ -31,8 +33,6 @@ class Recorder
 
         Chart.defaults.color = '#888888';
         Chart.Tooltip.positioners.custom = function(data) { return data.length ? { x: data[0].element.x - data[0].element.width / 2, y: data[0].element.y} : false; };
-
-        setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.dataset.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000);
     }
 
     updatePage()

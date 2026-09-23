@@ -19,10 +19,13 @@ class Socket
 
         this.ws.onopen = function() { this.onopen(); this.connected = true; }.bind(this);
         this.ws.onmessage = function(event) { let data = JSON.parse(event.data); this.onmessage(data.topic, data.message); }.bind(this);
-        this.ws.onerror = function() { this.ws.close(); }.bind(this);
+        this.ws.onerror = function(event) { event.target.close(); };
 
-        this.ws.onclose = function()
+        this.ws.onclose = function(event)
         {
+            if (event.target != this.ws)
+                return;
+
             if (this.connected)
             {
                 this.subscriptions = new Array();

@@ -1,6 +1,7 @@
 class Automation
 {
     intervals = [setInterval(function() { this.checkDevices(); this.updateLastTriggered(); }.bind(this), 100)];
+    content = document.querySelector('.content .container');
     service = 'automation';
 
     triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval', 'startup'];
@@ -12,7 +13,6 @@ class Automation
     actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay', 'exit'];
     actionStatement = ['value', 'increase', 'decrease'];
 
-    content = document.querySelector('.content .container');
     status = new Object();
     data = new Object();
 
