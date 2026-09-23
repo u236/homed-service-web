@@ -747,7 +747,7 @@ tr:first-child td {
     display: grid;
     gap: 10px;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    margin-top: 20px;
+    margin: 20px 0;
 }
 
 .cameraItem, .cameraView {
@@ -783,6 +783,10 @@ tr:first-child td {
 
 .cameraItem .title .exposeIcon {
     color: inherit;
+}
+
+.cameraView {
+    margin-bottom: 20px;
 }
 
 .cameraView video {
