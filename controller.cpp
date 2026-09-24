@@ -32,7 +32,7 @@ Controller::Controller(const QString &configFile) : HOMEd(SERVICE_VERSION, confi
 
 QString Controller::includeList(const QString &path, const QString &type, const QString &pattern)
 {
-    QStringList list = QDir(QString(m_frontend).append(path)).entryList({QString("*.").append(type)}, QDir::Files, QDir::Name), items;
+    QList <QString> list = QDir(QString(m_frontend).append(path)).entryList({QString("*.").append(type)}, QDir::Files, QDir::Name), items;
 
     for (int i = 0; i < list.count(); i++)
         items.append(pattern.arg(QString(path).mid(1).append('/').append(list.at(i))));
