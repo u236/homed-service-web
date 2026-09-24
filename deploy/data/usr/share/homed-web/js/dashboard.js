@@ -191,6 +191,7 @@ class Dashboard
             {
                 case 'light':
                 case 'lock':
+                case 'media':
                 case 'switch':
                 {
                     let name = meta.id ? 'status_' + meta.id : 'status';
@@ -1018,6 +1019,7 @@ class Dashboard
                 cover:      ['cover', 'position'],
                 light:      ['status', 'level', 'color', 'colorTemperature', 'colorMode'],
                 lock:       ['status'],
+                media:      ['status', 'input', 'volume', 'mute', 'pause'],
                 switch:     ['status'],
                 thermostat: ['systemMode', 'operationMode', 'fanMode', 'swingMode', 'targetTemperature', 'temperature', 'running']
             };

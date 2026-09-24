@@ -20,6 +20,7 @@ const defaultIcons =
     level:             'brightness-6',
     light:             'lightbulb',
     lock:              'lock',
+    media:             'television',
     operationMode:     'tune-variant',
     outlet:            'power-plug',
     position:          'arrow-up-down',
@@ -122,7 +123,7 @@ function iconName(device, endpoint, itemName, icons = true)
 
     if (meta.name == 'status')
     {
-        let list = ['light', 'lock', 'switch'];
+        let list = ['light', 'lock', 'media', 'switch'];
 
         for (let i = 0; i < list.length; i++)
         {
@@ -255,8 +256,9 @@ function exposeList(expose, options)
             break;
 
         case 'light':
+        case 'media':
         {
-            let controls = options[meta.id ? 'light_' + meta.id : 'light'];
+            let controls = options[meta.id ? meta.name + '_' + meta.id : meta.name];
             list = ['status'].concat(Array.isArray(controls) ? controls : new Array());
             break;
         }
@@ -269,7 +271,7 @@ function exposeList(expose, options)
         case 'thermostat':
         {
             let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'swingMode', 'heatMode'];
-            controls.forEach(item => { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
+            controls.forEach(item => { if (options[item]) list.push(item); });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
             options['temperature'] = {...options['temperature'], type: 'sensor', unit: '°C'};
             break;
