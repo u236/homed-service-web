@@ -17,15 +17,12 @@ const defaultIcons =
     cover:             'window-shutter',
     fanMode:           'fan',
     heatMode:          'fire',
-    input:             'video-input-hdmi',
     level:             'brightness-6',
     light:             'lightbulb',
     lock:              'lock',
     media:             'television',
-    mute:              'volume-off',
     operationMode:     'tune-variant',
     outlet:            'power-plug',
-    pause:             'pause',
     position:          'arrow-up-down',
     running:           'fire',
     swingMode:         'weather-windy',
@@ -259,8 +256,9 @@ function exposeList(expose, options)
             break;
 
         case 'light':
+        case 'media':
         {
-            let controls = options[meta.id ? 'light_' + meta.id : 'light'];
+            let controls = options[meta.id ? meta.name + '_' + meta.id : meta.name];
             list = ['status'].concat(Array.isArray(controls) ? controls : new Array());
             break;
         }
@@ -270,20 +268,10 @@ function exposeList(expose, options)
             list = ['status'];
             break;
 
-        case 'media':
-        {
-            let controls = options[meta.id ? 'media_' + meta.id : 'media'];
-            let types = {volume: 'number', input: 'select', mute: 'toggle', pause: 'toggle'};
-
-            list = ['status'].concat(Array.isArray(controls) ? controls : new Array());
-            list.forEach(item => { if (types[item]) options[item] = {...options[item], type: types[item]}; });
-            break;
-        }
-
         case 'thermostat':
         {
             let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'swingMode', 'heatMode'];
-            controls.forEach(item => { if (options[item]) { list.push(item); options[item] = {...options[item], ...(item == 'targetTemperature' ? {type: 'number', unit: '°C'} : {type: 'select'})}; } });
+            controls.forEach(item => { if (options[item]) list.push(item); });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
             options['temperature'] = {...options['temperature'], type: 'sensor', unit: '°C'};
             break;

@@ -1019,7 +1019,7 @@ class Dashboard
                 cover:      ['cover', 'position'],
                 light:      ['status', 'level', 'color', 'colorTemperature', 'colorMode'],
                 lock:       ['status'],
-                media:      ['status', 'volume', 'input', 'mute', 'pause'],
+                media:      ['status', 'input', 'volume', 'mute', 'pause'],
                 switch:     ['status'],
                 thermostat: ['systemMode', 'operationMode', 'fanMode', 'swingMode', 'targetTemperature', 'temperature', 'running']
             };
