@@ -1,6 +1,4 @@
-#include <QDateTime>
 #include <QDir>
-#include <QRandomGenerator>
 #include "controller.h"
 #include "logger.h"
 
@@ -42,49 +40,6 @@ QString Controller::includeList(const QString &path, const QString &type, const 
     return items.join(QString("\n").append(QString(8, 0x20)));
 }
 
-QString Controller::createWebSocketTicket(bool guest)
-{
-    QByteArray data;
-    WebSocketTicket ticket;
-
-    for (int i = 0; i < 32; i++)
-        data.append(static_cast <char> (QRandomGenerator::global()->generate()));
-
-    removeExpiredWebSocketTickets();
-    ticket.expiresAt = QDateTime::currentSecsSinceEpoch() + WEBSOCKET_TICKET_AGE;
-    ticket.guest = guest;
-
-    QString value = data.toHex();
-    m_webSocketTickets.insert(value, ticket);
-    return value;
-}
-
-bool Controller::consumeWebSocketTicket(const QString &ticket, bool &guest)
-{
-    removeExpiredWebSocketTickets();
-    auto it = m_webSocketTickets.find(ticket);
-
-    if (ticket.isEmpty() || it == m_webSocketTickets.end())
-        return false;
-
-    guest = it.value().guest;
-    m_webSocketTickets.erase(it);
-    return true;
-}
-
-void Controller::removeExpiredWebSocketTickets(void)
-{
-    qint64 timestamp = QDateTime::currentSecsSinceEpoch();
-
-    for (auto it = m_webSocketTickets.begin(); it != m_webSocketTickets.end();)
-    {
-        if (it.value().expiresAt <= timestamp)
-            it = m_webSocketTickets.erase(it);
-        else
-            it++;
-    }
-}
-
 void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers, const QByteArray &response)
 {
     QByteArray data;
@@ -93,8 +48,6 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
     {
        case 200: data = "HTTP/1.1 200 OK"; break;
        case 301: data = "HTTP/1.1 301 Moved Permanently"; break;
-       case 400: data = "HTTP/1.1 400 Bad Request"; break;
-       case 401: data = "HTTP/1.1 401 Unauthorized"; break;
        case 404: data = "HTTP/1.1 404 Not Found"; break;
        case 405: data = "HTTP/1.1 405 Method Not Allowed"; break;
        case 500: data = "HTTP/1.1 500 Internal Server Error"; break;
@@ -105,12 +58,6 @@ void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QStr
 
     socket->write(data.append("\r\nConnection: close\r\n\r\n").append(response));
     socket->close();
-}
-
-void Controller::jsonResponse(QTcpSocket *socket, quint16 code, const QJsonObject &json)
-{
-    QByteArray data = QJsonDocument(json).toJson(QJsonDocument::Compact);
-    httpResponse(socket, code, {{"Cache-Control", "no-store"}, {"Content-Type", "application/json"}, {"Content-Length", QString::number(data.length())}}, data);
 }
 
 void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
@@ -268,12 +215,12 @@ void Controller::readyRead(void)
     QTcpSocket *socket = reinterpret_cast <QTcpSocket*> (sender());
     QByteArray request = socket->peek(socket->bytesAvailable());
     QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(0x20), cookieList, itemList;
-    QByteArray method = target.value(0).toUtf8(), url = target.value(1).toUtf8(), content = list.value(1).toUtf8(), path = url.contains('?') ? url.left(url.indexOf('?')) : url;
+    QByteArray method = target.value(0).toUtf8(), url = target.value(1).toUtf8(), content = list.value(1).toUtf8();
     QMap <QString, QString> headers, cookies, items;
-    bool guest = false, webSocketRequest = false;
+    bool guest = false;
 
     disconnect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
-    logDebug(m_debug) << "Request" << method << path << "received from" << socket->peerAddress().toString();
+    logDebug(m_debug) << "Request" << head.value(0) << "received from" << socket->peerAddress().toString();
 
     for (int i = 1; i < head.count(); i++)
     {
@@ -282,9 +229,8 @@ void Controller::readyRead(void)
         if (index < 0)
             continue;
 
-        QString name = head.at(i).mid(0, index).trimmed().toLower(), value = head.at(i).mid(index + 1).trimmed();
-        headers.insert(name, value);
-        logDebug(m_debug) << "Header received:" << name << (name == "cookie" || name == "authorization" ? "[redacted]" : value);
+        headers.insert(head.at(i).mid(0, index).trimmed().toLower(), head.at(i).mid(index + 1).trimmed());
+        logDebug(m_debug) << "Header received:" << head.at(i);
     }
 
     cookieList = headers.value("cookie").split(';');
@@ -297,7 +243,7 @@ void Controller::readyRead(void)
             continue;
 
         cookies.insert(cookie.value(0).trimmed(), cookie.value(1).trimmed());
-        logDebug(m_debug) << "Cookie received:" << cookie.value(0).trimmed() << (cookie.value(0).trimmed() == "homed-auth-token" ? "[redacted]" : cookie.value(1).trimmed());
+        logDebug(m_debug) << "Cookie received:" << cookieList.at(i);
     }
 
     if (method == "POST")
@@ -318,70 +264,18 @@ void Controller::readyRead(void)
             continue;
 
         items.insert(item.value(0), QUrl::fromPercentEncoding(item.value(1).toUtf8()));
-        logDebug(m_debug) << "Data received:" << item.value(0) << (item.value(0) == "password" || item.value(0) == "ticket" ? "[redacted]" : item.value(1));
-    }
-
-    webSocketRequest = headers.value("upgrade").compare("websocket", Qt::CaseInsensitive) == 0;
-
-    QString address = !headers.value("x-real-ip").isEmpty() ? headers.value("x-real-ip") : !headers.value("x-forwarded-for").isEmpty() ? headers.value("x-forwarded-for").split(',').value(0).trimmed() : socket->peerAddress().toString();
-
-    if (address.startsWith("::ffff:"))
-        address = address.mid(7);
-
-    if (path == "/api/auth/websocket")
-    {
-        if (method != "POST")
-        {
-            jsonResponse(socket, 405, {{"error", "method_not_allowed"}});
-            return;
-        }
-
-        if (!m_auth)
-        {
-            jsonResponse(socket, 200, {{"authRequired", false}});
-            return;
-        }
-
-        QString username = items.value("username"), password = items.value("password");
-        bool validAdmin = username == m_username && password == m_password;
-        bool validGuest = !m_guest.isEmpty() && username == "guest" && password == m_guest;
-
-        if (!validAdmin && !validGuest)
-        {
-            logWarning << "User" << (username.isEmpty() ? "(empty)" : username) << "websocket ticket request failed, address:" << address;
-            jsonResponse(socket, 401, {{"error", "invalid_credentials"}});
-            return;
-        }
-
-        QString ticket = createWebSocketTicket(validGuest);
-        logInfo << "Websocket ticket issued for" << (validGuest ? "guest" : username) << "user, address:" << address;
-        jsonResponse(socket, 200, {{"ticket", ticket}, {"expiresIn", WEBSOCKET_TICKET_AGE}, {"role", validGuest ? "guest" : "admin"}});
-        return;
+        logDebug(m_debug) << "Data received:" << itemList.at(i);
     }
 
     if (m_auth)
     {
-        QString token = cookies.value("homed-auth-token");
-        bool authenticated = false, publicRequest = !webSocketRequest && (path == "/manifest.json" || path.startsWith("/css/") || path.startsWith("/font/") || path.startsWith("/img/"));
+        QString address = !headers.value("x-real-ip").isEmpty() ? headers.value("x-real-ip") : !headers.value("x-forwarded-for").isEmpty() ? headers.value("x-forwarded-for").split(',').value(0).trimmed() : socket->peerAddress().toString(), token = cookies.value("homed-auth-token");
 
-        if (token == m_database->adminToken())
-            authenticated = true;
-        else if (token == m_database->guestToken())
+        if (address.startsWith("::ffff:"))
+            address = address.mid(7);
+
+        if (token != m_database->adminToken() && token != m_database->guestToken() && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
         {
-            authenticated = true;
-            guest = true;
-        }
-        else if (webSocketRequest)
-            authenticated = consumeWebSocketTicket(items.value("ticket"), guest);
-
-        if (!authenticated && !publicRequest)
-        {
-            if (webSocketRequest)
-            {
-                jsonResponse(socket, 401, {{"error", "invalid_websocket_ticket"}});
-                return;
-            }
-
             if (method == "POST")
             {
                 QString username = items.value("username"), password = items.value("password");
@@ -406,9 +300,11 @@ void Controller::readyRead(void)
             fileResponse(socket, "/login.html");
             return;
         }
+
+        guest = token != m_database->adminToken();
     }
 
-    url = path;
+    url = url.mid(0, url.indexOf('?'));
 
     if (url == "/logout")
     {
@@ -422,7 +318,6 @@ void Controller::readyRead(void)
 
         m_database->resetAdminToken();
         m_database->resetGuestToken();
-        m_webSocketTickets.clear();
         m_database->store(true);
         return;
     }
@@ -433,7 +328,7 @@ void Controller::readyRead(void)
         return;
     }
 
-    if (webSocketRequest)
+    if (headers.value("upgrade") == "websocket")
     {
         socket->setProperty("guest", guest);
         m_webSocket->handleConnection(socket);
