@@ -217,7 +217,7 @@ void Controller::readyRead(void)
     QList <QString> list = QString(request).split("\r\n\r\n"), head = list.value(0).split("\r\n"), target = head.value(0).split(0x20), cookieList, itemList;
     QByteArray method = target.value(0).toUtf8(), url = target.value(1).toUtf8(), content = list.value(1).toUtf8();
     QMap <QString, QString> headers, cookies, items;
-    bool guest = false;
+    bool upgrade = false, guest = false;
 
     disconnect(socket, &QTcpSocket::readyRead, this, &Controller::readyRead);
     logDebug(m_debug) << "Request" << head.value(0) << "received from" << socket->peerAddress().toString();
@@ -267,6 +267,9 @@ void Controller::readyRead(void)
         logDebug(m_debug) << "Data received:" << itemList.at(i);
     }
 
+    url = url.mid(0, url.indexOf('?'));
+    upgrade = headers.value("upgrade") == "websocket";
+
     if (m_auth)
     {
         QString address = !headers.value("x-real-ip").isEmpty() ? headers.value("x-real-ip") : !headers.value("x-forwarded-for").isEmpty() ? headers.value("x-forwarded-for").split(',').value(0).trimmed() : socket->peerAddress().toString(), token = cookies.value("homed-auth-token");
@@ -274,7 +277,7 @@ void Controller::readyRead(void)
         if (address.startsWith("::ffff:"))
             address = address.mid(7);
 
-        if (token != m_database->adminToken() && token != m_database->guestToken() && url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))
+        if (token != m_database->adminToken() && token != m_database->guestToken() && (upgrade || (url != "/manifest.json" && !url.startsWith("/css/") && !url.startsWith("/font/") && !url.startsWith("/img/"))))
         {
             if (method == "POST")
             {
@@ -304,8 +307,6 @@ void Controller::readyRead(void)
         guest = token != m_database->adminToken();
     }
 
-    url = url.mid(0, url.indexOf('?'));
-
     if (url == "/logout")
     {
         httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", "homed-auth-token=deleted; path=/; max-age=0"}});
@@ -328,7 +329,7 @@ void Controller::readyRead(void)
         return;
     }
 
-    if (headers.value("upgrade") == "websocket")
+    if (upgrade)
     {
         socket->setProperty("guest", guest);
         m_webSocket->handleConnection(socket);
