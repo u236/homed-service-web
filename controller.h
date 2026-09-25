@@ -1,10 +1,10 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION          "2.16.3"
-#define COOKIE_MAX_AGE           31536000
-#define REQUEST_TIMEOUT          5000
-#define WEBSOCKET_TICKET_AGE     30
+#define SERVICE_VERSION     "2.16.3"
+#define COOKIE_MAX_AGE      31536000
+#define REQUEST_TIMEOUT     5000
+#define WEBSOCKET_TICKET_AGE 30
 
 #include <QMetaEnum>
 #include <QTcpServer>
