@@ -446,7 +446,9 @@ class Controller
         document.querySelector('#serviceVersion').innerHTML = '<i>unknown</i>';
 
         localStorage.setItem('homedPage', page);
-        location.hash = page;
+
+        if (location.hash.slice(1) != page)
+            history.pushState(null, null, '#' + page);
 
         if (this.service != service)
             this.services.camera?.stop();
