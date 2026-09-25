@@ -3,6 +3,7 @@
 
 #define SERVICE_VERSION     "2.16.3"
 #define COOKIE_MAX_AGE      31536000
+#define TICKET_MAX_AGE      30
 #define REQUEST_TIMEOUT     5000
 
 #include <QMetaEnum>
@@ -11,6 +12,12 @@
 #include <QWebSocketServer>
 #include "database.h"
 #include "homed.h"
+
+struct Ticket
+{
+    QString token;
+    qint64 expire;
+};
 
 class Controller : public HOMEd
 {
@@ -49,7 +56,10 @@ private:
     QList <QTcpSocket*> m_sockets;
     QMap <QWebSocket*, QList <QString>> m_clients;
 
+    QMap <QString, Ticket> m_tickets;
+
     QString includeList(const QString &path, const QString &filter, const QString &tag);
+    QString ticketToken(const QString &ticket);
 
     void httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers = QMap <QString, QString> (), const QByteArray &response = QByteArray());
     void fileResponse(QTcpSocket *socket, const QString &fileName);

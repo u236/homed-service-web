@@ -40,6 +40,22 @@ QString Controller::includeList(const QString &path, const QString &type, const 
     return items.join(QString("\n").append(QString(8, 0x20)));
 }
 
+QString Controller::ticketToken(const QString &ticket)
+{
+    auto it = m_tickets.find(ticket);
+    QString token;
+
+    if (it != m_tickets.end())
+    {
+        if (it.value().expire >= QDateTime::currentSecsSinceEpoch())
+            token = it.value().token;
+
+        m_tickets.erase(it);
+    }
+
+    return token;
+}
+
 void Controller::httpResponse(QTcpSocket *socket, quint16 code, const QMap <QString, QString> &headers, const QByteArray &response)
 {
     QByteArray data;
@@ -272,7 +288,7 @@ void Controller::readyRead(void)
 
     if (m_auth)
     {
-        QString address = !headers.value("x-real-ip").isEmpty() ? headers.value("x-real-ip") : !headers.value("x-forwarded-for").isEmpty() ? headers.value("x-forwarded-for").split(',').value(0).trimmed() : socket->peerAddress().toString(), token = cookies.value("homed-auth-token");
+        QString address = !headers.value("x-real-ip").isEmpty() ? headers.value("x-real-ip") : !headers.value("x-forwarded-for").isEmpty() ? headers.value("x-forwarded-for").split(',').value(0).trimmed() : socket->peerAddress().toString(), token = upgrade && items.contains("ticket") ? ticketToken(items.value("ticket")) : cookies.value("homed-auth-token");
 
         if (address.startsWith("::ffff:"))
             address = address.mid(7);
@@ -285,15 +301,26 @@ void Controller::readyRead(void)
 
                 if (username == m_username && password == m_password)
                 {
-                    httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(m_database->adminToken()).arg(COOKIE_MAX_AGE)}});
                     logInfo << "User" << username << "successfully logged in, address:" << address;
-                    return;
+                    token = m_database->adminToken();
+                }
+                else if (!m_guest.isEmpty() && username == "guest" && password == m_guest)
+                {
+                    logInfo << "Guest user successfully logged in, address:" << address;
+                    token = m_database->guestToken();
                 }
 
-                if (!m_guest.isEmpty() && username == "guest" && password == m_guest)
+                if (token == m_database->adminToken() || token == m_database->guestToken())
                 {
-                    httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(m_database->guestToken()).arg(COOKIE_MAX_AGE)}});
-                    logInfo << "Guest user successfully logged in, address:" << address;
+                    if (items.value("ticket") == "true")
+                    {
+                        QByteArray ticket = m_database->randomData(32).toHex(), data = QJsonDocument(QJsonObject {{"ticket", QString(ticket)}}).toJson(QJsonDocument::Compact);
+                        httpResponse(socket, 200, {{"Cache-Control", "no-cache, no-store"}, {"Content-Type", "application/json"}, {"Content-Length", QString::number(data.length())}}, data);
+                        m_tickets.insert(ticket, {token, QDateTime::currentSecsSinceEpoch() + TICKET_MAX_AGE});
+                    }
+                    else
+                        httpResponse(socket, 301, {{"Location", QString(headers.value("x-ingress-path")).append('/')}, {"Cache-Control", "no-cache, no-store"}, {"Set-Cookie", QString("homed-auth-token=%1; path=/; max-age=%2").arg(token).arg(COOKIE_MAX_AGE)}});
+
                     return;
                 }
 
@@ -405,6 +432,19 @@ void Controller::textMessageReceived(const QString &message)
 
 void Controller::pingClients(void)
 {
+    qint64 now = QDateTime::currentSecsSinceEpoch();
+
     for (auto it = m_clients.begin(); it != m_clients.end(); it++)
         it.key()->ping();
+
+    for (auto it = m_tickets.begin(); it != m_tickets.end(); NULL)
+    {
+        if (now > it.value().expire)
+        {
+            it = m_tickets.erase(it);
+            continue;
+        }
+
+        it++;
+    }
 }

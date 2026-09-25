@@ -34,6 +34,8 @@ public:
     void init(void);
     void store(bool sync = false);
 
+    QByteArray randomData(int length);
+
 private:
 
     QTimer *m_timer;
@@ -43,8 +45,6 @@ private:
     QString m_adminToken, m_guestToken;
     QJsonArray m_dashboards;
     QJsonObject m_icons, m_names;
-
-    QByteArray randomData(int length);
 
 private slots:
 
