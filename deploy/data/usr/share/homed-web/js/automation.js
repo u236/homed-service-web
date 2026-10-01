@@ -1044,7 +1044,8 @@ class Automation
             modal.querySelector('input[name="hold"]').value = item.hold ?? '';
 
             modal.querySelector('.triggerName').style.display = type != 'condition' ? 'block' : 'none';
-            modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
+            modal.querySelector('#triggerName.dropdown').style.display = type == 'trigger' ? 'inline' : 'none';
+            modal.querySelector('textarea[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
             modal.querySelector('input[name="force"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
@@ -1140,7 +1141,8 @@ class Automation
             modal.querySelector('input[name="hold"]').value = item.hold ?? '';
 
             modal.querySelector('.triggerName').style.display = type != 'condition' ? 'block' : 'none';
-            modal.querySelector('input[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
+            modal.querySelector('#triggerName.dropdown').style.display = type == 'trigger' ? 'inline' : 'none';
+            modal.querySelector('textarea[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
             modal.querySelector('input[name="force"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
@@ -1194,7 +1196,7 @@ class Automation
         {
             modal.querySelector('textarea[name="message"]').value = trigger.message ?? '';
             modal.querySelector('input[name="chats"]').value = trigger.chats ? trigger.chats.join(', ') : '';
-            modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('textarea[name="name"]').value = trigger.name ?? '';
             modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1230,7 +1232,7 @@ class Automation
         loadHTML('html/automation/timeTrigger.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('input[name="time"]').value = trigger.time ?? '12:00';
-            modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('textarea[name="name"]').value = trigger.name ?? '';
             modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1265,7 +1267,7 @@ class Automation
         {
             modal.querySelector('input[name="interval"]').value = trigger.interval ?? 10;
             modal.querySelector('input[name="offset"]').value = trigger.offset ?? 0;
-            modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('textarea[name="name"]').value = trigger.name ?? '';
             modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1299,7 +1301,7 @@ class Automation
     {
         loadHTML('html/automation/startupTrigger.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('input[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('textarea[name="name"]').value = trigger.name ?? '';
             modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1323,7 +1325,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true, 'input[name="name"]');
+            showModal(true, 'textarea[name="name"]');
         });
     }
 

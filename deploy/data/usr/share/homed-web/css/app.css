@@ -176,11 +176,13 @@ input[type="datetime-local"], input[type="number"], input[type="password"], inpu
 }
 
 textarea {
-    height: 75px;
+    min-height: 30px;
+    max-height: 300px;
     margin-bottom: 5px;
-    padding: 5px;
+    padding: 6px 5px;
     font-family: var(--font-mono);
     font-size: var(--font-size-tiny);
+    field-sizing: content;
     resize: vertical;
 }
 
