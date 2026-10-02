@@ -385,6 +385,39 @@ class Controller
         return list;
     }
 
+    camerasList()
+    {
+        let list = new Object();
+        this.services.camera?.status.devices?.forEach(device => { list['<span class="mdi-video exposeIcon"></span>Camera <i class="mdi-arrow-right"></i> ' + device.name] = '{{ camera | ' + device.id + ' }}'; });
+        return list;
+    }
+
+    patternList(exclude = new Array())
+    {
+        let list = new Object();
+        let groups =
+        {
+            name:     {'Trigger name': '{{ triggerName }}'},
+            trigger:  {'Trigger property': '{{ triggerProperty }}', 'Trigger topic': '{{ triggerTopic }}', 'Trigger message': '{{ triggerMessage }}'},
+            data:     {'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}', 'State value': '{{ state | stateName }}', 'File contents': '{{ file | /path/to/file }}'},
+            shell:    {'Shell output': '{{ shellOutput }}'},
+            time:     {'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}'},
+            color:    {'Color temperature': '{{ colorTemperature | 153 | 500 }}'},
+            property: this.propertiesList(false, true),
+            camera:   this.camerasList()
+        };
+
+        Object.keys(groups).forEach(group =>
+        {
+            if (exclude.includes(group))
+                return;
+
+            list = {...list, ...groups[group]};
+        });
+
+        return list;
+    }
+
     propertyIcon(item)
     {
         return this.services.dashboard.status.icons[item];
@@ -1374,33 +1407,36 @@ function closeModal()
     modal.style.display = 'none';
 }
 
-function showModal(show, focus)
+function showModal(show, focus, type)
 {
     if (show)
     {
-        let list =
-        {
-            'Trigger name': '{{ triggerName }}',
-            'Trigger property': '{{ triggerProperty }}',
-            'Trigger topic': '{{ triggerTopic }}',
-            'Trigger message': '{{ triggerMessage }}',
-            'Shell output': '{{ shellOutput }}',
-            'File contents': '{{ file | /path/to/file }}',
-            'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}',
-            'State value': '{{ state | stateName }}',
-            'Color temperature': '{{ colorTemperature | 153 | 500 }}',
-            'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}',
-            ...controller.propertiesList(false, true)
-        };
+        let list, separator;
 
-        controller.services.camera?.status.devices?.forEach(device => { list['<span class="mdi-video exposeIcon"></span>Camera <i class="mdi-arrow-right"></i> ' + device.name] = '{{ camera | ' + device.id + ' }}'; });
+        switch (type)
+        {
+            case 'trigger':
+                list = controller.patternList(['name', 'shell', 'color', 'camera']);
+                separator = 7;
+                break;
+
+            case 'condition':
+                list = controller.patternList(['color', 'camera']);
+                separator = 9;
+                break;
+
+            case 'action':
+                list = controller.patternList();
+                separator = 10;
+                break;
+        }
 
         modal.style.display = 'block';
         modal.classList.remove('fade-out');
         modal.classList.add('fade-in');
 
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
-        modal.querySelectorAll('label .dropdown').forEach(item => { addDropdown(item, Object.keys(list), function(key) {let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, 10); });
+        modal.querySelectorAll('label .dropdown').forEach(item => { if (list) addDropdown(item, Object.keys(list), function(key) { let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, separator); });
         modal.querySelector(focus)?.focus();
 
         document.querySelector('body').classList.add('lockScroll');

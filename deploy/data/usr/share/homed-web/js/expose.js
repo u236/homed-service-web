@@ -279,7 +279,7 @@ function exposeList(expose, options)
 
         case 'thermostatProgram':
         {
-            let option = options.targetTemperature ?? {};
+            let option = options.targetTemperature ?? new Object();
 
             if (isNaN(option.min) || isNaN(option.max))
                 break;

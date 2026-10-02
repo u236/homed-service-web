@@ -1099,7 +1099,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(item, list, append);
-            showModal(true);
+            showModal(true, null, type);
         });
     }
 
@@ -1186,7 +1186,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(item, list, append);
-            showModal(true, 'input[name="topic"]');
+            showModal(true, 'input[name="topic"]', type);
         });
     }
 
@@ -1223,7 +1223,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true, 'textarea[name="message"]');
+            showModal(true, 'textarea[name="message"]', 'trigger');
         });
     }
 
@@ -1257,7 +1257,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true, 'input[name="time"]');
+            showModal(true, 'input[name="time"]', 'trigger');
         });
     }
 
@@ -1293,7 +1293,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true, 'input[name="interval"]');
+            showModal(true, 'input[name="interval"]', 'trigger');
         });
     }
 
@@ -1325,7 +1325,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(trigger, this.data.triggers, append);
-            showModal(true, 'textarea[name="name"]');
+            showModal(true, 'textarea[name="name"]', 'trigger');
         });
     }
 
@@ -1382,7 +1382,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(condition, list, append);
-            showModal(true, type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]');
+            showModal(true, type == 'state' ? 'input[name="name"]' : 'textarea[name="pattern"]', 'condition');
         });
     }
 
@@ -1503,7 +1503,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, list, append);
-            showModal(true, 'input[name="topic"]');
+            showModal(true, 'input[name="topic"]', 'action');
         });
     }
 
@@ -1539,7 +1539,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, list, append);
-            showModal(true, 'input[name="name"]');
+            showModal(true, 'input[name="name"]', 'action');
         });
     }
 
@@ -1597,7 +1597,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, list, append);
-            showModal(true, 'textarea[name="message"]');
+            showModal(true, 'textarea[name="message"]', 'action');
         });
     }
 
@@ -1633,7 +1633,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, list, append);
-            showModal(true, 'textarea[name="command"]');
+            showModal(true, 'textarea[name="command"]', 'action');
         });
     }
 
@@ -1706,7 +1706,7 @@ class Automation
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
 
             this.handleCopy(action, list, append);
-            showModal(true, 'textarea[name="delay"]');
+            showModal(true, 'textarea[name="delay"]', 'action');
         });
     }
 
