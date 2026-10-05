@@ -1,0 +1,5 @@
+#!/bin/sh
+
+/etc/init.d/homed-web restart
+
+exit 0
