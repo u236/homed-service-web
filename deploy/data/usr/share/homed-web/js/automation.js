@@ -1814,6 +1814,7 @@ class Automation
             modal.querySelector('textarea[name="count"]').value = action.count ?? 3;
             modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? 'AND';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="atLeastOnce"]').checked = action.atLeastOnce;
             modal.querySelector('input[name="hideWhile"]').checked = action.hideWhile;
             modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
@@ -1826,6 +1827,7 @@ class Automation
 
                 action.count = form.count;
                 action.conditionType = form.conditionType;
+                action.atLeastOnce = form.atLeastOnce;
                 action.hideWhile = form.hideWhile;
                 action.active = form.active;
 
