@@ -4,7 +4,7 @@ class Automation
     content = document.querySelector('.content .container');
     service = 'automation';
 
-    triggerType = ['property', 'mqtt', 'telegram', 'time', 'interval', 'startup'];
+    triggerType = ['property', 'mqtt', 'state', 'telegram', 'time', 'interval', 'startup'];
     triggerStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
@@ -285,6 +285,7 @@ class Automation
         {
             case 'property':
             case 'mqtt':
+            case 'state':
 
                 for (let i = 0; i < this.triggerStatement.length; i++)
                 {
@@ -293,7 +294,7 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + this.statementString(statement);
+                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : trigger.type == 'state' ? '<span class="value">' + trigger.state + '</span> ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + this.statementString(statement);
 
                     if (statement == 'updates')
                         break;
@@ -960,6 +961,7 @@ class Automation
         {
             case 'property':  this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
             case 'mqtt':      this.showMqttItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
+            case 'state':     this.showStateTrigger(trigger, append); break;
             case 'telegram':  this.showTelegramTrigger(trigger, append); break;
             case 'time':      this.showTimeTrigger(trigger, append); break;
             case 'interval':  this.showIntervalTrigger(trigger, append); break;
@@ -1187,6 +1189,81 @@ class Automation
 
             this.handleCopy(item, list, append);
             showModal(true, 'input[name="topic"]', type);
+        });
+    }
+
+    showStateTrigger(trigger, append)
+    {
+        loadHTML('html/automation/stateTrigger.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('input[name="state"]').value = trigger.state ?? '';
+
+            this.triggerStatement.forEach(statement =>
+            {
+                let option = document.createElement('option');
+
+                option.innerHTML = this.statementString(statement);
+                option.value = statement;
+                modal.querySelector('select[name="statement"]').append(option);
+
+                if (!trigger.hasOwnProperty(statement))
+                    return;
+
+                modal.querySelector('select[name="statement"]').value = statement;
+
+                if (this.isArrayStatement(statement))
+                {
+                    modal.querySelector('input[name="min"]').value = trigger[statement][0];
+                    modal.querySelector('input[name="max"]').value = trigger[statement][1];
+                }
+                else
+                    modal.querySelector('textarea[name="value"]').value = statement != 'updates' ? trigger[statement] : '';
+
+                this.valueForm(modal, statement);
+            });
+
+            modal.querySelector('input[name="hold"]').value = trigger.hold ?? '';
+            modal.querySelector('textarea[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('input[name="force"]').checked = trigger.force ?? false;
+            modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                this.triggerStatement.forEach(statement => delete trigger[statement]);
+
+                trigger.state = form.state;
+                trigger[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                trigger.active = form.active;
+
+                if (form.hold)
+                    trigger.hold = form.hold;
+                else
+                    delete trigger.hold;
+
+                if (form.name)
+                    trigger.name = form.name;
+                else
+                    delete trigger.name;
+
+                if (form.force)
+                    trigger.force = true;
+                else
+                    delete trigger.force;
+
+                if (append)
+                    this.data.triggers.push(trigger);
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('select[name="statement"]').addEventListener('change', function(event) { this.valueForm(modal, event.target.value); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(trigger, this.data.triggers, append);
+            showModal(true, 'input[name="state"]', 'trigger');
         });
     }
 

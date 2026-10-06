@@ -1,0 +1,30 @@
+<div class="title">
+    <span class="name">State trigger</span>
+    <span class="copy"><i class="mdi-content-copy"></i></span>
+</div>
+<form>
+    <label>State:</label>
+    <input type="text" name="state">
+    <label>Statement:</label>
+    <select name="statement"></select>
+    <span class="array" style="display: none;">
+        <label>Min:</label>
+        <input type="text" name="min">
+        <label>Max:</label>
+        <input type="text" name="max">
+    </span>
+    <span class="other">
+        <label><span>Value:</span><span><i id="value" class="mdi-plus extend"></i></span></label>
+        <textarea name="value"></textarea>
+    </span>
+    <label>Hold (seconds):</label>
+    <input type="number" name="hold" min="0">
+    <label><span>Name:</span><span><i id="name" class="mdi-plus extend"></i><span id="name" class="dropdown"><i class="mdi-menu"></i></span></span></label>
+    <textarea name="name"></textarea>
+    <label class="checkbox"><input type="checkbox" name="force">Force</label>
+    <label class="checkbox"><input type="checkbox" name="active">Active</label>
+</form>
+<div class="buttons">
+    <button class="save"><i class="mdi-check-circle"></i> Save</button>
+    <button class="cancel"><i class="mdi-close-circle"></i> Cancel</button>
+</div>
