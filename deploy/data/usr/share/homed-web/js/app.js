@@ -1105,6 +1105,9 @@ document.onkeydown = function(event)
             return;
         }
 
+        if (event.altKey || event.ctrlKey || event.metaKey)
+            return;
+
         switch (key)
         {
             case 'h': document.querySelector('#hotkeys').click(); return;
@@ -1117,6 +1120,9 @@ document.onkeydown = function(event)
     if (modal.style.display != 'block')
     {
         let search = document.querySelector('#search');
+
+        if (event.altKey || event.ctrlKey || event.metaKey)
+            return;
 
         switch (key)
         {

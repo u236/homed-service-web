@@ -80,6 +80,7 @@ html[theme="light"] {
     --range-light:      #eeeeee;
     --modal-background: rgba(0, 0, 0, 0.5);
     --box-shadow:       0 2px 10px 0 rgba(127, 127, 127, 0.25);
+    --depth-alpha:      0.05;
     color-scheme:       light;
 }
 
@@ -100,6 +101,7 @@ html[theme="dark"] {
     --range-light:      #cccccc;
     --modal-background: rgba(63, 63, 63, 0.1);
     --box-shadow:       0 2px 10px 0 rgba(63, 63, 63, 0.25);
+    --depth-alpha:      0.03;
     color-scheme:       dark;
 }
 

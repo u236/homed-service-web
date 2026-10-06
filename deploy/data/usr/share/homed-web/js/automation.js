@@ -14,6 +14,8 @@ class Automation
     actionStatement = ['value', 'increase', 'decrease'];
     actionNested = ['condition', 'loop'];
 
+    color = ['54, 162, 235', '255, 99, 132', '75, 192, 192', '255, 159, 64', '153, 102, 255', '255, 205, 86'];
+
     status = new Object();
     data = new Object();
 
@@ -169,6 +171,11 @@ class Automation
     parseValue(value)
     {
         return value ? value == 'true' || value == 'false' ? value == 'true' : parseFloat(value) == value ? parseFloat(value) : value : null;
+    }
+
+    levelColor(level)
+    {
+        return 'rgba(' + this.color[(level - 1) % this.color.length] + ', var(--depth-alpha))';
     }
 
     isArrayStatement(statement)
@@ -435,6 +442,9 @@ class Automation
         if (action.silent)
             data += ' <span class="flag">silent</span>';
 
+        if (action.atLeastOnce)
+            data += ' <span class="flag">at least once</span>';
+
         return data.trim();
     }
 
@@ -458,6 +468,9 @@ class Automation
         list?.forEach((condition, index) =>
         {
             let row = table.insertRow();
+
+            if (level)
+                row.style.backgroundColor = automation.levelColor(level);
 
             if (inactive || (condition.active != undefined && !condition.active))
                 row.classList.add('inactive');
@@ -545,15 +558,15 @@ class Automation
             let nested = automation.actionNested.includes(action.type);
             let disabled = inactive || (action.active != undefined && !action.active);
 
+            if (level)
+                row.style.backgroundColor = automation.levelColor(level);
+
             if (disabled)
                 row.classList.add('inactive');
 
             for (let i = 0; i < 5; i++)
             {
                 let cell = row.insertCell();
-
-                if (!level && index && (nested || automation.actionNested.includes(list[index - 1].type)))
-                    cell.classList.add('edge');
 
                 switch (i)
                 {
@@ -579,6 +592,8 @@ class Automation
                             let actionRow = table.insertRow();
                             let nameCell = actionRow.insertCell();
                             let actionCell = actionRow.insertCell();
+
+                            actionRow.style.backgroundColor = automation.levelColor(level + 1);
 
                             if (disabled)
                                 actionRow.classList.add('inactive');
@@ -1858,7 +1873,7 @@ class Automation
     {
         loadHTML('html/automation/delayAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('textarea[name="delay"]').value = action.delay ?? 10;
+            modal.querySelector('textarea[name="delay"]').value = action.delay ?? 1;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
