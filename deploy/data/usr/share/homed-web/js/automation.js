@@ -574,7 +574,7 @@ class Automation
                         if (!nested)
                             break;
 
-                        for (let j = 0; j < (action.type == 'loop' || (action.hideElse && !action.else.length) ? 2 : 3); j++)
+                        for (let j = (action.type == 'loop' && action.hideWhile && !action.conditions.length ? 1 : 0); j < (action.type == 'loop' || (action.hideElse && !action.else.length) ? 2 : 3); j++)
                         {
                             let actionRow = table.insertRow();
                             let nameCell = actionRow.insertCell();
@@ -1814,6 +1814,7 @@ class Automation
             modal.querySelector('textarea[name="count"]').value = action.count ?? 3;
             modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? 'AND';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="hideWhile"]').checked = action.hideWhile;
             modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -1825,6 +1826,7 @@ class Automation
 
                 action.count = form.count;
                 action.conditionType = form.conditionType;
+                action.hideWhile = form.hideWhile;
                 action.active = form.active;
 
                 if (form.triggerName)
