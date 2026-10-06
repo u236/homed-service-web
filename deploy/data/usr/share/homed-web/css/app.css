@@ -259,14 +259,24 @@ pre {
     font-size: var(--font-size-mono);
 }
 
-span.value {
+span.value, span.flag {
     margin: 1px 0;
     padding: 0 6px 1px 6px;
-    border: 1px solid var(--background-hover);
+    border: 1px solid;
     border-radius: var(--border-radius);
+    font-size: 0.8125rem;
+}
+
+span.value {
+    border-color: var(--background-hover);
     background-color: var(--background-shade);
     font-family: var(--font-mono);
-    font-size: 0.8125rem;
+}
+
+span.flag {
+    border-color: var(--border-main);
+    color: var(--color-shade);
+    text-transform: uppercase;
 }
 
 table {
@@ -331,7 +341,7 @@ td.restore {
     padding-right: 0;
 }
 
-td.edit:hover, td.move:hover, td.restore:hover, td.edit:hover .shade {
+td.edit:hover, td.move:hover, td.restore:hover, td.edit:hover .shade, td.edit:hover .flag {
     color: var(--color-warning);
 }
 

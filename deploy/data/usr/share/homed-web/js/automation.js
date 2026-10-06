@@ -328,9 +328,9 @@ class Automation
             data += (trigger.offset ? ' and ' : ' with ') + 'name <span class="value">' + trigger.name + '</span>';
 
         if (trigger.hold)
-            data += ' <span class="shade">[for ' + trigger.hold + ' ' + (trigger.hold != 1 ? 'seconds' : 'second') + ']</span>';
+            data += ' <span class="flag">' + trigger.hold + ' ' + (trigger.hold != 1 ? 'seconds' : 'second') + '</span>';
         else if (trigger.force)
-            data += ' <span class="shade">[force]</span>';
+            data += ' <span class="flag">force</span>';
 
         return data.trim();
     }
@@ -390,7 +390,7 @@ class Automation
                 break;
 
             case 'mqtt':
-                data = '<span class="value">' + this.shieldValue(action.message) + '</span> to <span class="value">' + action.topic + '</span> topic' + (action.retain ? ' <span class="value">retained</span>' : '');
+                data = '<span class="value">' + this.shieldValue(action.message) + '</span> to <span class="value">' + action.topic + '</span> topic';
                 break;
 
             case 'state':
@@ -398,7 +398,7 @@ class Automation
                 break;
 
             case 'telegram':
-                data = (action.file ? '[file]' : '<span class="value">' + this.shieldValue(action.message) + '</span>') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>' : '');
+                data = (action.message ? '<span class="value">' + this.shieldValue(action.message) + '</span>' : 'empty message') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>' : '');
                 break;
 
             case 'shell':
@@ -418,8 +418,17 @@ class Automation
         if (action.triggerName)
             data += ' when trigger is <span class="value">' + action.triggerName + '</span>';
 
+        if (action.retain)
+            data += ' <span class="flag">retain</span>';
+
+        if (action.file)
+            data += ' <span class="flag">file</span>';
+
+        if (action.keyboard)
+            data += ' <span class="flag">keyboard</span>';
+
         if (action.silent)
-            data += ' <span class="shade">[silent]</span>';
+            data += ' <span class="flag">silent</span>';
 
         return data.trim();
     }
