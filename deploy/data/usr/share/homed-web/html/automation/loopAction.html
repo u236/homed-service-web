@@ -1,13 +1,14 @@
 <div class="title">
-    <span class="name">Condition action</span>
+    <span class="name">Loop action</span>
     <span class="copy"><i class="mdi-content-copy"></i></span>
 </div>
 <form>
+    <label><span>Count:</span><span><i id="count" class="mdi-plus extend"></i><span id="count" class="dropdown"><i class="mdi-menu"></i></span></span></label>
+    <textarea name="count"></textarea>
     <label>Condition type:</label>
     <select name="conditionType"><option>AND</option><option>OR</option><option>NOT</option></select>
     <label>Trigger name:</label>
     <input type="text" name="triggerName">
-    <label class="checkbox"><input type="checkbox" name="hideElse">Hide empty else</label>
     <label class="checkbox"><input type="checkbox" name="active">Active</label>
 </form>
 <div class="buttons">

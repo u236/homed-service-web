@@ -10,8 +10,9 @@ class Automation
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside'];
 
-    actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'delay', 'exit'];
+    actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'loop', 'delay', 'exit'];
     actionStatement = ['value', 'increase', 'decrease'];
+    actionNested = ['condition', 'loop'];
 
     status = new Object();
     data = new Object();
@@ -410,6 +411,10 @@ class Automation
                 data = action.triggerName ? '' : '<span class="shade"><i>any trigger</i></span>';
                 break;
 
+            case 'loop':
+                data = '<span class="value">' + this.shieldValue(action.count) + '</span> times';
+                break;
+
             case 'delay':
                 data = '<span class="value">' + this.shieldValue(action.delay) + '</span> seconds';
                 break;
@@ -445,7 +450,7 @@ class Automation
         automation.showCondition({type: type}, list, true);
     }
 
-    conditionList(automation, list, table, level = 0)
+    conditionList(automation, list, table, level = 0, inactive = false)
     {
         if (!list?.length && level)
             list = new Array(new Object());
@@ -454,7 +459,7 @@ class Automation
         {
             let row = table.insertRow();
 
-            if (condition.active != undefined && !condition.active)
+            if (inactive || (condition.active != undefined && !condition.active))
                 row.classList.add('inactive');
 
             for (let i = 0; i < 5; i++)
@@ -478,7 +483,7 @@ class Automation
                             cell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';
                             cell.classList.add('right');
                             addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 7);
-                            automation.conditionList(automation, condition.conditions, table, level + 1);
+                            automation.conditionList(automation, condition.conditions, table, level + 1, inactive);
                             break;
                         }
 
@@ -529,32 +534,32 @@ class Automation
         });
     }
 
-    actionList(automation, list, table, level = 0)
+    actionList(automation, list, table, level = 0, inactive = false)
     {
-        let condition = false;
-
         if (!list?.length && level)
             list = new Array(new Object());
 
         list?.forEach((action, index) =>
         {
             let row = table.insertRow();
+            let nested = automation.actionNested.includes(action.type);
+            let disabled = inactive || (action.active != undefined && !action.active);
 
-            if (action.active != undefined && !action.active)
+            if (disabled)
                 row.classList.add('inactive');
 
             for (let i = 0; i < 5; i++)
             {
                 let cell = row.insertCell();
 
-                if (!level && (condition || (index && action.type == 'condition')))
+                if (!level && index && (nested || automation.actionNested.includes(list[index - 1].type)))
                     cell.classList.add('edge');
 
                 switch (i)
                 {
                     case 0:
                         for (let j = 0; j < level; j++) cell.innerHTML += '<span class="small ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
-                        cell.innerHTML += action.type == 'condition' ? '<span class="value">CONDITION</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
+                        cell.innerHTML += nested ? '<span class="value">' + action.type.toUpperCase() + '</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
                         break;
 
                     case 1:
@@ -566,14 +571,17 @@ class Automation
                         cell.classList.add('edit');
                         cell.addEventListener('click', function() { automation.showAction(action, list); });
 
-                        if (action.type != 'condition')
+                        if (!nested)
                             break;
 
-                        for (let j = 0; j < (action.hideElse && !action.else.length ? 2 : 3); j++)
+                        for (let j = 0; j < (action.type == 'loop' || (action.hideElse && !action.else.length) ? 2 : 3); j++)
                         {
                             let actionRow = table.insertRow();
                             let nameCell = actionRow.insertCell();
                             let actionCell = actionRow.insertCell();
+
+                            if (disabled)
+                                actionRow.classList.add('inactive');
 
                             for (let k = 0; k <= level - 1; k++)
                                 nameCell.innerHTML += '<span class="small ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
@@ -584,21 +592,21 @@ class Automation
                             switch (j)
                             {
                                 case 0:
-                                    nameCell.innerHTML += '<span class="value">IF</span> <span class="value">' + action.conditionType + '</span>';
+                                    nameCell.innerHTML += '<span class="value">' + (action.type == 'loop' ? 'WHILE' : 'IF') + '</span> <span class="value">' + action.conditionType + '</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 7);
-                                    automation.conditionList(automation, action.conditions, table, level + 1);
+                                    automation.conditionList(automation, action.conditions, table, level + 1, disabled);
                                     break;
 
                                 case 1:
-                                    nameCell.innerHTML += '<span class="value">THEN</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.then, true); }, 5);
-                                    automation.actionList(automation, action.then, table, level + 1);
+                                    nameCell.innerHTML += '<span class="value">' + (action.type == 'loop' ? 'DO' : 'THEN') + '</span>';
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.type == 'loop' ? action.actions : action.then, true); }, 5);
+                                    automation.actionList(automation, action.type == 'loop' ? action.actions : action.then, table, level + 1, disabled);
                                     break;
 
                                 case 2:
                                     nameCell.innerHTML += '<span class="value">ELSE</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.else, true); }, 5);
-                                    automation.actionList(automation, action.else, table, level + 1);
+                                    automation.actionList(automation, action.else, table, level + 1, disabled);
                                     break;
                             }
                         }
@@ -644,8 +652,6 @@ class Automation
                         break;
                 }
             }
-
-            condition = action.type == 'condition' ? true : false;
         });
     }
 
@@ -1002,6 +1008,7 @@ class Automation
             case 'telegram':  this.showTelegramAction(action, list, append); break;
             case 'shell':     this.showShellAction(action, list, append); break;
             case 'condition': this.showConditionAction(action, list, append); break;
+            case 'loop':      this.showLoopAction(action, list, append); break;
             case 'delay':     this.showDelayAction(action, list, append); break;
             case 'exit':      this.showExitAction(action, list, append); break;
         }
@@ -1730,6 +1737,7 @@ class Automation
             modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? 'AND';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="hideElse"]').checked = action.hideElse;
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -1737,6 +1745,7 @@ class Automation
 
                 action.conditionType = form.conditionType;
                 action.hideElse = form.hideElse;
+                action.active = form.active;
 
                 if (form.triggerName)
                     action.triggerName = form.triggerName;
@@ -1759,6 +1768,46 @@ class Automation
 
             this.handleCopy(action, list, append);
             showModal(true, 'input[name="triggerName"]');
+        });
+    }
+
+    showLoopAction(action, list, append)
+    {
+        loadHTML('html/automation/loopAction.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('textarea[name="count"]').value = action.count ?? '';
+            modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? 'AND';
+            modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                action.count = form.count;
+                action.conditionType = form.conditionType;
+                action.active = form.active;
+
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
+                else
+                    delete action.triggerName;
+
+                if (append)
+                {
+                    action.conditions = new Array();
+                    action.actions = new Array();
+                    list.push(action);
+                }
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(action, list, append);
+            showModal(true, 'textarea[name="count"]', 'action');
         });
     }
 

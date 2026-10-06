@@ -400,7 +400,7 @@ class Controller
             name:     {'Trigger name': '{{ triggerName }}'},
             trigger:  {'Trigger property': '{{ triggerProperty }}', 'Trigger topic': '{{ triggerTopic }}', 'Trigger message': '{{ triggerMessage }}'},
             data:     {'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}', 'State value': '{{ state | stateName }}', 'File contents': '{{ file | /path/to/file }}'},
-            shell:    {'Shell output': '{{ shellOutput }}'},
+            meta:     {'Shell output': '{{ shellOutput }}', 'Loop index': '{{ loopIndex }}'},
             time:     {'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}'},
             color:    {'Color temperature': '{{ colorTemperature | 153 | 500 }}'},
             property: this.propertiesList(false, true),
@@ -1416,18 +1416,18 @@ function showModal(show, focus, type)
         switch (type)
         {
             case 'trigger':
-                list = controller.patternList(['name', 'shell', 'color', 'camera']);
+                list = controller.patternList(['name', 'meta', 'color', 'camera']);
                 separator = 7;
                 break;
 
             case 'condition':
                 list = controller.patternList(['color', 'camera']);
-                separator = 9;
+                separator = 10;
                 break;
 
             case 'action':
                 list = controller.patternList();
-                separator = 10;
+                separator = 11;
                 break;
         }
 
