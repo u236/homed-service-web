@@ -55,7 +55,7 @@ class Recorder
 
     parseData(message)
     {
-        let counter, unit, options;
+        let aggregation, counter, unit, options;
         let canvas = document.querySelector('canvas#' + message.id);
         let status = document.querySelector('.status#' + message.id);
         let total = document.querySelector('.total#' + message.id);
@@ -64,17 +64,14 @@ class Recorder
         let datasets = new Array();
         let numeric = true;
         let average = false;
-        let daily = false;
 
         if (!canvas)
             return;
 
         if (status)
-            status.innerHTML = message.timestamp.length + ' records, ' + message.time + ' ms';
+            status.innerHTML = '<span class="mobileHidden">' + message.timestamp.length + ' records, ' + message.time + ' ms</span>';
 
-        if (message.change && this.daily(canvas))
-            daily = true;
-
+        aggregation = this.aggregation(canvas);
         counter = this.counter(canvas.dataset);
         unit = this.unit(canvas.dataset);
 
@@ -87,6 +84,21 @@ class Recorder
             }
 
             return;
+        }
+
+        if (message.change)
+        {
+            let first = this.truncate(message.timestamp[0], aggregation);
+            let last = this.truncate(message.timestamp[message.timestamp.length - 1], aggregation);
+
+            if (first != last && last == this.truncate(parseInt(canvas.dataset.end), aggregation))
+            {
+                while (first == this.truncate(message.timestamp[0], aggregation))
+                {
+                    message.timestamp.shift();
+                    message.value.shift();
+                }
+            }
         }
 
         if (total)
@@ -121,7 +133,7 @@ class Recorder
                 x:
                 {
                     type: 'time',
-                    time: {unit: 'hour', displayFormats: {hour: 'HH:mm'}},
+                    time: {unit: aggregation, displayFormats: {hour: 'HH:mm'}},
                     ticks: {maxRotation: 0, major: {enabled: true}, font: function(context) { return context.tick?.major ? {weight: 'bold'} : new Object(); }},
                     min: new Date(parseInt(canvas.dataset.start)),
                     max: new Date(parseInt(canvas.dataset.end)),
@@ -146,14 +158,14 @@ class Recorder
             {
                 let data = new Array();
 
-                if (daily)
+                if (message.change)
                 {
                     let value = 0;
                     let current;
 
                     message.timestamp.forEach((timestamp, index) =>
                     {
-                        let date = new Date(timestamp).setHours(0, 0, 0, 0);
+                        let date = this.truncate(timestamp, aggregation);
 
                         if (current && current != date)
                         {
@@ -173,10 +185,10 @@ class Recorder
                     {
                         let value = message.value[index];
 
-                        if (!message.change && !value && index)
-                            data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2)) });
+                        if (!value && index)
+                            data.push({x: timestamp, y: Number(parseFloat(message.value[index - 1]).toFixed(2))});
 
-                        data.push({x: timestamp, y: Number(parseFloat(value).toFixed(2)) });
+                        data.push({x: timestamp, y: Number(parseFloat(value).toFixed(2))});
                     });
                 }
 
@@ -282,9 +294,6 @@ class Recorder
 
             if (average)
                 options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
-
-            if (daily)
-                options.scales.x.time.unit = 'day';
 
             if (chart && chart.config.type != type)
             {
@@ -423,9 +432,23 @@ class Recorder
         return data;
     }
 
-    daily(canvas)
+    truncate(timestamp, aggregation)
     {
-        return (canvas.dataset.end - canvas.dataset.start) / 86400000 >= 7; // TODO: check this
+        let date = new Date(new Date(timestamp - 1).setMinutes(0, 0, 0));
+
+        if (aggregation != 'hour')
+            date.setHours(0);
+
+        if (aggregation == 'month')
+            date.setDate(1);
+
+        return date.getTime();
+    }
+
+    aggregation(canvas)
+    {
+        let days = (canvas.dataset.end - canvas.dataset.start) / 86400000;
+        return days >= 90 ? 'month' : days >= 7 ? 'day' : 'hour';
     }
 
     counter(item)
@@ -440,6 +463,8 @@ class Recorder
 
     dataRequest(canvas)
     {
+        let aggregation;
+
         if (canvas.dataset.interval != 'custom')
         {
             let date = new Date();
@@ -451,6 +476,7 @@ class Recorder
                 case '8h':    date.setHours(date.getHours() - 8); break;
                 case 'week':  date.setDate(date.getDate() - 7); break;
                 case 'month': date.setMonth(date.getMonth() - 1); break;
+                case 'year':  date.setFullYear(date.getFullYear() - 1); break;
                 default:      date.setHours(date.getHours() - 24); break;
             }
 
@@ -459,7 +485,10 @@ class Recorder
             canvas.dataset.end = Date.now() - offset;
         }
 
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: canvas.dataset.change == 'true' && this.daily(canvas) ? new Date(parseInt(canvas.dataset.start)).setHours(0, 0, 0, 0) : canvas.dataset.start, end: canvas.dataset.end, change: canvas.dataset.change == 'true'});
+        if (canvas.dataset.change == 'true')
+            aggregation = this.aggregation(canvas);
+
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: aggregation ? this.truncate(parseInt(canvas.dataset.start), aggregation) : canvas.dataset.start, end: canvas.dataset.end, change: canvas.dataset.change == 'true'});
     }
 
     chartQuery(item, element, interval, shift, start, end)
