@@ -4,9 +4,9 @@
 </div>
 <form>
     <label>Interval (minutes):</label>
-    <input type="number" name="interval" min="1">
+    <input type="number" name="interval" min="1" required>
     <label>Offset (minutes from midnight):</label>
-    <input type="number" name="offset" min="0">
+    <input type="number" name="offset" min="0" required>
     <label><span>Trigger name:</span><span><i id="name" class="mdi-plus extend"></i><span id="name" class="dropdown"><i class="mdi-menu"></i></span></span></label>
     <textarea name="name"></textarea>
     <label class="checkbox"><input type="checkbox" name="active">Active</label>

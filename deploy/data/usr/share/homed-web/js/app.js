@@ -1436,7 +1436,8 @@ function showModal(show, focus, type)
         modal.classList.add('fade-in');
 
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
-        modal.querySelectorAll('label .dropdown').forEach(item => { if (list) addDropdown(item, Object.keys(list), function(key) { let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, separator); });
+        modal.querySelectorAll('label .dropdown').forEach(item => { if (list) addDropdown(item, Object.keys(list), function(key) { let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.classList.remove('error'); input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, separator); });
+        modal.querySelectorAll('input, textarea').forEach(item => item.addEventListener('input', function() { item.classList.remove('error'); }));
         modal.querySelector(focus)?.focus();
 
         document.querySelector('body').classList.add('lockScroll');
@@ -1476,6 +1477,7 @@ function randomString(length)
 function formData(form)
 {
     let data = new Object();
+    let check = true;
 
     Array.from(form).forEach(input =>
     {
@@ -1485,9 +1487,15 @@ function formData(form)
             case 'number':   data[input.name] = parseFloat(input.value); break;
             default:         data[input.name] = input.value; break;
         }
+
+        if (input.required && input.offsetParent && (input.type == 'number' ? isNaN(data[input.name]) : !input.value.trim()))
+        {
+            input.classList.add('error');
+            check = false;
+        }
     });
 
-    return data;
+    return check ? data : null;
 }
 
 function timeInterval(interval, round = true)

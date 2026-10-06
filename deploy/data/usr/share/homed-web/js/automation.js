@@ -1074,16 +1074,19 @@ class Automation
             {
                 let form = formData(modal.querySelector('form'));
 
+                if (!data && (!item.endpoint || !item.property))
+                {
+                    modal.querySelector('.property').classList.add('error');
+                    return;
+                }
+
+                if (!form)
+                    return;
+
                 if (data)
                 {
                     item.endpoint = data.endpoint;
                     item.property = data.property;
-                }
-
-                if (!item.endpoint || !item.property)
-                {
-                    modal.querySelector('.property').classList.add('error');
-                    return;
                 }
 
                 statements.forEach(statement => delete item[statement]);
@@ -1171,6 +1174,9 @@ class Automation
             {
                 let form = formData(modal.querySelector('form'));
 
+                if (!form)
+                    return;
+
                 statements.forEach(statement => delete item[statement]);
 
                 item.topic = form.topic;
@@ -1247,6 +1253,9 @@ class Automation
             {
                 let form = formData(modal.querySelector('form'));
 
+                if (!form)
+                    return;
+
                 this.triggerStatement.forEach(statement => delete trigger[statement]);
 
                 trigger.state = form.state;
@@ -1295,7 +1304,10 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
-                let chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                let chats = form?.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+
+                if (!form)
+                    return;
 
                 trigger.message = form.message.trim();
                 trigger.chats = chats.length ? chats : null;
@@ -1332,6 +1344,9 @@ class Automation
             {
                 let form = formData(modal.querySelector('form'));
 
+                if (!form)
+                    return;
+
                 trigger.time = form.time;
                 trigger.active = form.active;
 
@@ -1366,6 +1381,9 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
 
                 trigger.interval = form.interval;
                 trigger.offset = form.offset;
@@ -1458,6 +1476,9 @@ class Automation
                 let form = formData(modal.querySelector('form'));
                 let item = type == 'state' ? 'name' : 'pattern';
 
+                if (!form)
+                    return;
+
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
                 condition[item] = form[item];
@@ -1513,6 +1534,9 @@ class Automation
             {
                 let form = formData(modal.querySelector('form'));
 
+                if (!form)
+                    return;
+
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
                 condition[form.statement] = this.isArrayStatement(form.statement) ? [form.start, form.end] : form.value;
@@ -1543,7 +1567,10 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
-                let days = form.days ? form.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+                let days = form?.days ? form.days.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
+
+                if (!form)
+                    return;
 
                 condition.days = days.length ? days : null;
                 condition.active = form.active;
@@ -1575,6 +1602,9 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
 
                 action.topic = form.topic;
                 action.message = form.message.trim();
@@ -1612,6 +1642,9 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
 
                 action.name = form.name;
                 action.value = this.parseValue(form.value);
@@ -1707,6 +1740,9 @@ class Automation
             {
                 let form = formData(modal.querySelector('form'));
 
+                if (!form)
+                    return;
+
                 action.command = form.command.trim();
                 action.timeout = form.timeout;
                 action.active = form.active;
@@ -1775,7 +1811,7 @@ class Automation
     {
         loadHTML('html/automation/loopAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('textarea[name="count"]').value = action.count ?? '';
+            modal.querySelector('textarea[name="count"]').value = action.count ?? 3;
             modal.querySelector('select[name="conditionType"]').value = action.conditionType ?? 'AND';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="active"]').checked = action.active ?? true;
@@ -1783,6 +1819,9 @@ class Automation
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
 
                 action.count = form.count;
                 action.conditionType = form.conditionType;
@@ -1815,13 +1854,16 @@ class Automation
     {
         loadHTML('html/automation/delayAction.html', this, modal.querySelector('.data'), function()
         {
-            modal.querySelector('textarea[name="delay"]').value = action.delay ?? '';
+            modal.querySelector('textarea[name="delay"]').value = action.delay ?? 10;
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
             modal.querySelector('input[name="active"]').checked = action.active ?? true;
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
 
                 action.delay = form.delay;
                 action.active = form.active;

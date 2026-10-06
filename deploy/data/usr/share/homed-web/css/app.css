@@ -220,6 +220,10 @@ input[type="time"] {
     border-radius: var(--border-radius);
 }
 
+textarea.error, input.error {
+    border-color: var(--color-error);
+}
+
 input.level {
     background: linear-gradient(to right, var(--range-dark), var(--range-light));
 }
@@ -1625,4 +1629,8 @@ tr:first-child td {
     .tiled .dashboardBlock tr[data-size] td.camera { display: block; }
     .tiled .dashboardBlock tr[data-size] td.camera video { height: auto; }
     .tiled .dashboardBlock tr[data-size] td.camera .placeholder { height: 20px; }
+}
+
+@supports not (field-sizing: content) {
+    textarea { height: 30px; }
 }
