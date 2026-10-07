@@ -508,7 +508,7 @@ class Automation
 
                     case 2:
 
-                        if (!condition.type)
+                        if (!condition.type || (list.length < 2 && !level && !automation.data.actions.find(item => automation.actionNested.includes(item.type))))
                         {
                             cell.innerHTML = empty;
                             cell.classList.add('empty');
@@ -619,7 +619,7 @@ class Automation
 
                     case 2:
 
-                        if (!action.type)
+                        if (!action.type || (list.length < 2 && !level))
                         {
                             cell.innerHTML = empty;
                             cell.classList.add('empty');

@@ -1020,7 +1020,7 @@ class Dropdown
 
 class Drag
 {
-    events = ['pointermove', 'pointerup', 'pointercancel'];
+    events = ['pointermove', 'pointerup', 'pointercancel', 'touchmove'];
     targets = new Array();
 
     constructor(row, event, callback)
@@ -1031,8 +1031,23 @@ class Drag
         this.origin = {x: event.clientX, y: event.clientY};
         this.callback = callback;
 
-        this.listener = function(event) { event.type == 'pointermove' ? this.move(event) : this.finish(event.type == 'pointerup'); }.bind(this);
-        this.events.forEach(type => document.addEventListener(type, this.listener));
+        this.listener = function(event)
+        {
+            switch (event.type)
+            {
+                case 'pointermove': this.move(event); break;
+                case 'touchmove': if (this.preview) event.preventDefault(); break;
+                default: this.finish(event.type == 'pointerup'); break;
+            }
+
+        }.bind(this);
+
+        this.events.forEach(type => document.addEventListener(type, this.listener, {passive: false}));
+
+        if (event.pointerType != 'touch')
+            return;
+
+        this.timeout = setTimeout(function() { this.timeout = null; this.move({clientX: this.x ?? this.origin.x, clientY: this.y ?? this.origin.y, pointerType: 'touch'}); }.bind(this), 500);
     }
 
     previous(row)
@@ -1104,7 +1119,7 @@ class Drag
 
         if (!this.preview)
         {
-            if (Math.hypot(this.x - this.origin.x, this.y - this.origin.y) < 5)
+            if (this.timeout || (event.pointerType != 'touch' && Math.hypot(this.x - this.origin.x, this.y - this.origin.y) < 5))
                 return;
 
             this.start();
@@ -1113,12 +1128,12 @@ class Drag
         this.preview.style.top = this.y - this.offset + 'px';
         this.update();
 
-        clearInterval(this.timer);
+        clearInterval(this.interval);
 
         if (!scroll)
             return;
 
-        this.timer = setInterval(function() { this.scroll.scrollTop += scroll; this.update(); }.bind(this), 20);
+        this.interval = setInterval(function() { this.scroll.scrollTop += scroll; this.update(); }.bind(this), 20);
     }
 
     start()
@@ -1247,8 +1262,10 @@ class Drag
         let source = this.row.drag;
 
         this.events.forEach(type => document.removeEventListener(type, this.listener));
-        clearInterval(this.timer);
         drag = undefined;
+
+        clearTimeout(this.timeout);
+        clearInterval(this.interval);
 
         if (!this.preview)
             return;
