@@ -462,10 +462,9 @@ class Automation
 
     conditionList(automation, list, table, level = 0, inactive = false)
     {
-        if (!list?.length && level)
-            list = new Array(new Object());
+        let items = !list?.length && level ? new Array(new Object()) : list;
 
-        list?.forEach((condition, index) =>
+        items?.forEach((condition, index) =>
         {
             let row = table.insertRow();
 
@@ -475,7 +474,9 @@ class Automation
             if (inactive || (condition.active != undefined && !condition.active))
                 row.classList.add('inactive');
 
-            for (let i = 0; i < 5; i++)
+            row.drag = {type: 'condition', list: list, index: index, level: level, empty: condition.type ? false : true};
+
+            for (let i = 0; i < 4; i++)
             {
                 let cell = row.insertCell();
 
@@ -507,33 +508,17 @@ class Automation
 
                     case 2:
 
-                        if (!condition.type || list.length < 2 || index == list.length - 1)
+                        if (!condition.type)
                         {
                             cell.innerHTML = empty;
                             cell.classList.add('empty');
                             break;
                         }
 
-                        cell.innerHTML = '<i class="mdi-arrow-down"></i>';
-                        cell.classList.add('move');
-                        cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
+                        addDrag(cell, function() { automation.showAutomationInfo(); });
                         break;
 
                     case 3:
-
-                        if (!condition.type || list.length < 2 || !index)
-                        {
-                            cell.innerHTML = empty;
-                            cell.classList.add('empty');
-                            break;
-                        }
-
-                        cell.innerHTML = '<i class="mdi-arrow-up"></i>';
-                        cell.classList.add('move');
-                        cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
-                        break;
-
-                    case 4:
 
                         if (!condition.type)
                             break;
@@ -549,10 +534,9 @@ class Automation
 
     actionList(automation, list, table, level = 0, inactive = false)
     {
-        if (!list?.length && level)
-            list = new Array(new Object());
+        let items = !list?.length && level ? new Array(new Object()) : list;
 
-        list?.forEach((action, index) =>
+        items?.forEach((action, index) =>
         {
             let row = table.insertRow();
             let nested = automation.actionNested.includes(action.type);
@@ -564,7 +548,9 @@ class Automation
             if (disabled)
                 row.classList.add('inactive');
 
-            for (let i = 0; i < 5; i++)
+            row.drag = {type: 'action', list: list, index: index, level: level, empty: action.type ? false : true};
+
+            for (let i = 0; i < 4; i++)
             {
                 let cell = row.insertCell();
 
@@ -601,24 +587,27 @@ class Automation
                             for (let k = 0; k <= level - 1; k++)
                                 nameCell.innerHTML += '<span class="small ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
 
-                            nameCell.colSpan = 4;
+                            nameCell.colSpan = 3;
                             actionCell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';
 
                             switch (j)
                             {
                                 case 0:
+                                    actionRow.drag = {type: 'condition', list: action.conditions, index: 0, level: level + 1, header: true};
                                     nameCell.innerHTML += '<span class="value">' + (action.type == 'loop' ? 'WHILE' : 'IF') + '</span> <span class="value">' + action.conditionType + '</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 7);
                                     automation.conditionList(automation, action.conditions, table, level + 1, disabled);
                                     break;
 
                                 case 1:
+                                    actionRow.drag = {type: 'action', list: action.type == 'loop' ? action.actions : action.then, index: 0, level: level + 1, header: true};
                                     nameCell.innerHTML += '<span class="value">' + (action.type == 'loop' ? 'DO' : 'THEN') + '</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.type == 'loop' ? action.actions : action.then, true); }, 5);
                                     automation.actionList(automation, action.type == 'loop' ? action.actions : action.then, table, level + 1, disabled);
                                     break;
 
                                 case 2:
+                                    actionRow.drag = {type: 'action', list: action.else, index: 0, level: level + 1, header: true};
                                     nameCell.innerHTML += '<span class="value">ELSE</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.else, true); }, 5);
                                     automation.actionList(automation, action.else, table, level + 1, disabled);
@@ -630,33 +619,17 @@ class Automation
 
                     case 2:
 
-                        if (!action.type || list.length < 2 || index == list.length - 1)
+                        if (!action.type)
                         {
                             cell.innerHTML = empty;
                             cell.classList.add('empty');
                             break;
                         }
 
-                        cell.innerHTML = '<i class="mdi-arrow-down"></i>';
-                        cell.classList.add('move');
-                        cell.addEventListener('click', function() { list[index + 1] = list.splice(index, 1, list[index + 1])[0]; automation.showAutomationInfo(); });
+                        addDrag(cell, function() { automation.showAutomationInfo(); });
                         break;
 
                     case 3:
-
-                        if (!action.type || list.length < 2 || !index)
-                        {
-                            cell.innerHTML = empty;
-                            cell.classList.add('empty');
-                            break;
-                        }
-
-                        cell.innerHTML = '<i class="mdi-arrow-up"></i>';
-                        cell.classList.add('move');
-                        cell.addEventListener('click', function() { list[index - 1] = list.splice(index, 1, list[index - 1])[0]; automation.showAutomationInfo(); });
-                        break;
-
-                    case 4:
 
                         if (!action.type)
                             break;
@@ -884,7 +857,9 @@ class Automation
                 if (trigger.active != undefined && !trigger.active)
                     row.classList.add('inactive');
 
-                for (let i = 0; i < 5; i++)
+                row.drag = {type: 'trigger', list: this.data.triggers, index: index, level: 0};
+
+                for (let i = 0; i < 4; i++)
                 {
                     let cell = row.insertCell();
 
@@ -900,33 +875,17 @@ class Automation
 
                         case 2:
 
-                            if (this.data.triggers.length < 2 || index == this.data.triggers.length - 1)
+                            if (this.data.triggers.length < 2)
                             {
                                 cell.innerHTML = empty;
                                 cell.classList.add('empty');
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="mdi-arrow-down"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { this.data.triggers[index + 1] = this.data.triggers.splice(index, 1, this.data.triggers[index + 1])[0]; this.showAutomationInfo(); }.bind(this));
+                            addDrag(cell, function() { this.showAutomationInfo(); }.bind(this));
                             break;
 
                         case 3:
-
-                            if (this.data.triggers.length < 2 || !index)
-                            {
-                                cell.innerHTML = empty;
-                                cell.classList.add('empty');
-                                break;
-                            }
-
-                            cell.innerHTML = '<i class="mdi-arrow-up"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { this.data.triggers[index - 1] = this.data.triggers.splice(index, 1, this.data.triggers[index - 1])[0]; this.showAutomationInfo(); }.bind(this));
-                            break;
-
-                        case 4:
                             cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { this.data.triggers.splice(index, 1); this.showAutomationInfo(); }.bind(this));
@@ -934,6 +893,8 @@ class Automation
                     }
                 }
             });
+
+            this.content.querySelector('.addCondition').parentNode.drag = {type: 'condition', list: this.data.conditions, index: 0, level: 0, header: true, table: conditions};
 
             this.conditionList(this, this.data.conditions, conditions);
             this.actionList(this, this.data.actions, actions);

@@ -569,7 +569,9 @@ class Dashboard
             {
                 let row = table.insertRow();
 
-                for (let i = 0; i < 3; i++)
+                row.drag = {type: 'dashboard', list: this.status.dashboards, index: index, level: 0};
+
+                for (let i = 0; i < 2; i++)
                 {
                     let cell = row.insertCell();
 
@@ -579,30 +581,14 @@ class Dashboard
 
                         case 1:
 
-                            if (index == this.status.dashboards.length - 1)
+                            if (this.status.dashboards.length < 2)
                             {
                                 cell.innerHTML = empty;
                                 cell.classList.add('empty');
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="mdi-arrow-down"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { this.status.dashboards[index + 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index + 1])[0]; showTable(table); }.bind(this));
-                            break;
-
-                        case 2:
-
-                            if (!index)
-                            {
-                                cell.innerHTML = empty;
-                                cell.classList.add('empty');
-                                break;
-                            }
-
-                            cell.innerHTML = '<i class="mdi-arrow-up"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { this.status.dashboards[index - 1] = this.status.dashboards.splice(index, 1, this.status.dashboards[index - 1])[0]; showTable(table); }.bind(this));
+                            addDrag(cell, function() { showTable(table); });
                             break;
                     }
                 }
@@ -631,7 +617,9 @@ class Dashboard
             {
                 let row = table.insertRow();
 
-                for (let i = 0; i < 4; i++)
+                row.drag = {type: 'block', list: dashboard.blocks, index: index, level: 0};
+
+                for (let i = 0; i < 3; i++)
                 {
                     let cell = row.insertCell();
 
@@ -645,33 +633,17 @@ class Dashboard
 
                         case 1:
 
-                            if (dashboard.blocks.length < 2 || index == dashboard.blocks.length - 1)
+                            if (dashboard.blocks.length < 2)
                             {
                                 cell.innerHTML = empty;
                                 cell.classList.add('empty');
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="mdi-arrow-down"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { dashboard.blocks[index + 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index + 1])[0]; showTable(table, dashboard); }.bind(this));
+                            addDrag(cell, function() { showTable(table, dashboard); });
                             break;
 
                         case 2:
-
-                            if (dashboard.blocks.length < 2 || !index)
-                            {
-                                cell.innerHTML = empty;
-                                cell.classList.add('empty');
-                                break;
-                            }
-
-                            cell.innerHTML = '<i class="mdi-arrow-up"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { dashboard.blocks[index - 1] = dashboard.blocks.splice(index, 1, dashboard.blocks[index - 1])[0]; showTable(table, dashboard); }.bind(this));
-                            break;
-
-                        case 3:
                             cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { dashboard.blocks.splice(index, 1); showTable(table, dashboard); });
@@ -769,7 +741,9 @@ class Dashboard
             {
                 let row = table.insertRow();
 
-                for (let i = 0; i < 4; i++)
+                row.drag = {type: 'item', list: block.items, index: index, level: 0};
+
+                for (let i = 0; i < 3; i++)
                 {
                     let cell = row.insertCell();
 
@@ -784,33 +758,17 @@ class Dashboard
 
                         case 1:
 
-                            if (block.items.length < 2 || index == block.items.length - 1)
+                            if (block.items.length < 2)
                             {
                                 cell.innerHTML = empty;
                                 cell.classList.add('empty');
                                 break;
                             }
 
-                            cell.innerHTML = '<i class="mdi-arrow-down"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { block.items[index + 1] = block.items.splice(index, 1, block.items[index + 1])[0]; showTable(table, dashboard, block); }.bind(this));
+                            addDrag(cell, function() { showTable(table, dashboard, block); });
                             break;
 
                         case 2:
-
-                            if (block.items.length < 2 || !index)
-                            {
-                                cell.innerHTML = empty;
-                                cell.classList.add('empty');
-                                break;
-                            }
-
-                            cell.innerHTML = '<i class="mdi-arrow-up"></i>';
-                            cell.classList.add('move');
-                            cell.addEventListener('click', function() { block.items[index - 1] = block.items.splice(index, 1, block.items[index - 1])[0]; showTable(table, dashboard, block); }.bind(this));
-                            break;
-
-                        case 3:
                             cell.innerHTML = '<i class="mdi-trash-can-outline"></i>';
                             cell.classList.add('remove');
                             cell.addEventListener('click', function() { block.items.splice(index, 1); showTable(table, dashboard, block); });

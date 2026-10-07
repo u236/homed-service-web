@@ -1,4 +1,4 @@
-let modal, controller, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', plugins = new Array();
+let modal, controller, dropdown, drag, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', plugins = new Array();
 
 class Socket
 {
@@ -961,7 +961,7 @@ class Dropdown
     constructor(list, trigger)
     {
         this.items = list.querySelectorAll('.item');
-        this.items.forEach((item, index) =>item.addEventListener('mouseover', function() { if (this.mouse) this.setIndex(index); }.bind(this)));
+        this.items.forEach((item, index) => item.addEventListener('mouseover', function() { if (this.mouse) this.setIndex(index); }.bind(this)));
 
         this.list = list;
         this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
@@ -974,7 +974,7 @@ class Dropdown
     setIndex(index, scroll)
     {
         this.index = index;
-        this.items.forEach((item, index) => { if (index != this.index) item.classList.remove('current'); else item.classList.add('current'); });
+        this.items.forEach((item, index) => item.classList.toggle('current', index == this.index));
 
         if (index >= 0 && scroll)
         {
@@ -990,7 +990,7 @@ class Dropdown
 
     handleKey(event)
     {
-        let key = event.key.toLocaleLowerCase();
+        let key = event.key.toLowerCase();
 
         if (['arrowdown', 'arrowup', 'enter'].includes(key))
             event.preventDefault();
@@ -1015,6 +1015,262 @@ class Dropdown
     close()
     {
         this.list.style.display = 'none';
+    }
+}
+
+class Drag
+{
+    events = ['pointermove', 'pointerup', 'pointercancel'];
+    targets = new Array();
+
+    constructor(row, event, callback)
+    {
+        this.rows = this.subtree(row);
+        this.row = row;
+
+        this.origin = {x: event.clientX, y: event.clientY};
+        this.callback = callback;
+
+        this.listener = function(event) { event.type == 'pointermove' ? this.move(event) : this.finish(event.type == 'pointerup'); }.bind(this);
+        this.events.forEach(type => document.addEventListener(type, this.listener));
+    }
+
+    previous(row)
+    {
+        let item = row.previousElementSibling;
+
+        while (this.targets.includes(item))
+            item = item.previousElementSibling;
+
+        return item;
+    }
+
+    parent(row)
+    {
+        let item = this.previous(row);
+
+        while (item?.drag && (item.drag.header || item.drag.level >= row.drag.level))
+            item = this.previous(item);
+
+        return item;
+    }
+
+    subtree(row)
+    {
+        let item = row.nextElementSibling;
+        let list = [row];
+
+        while (item && (this.targets.includes(item) || item.drag?.level > row.drag.level))
+        {
+            if (!this.targets.includes(item))
+                list.push(item);
+
+            item = item.nextElementSibling;
+        }
+
+        return list;
+    }
+
+    levels(row)
+    {
+        let item = this.parent(row);
+        let list = new Array();
+
+        if (row.drag.type != this.row.drag.type)
+            return list;
+
+        list.push({row: row, index: row.drag.header || row.drag.empty ? 0 : row.drag.index + 1});
+
+        while (item?.drag.type == this.row.drag.type)
+        {
+            let last = this.subtree(item).pop();
+
+            if (last != row && (!last.drag.empty || last.drag.list != row.drag.list))
+                break;
+
+            list.push({row: item, index: item.drag.index + 1});
+            item = this.parent(item);
+        }
+
+        return list;
+    }
+
+    move(event)
+    {
+        let scroll = event.clientY < 50 ? -10 : event.clientY > window.innerHeight - 50 ? 10 : 0;
+
+        this.x = event.clientX;
+        this.y = event.clientY;
+
+        if (!this.preview)
+        {
+            if (Math.hypot(this.x - this.origin.x, this.y - this.origin.y) < 5)
+                return;
+
+            this.start();
+        }
+
+        this.preview.style.top = this.y - this.offset + 'px';
+        this.update();
+
+        clearInterval(this.timer);
+
+        if (!scroll)
+            return;
+
+        this.timer = setInterval(function() { this.scroll.scrollTop += scroll; this.update(); }.bind(this), 20);
+    }
+
+    start()
+    {
+        let table = document.createElement('table');
+        let frame = this.row.getBoundingClientRect();
+        let previous = this.row.previousElementSibling;
+
+        table.append(this.row.cloneNode(true));
+        table.rows[0].style.removeProperty('background-color');
+
+        Array.from(table.rows[0].cells).forEach((item, index) => { item.style.width = this.row.cells[index].getBoundingClientRect().width + 'px'; });
+
+        this.offset = this.origin.y - frame.top;
+        this.size = frame.height;
+        this.colspan = Array.from(this.row.cells).reduce((sum, item) => sum + item.colSpan, 0);
+        this.scroll = this.row.closest('#modal') ?? document.scrollingElement;
+        this.next = this.rows[this.rows.length - 1].nextElementSibling;
+
+        this.preview = document.createElement('div');
+        this.preview.className = this.row.closest('table').parentNode.className + ' dragPreview';
+        this.preview.style.left = frame.left + 'px';
+        this.preview.style.width = frame.width + 'px';
+        this.preview.append(table);
+
+        this.table = this.row.parentNode;
+        this.hidden = document.createElement('tbody');
+
+        this.table.after(this.hidden);
+        this.hidden.classList.add('dragHidden');
+        this.hidden.append(...this.rows);
+
+        this.insert(this.table, this.row, previous);
+        this.hover = document.elementFromPoint(this.x, this.y)?.closest('tr');
+
+        document.body.append(this.preview);
+        document.body.classList.add('drag');
+    }
+
+    update()
+    {
+        let element = document.elementFromPoint(this.x, this.y);
+        let frame;
+
+        while (element && !element.drag)
+            element = element.parentElement;
+
+        this.preview.classList.toggle('deny', element?.drag.type != this.row.drag.type);
+
+        if (!element || element.drag.type != this.row.drag.type || (this.targets.includes(element) && element == this.hover))
+            return;
+
+        this.hover = element;
+
+        if (this.targets.includes(element))
+        {
+            this.select(element);
+            return;
+        }
+
+        if (element.drag.table)
+        {
+            this.insert(element.drag.table.rows[0]?.parentNode ?? element.drag.table, element);
+            return;
+        }
+
+        frame = element.getBoundingClientRect();
+        this.insert(element.parentNode, element, element.drag.header && element.nextElementSibling?.drag.empty ? element.nextElementSibling : element.drag.header || element.drag.empty || (this.y > frame.top + frame.height / 2 && this.subtree(element).length == 1) ? element : this.previous(element));
+    }
+
+    insert(table, element, previous)
+    {
+        if (table != this.targets[0]?.parentNode || previous != this.targets[0]?.previousElementSibling)
+        {
+            let levels = previous && previous.drag.level >= element.drag.level ? this.levels(previous) : [{row: element, index: element.drag.index}];
+            let above = this.targets[0]?.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING;
+            let position = element.getBoundingClientRect().top;
+            let scroll;
+
+            if (!levels.length)
+                return;
+
+            this.targets.forEach(row => row.remove());
+            this.placeholder?.style.removeProperty('display');
+
+            this.placeholder = previous?.drag.empty ? previous : null;
+            this.placeholder?.style.setProperty('display', 'none');
+
+            this.targets = levels.map(level =>
+            {
+                let row = document.createElement('tr');
+                row.drag = {...level.row.drag, index: level.index};
+                row.innerHTML = '<td colspan="' + this.colspan + '"><div></div></td>';
+                row.classList.add('dragTarget');
+                row.style.backgroundColor = level.row.style.backgroundColor;
+                row.querySelector('div').style.height = this.size - 1 + 'px';
+                return row;
+            });
+
+            if (previous)
+                previous.after(...this.targets);
+            else
+                table.prepend(...this.targets);
+
+            scroll = above ? position - element.getBoundingClientRect().top - this.size : 0;
+            this.scroll.scrollTop -= scroll > 0 ? scroll : 0;
+        }
+
+        this.select(this.targets.find(row => row.drag.list == element.drag.list) ?? this.targets[0]);
+    }
+
+    select(row)
+    {
+        this.marked?.forEach(item => item?.classList.remove('current', 'dragAbove', 'dragBelow'));
+
+        this.marked = [row, row.previousElementSibling, row.nextElementSibling];
+        this.marked[0].classList.add('current');
+        this.marked[1]?.classList.add('dragAbove');
+        this.marked[2]?.classList.add('dragBelow');
+
+        this.target = {list: row.drag.list, index: row.drag.index};
+    }
+
+    finish(apply)
+    {
+        let source = this.row.drag;
+
+        this.events.forEach(type => document.removeEventListener(type, this.listener));
+        clearInterval(this.timer);
+        drag = undefined;
+
+        if (!this.preview)
+            return;
+
+        if (this.next)
+            this.next.before(...this.rows);
+        else
+            this.table.append(...this.rows);
+
+        this.preview.remove();
+        this.hidden.remove();
+        this.marked.forEach(item => item?.classList.remove('current', 'dragAbove', 'dragBelow'));
+        this.targets.forEach(row => row.remove());
+        this.placeholder?.style.removeProperty('display');
+
+        document.body.classList.remove('drag');
+
+        if (!apply || (this.target.list == source.list && [source.index, source.index + 1].includes(this.target.index)))
+            return;
+
+        this.target.list.splice(this.target.list == source.list && this.target.index > source.index ? this.target.index - 1 : this.target.index, 0, source.list.splice(source.index, 1)[0]);
+        this.callback();
     }
 }
 
@@ -1089,6 +1345,14 @@ document.onkeydown = function(event)
     {
         if (!dropdown.handleKey(event))
             dropdown = undefined;
+
+        return;
+    }
+
+    if (drag)
+    {
+        if (['esc', 'escape'].includes(key))
+            drag.finish(false);
 
         return;
     }
@@ -1390,20 +1654,24 @@ function addDropdown(element, options, callback, separator, trigger)
         if (event.target.nodeName == 'INPUT')
             return;
 
-        if (dropdown && event.target != search)
+        if (dropdown?.trigger == trigger)
         {
             dropdown.close();
             dropdown = undefined;
             return;
         }
 
+        dropdown?.close();
         dropdown = new Dropdown(list, trigger);
-
-        if (!search)
-            return;
-
-        search.focus();
+        search?.focus();
     });
+}
+
+function addDrag(cell, callback)
+{
+    cell.innerHTML = '<i class="mdi-reorder-horizontal"></i>';
+    cell.classList.add('move');
+    cell.addEventListener('pointerdown', function(event) { if (event.button) return; event.preventDefault(); drag = new Drag(cell.parentNode, event, callback); });
 }
 
 function closeModal()
