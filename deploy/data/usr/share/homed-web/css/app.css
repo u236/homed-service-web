@@ -266,21 +266,21 @@ pre {
 }
 
 span.value, span.flag {
+    line-height: 15px;
     margin: 1px 0;
     padding: 0 6px 1px 6px;
-    border: 1px solid;
+    border: 1px solid var(--background-hover);
     border-radius: var(--border-radius);
     font-size: 0.8125rem;
 }
 
 span.value {
-    border-color: var(--background-hover);
     background-color: var(--background-shade);
     font-family: var(--font-mono);
 }
 
 span.flag {
-    border-color: var(--border-main);
+    background-color: var(--background-main);
     color: var(--color-shade);
     text-transform: uppercase;
 }
