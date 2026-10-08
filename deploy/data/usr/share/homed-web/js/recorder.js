@@ -1,6 +1,6 @@
 class Recorder
 {
-    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.dataset.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000)];
+    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000)];
     content = document.querySelector('.content .container');
 
     status = new Object();
@@ -72,8 +72,8 @@ class Recorder
             status.innerHTML = '<span class="mobileHidden">' + message.timestamp.length + ' records, ' + message.time + ' ms</span>';
 
         aggregation = this.aggregation(canvas);
-        counter = this.counter(canvas.dataset);
-        unit = this.unit(canvas.dataset);
+        counter = this.counter(canvas);
+        unit = this.unit(canvas);
 
         if (!message.timestamp.length)
         {
@@ -91,7 +91,7 @@ class Recorder
             let first = this.truncate(message.timestamp[0], aggregation);
             let last = this.truncate(message.timestamp[message.timestamp.length - 1], aggregation);
 
-            if (first != last && last == this.truncate(parseInt(canvas.dataset.end), aggregation))
+            if (first != last && last == this.truncate(canvas.end, aggregation))
             {
                 while (first == this.truncate(message.timestamp[0], aggregation))
                 {
@@ -115,11 +115,11 @@ class Recorder
             total.innerHTML = isNaN(value) ? '' : '<span class="value">' + Number(value.toFixed(2)) + (unit ? ' ' + unit : '') + '</span>';
         }
 
-        if (table && (table.dataset.interval != canvas.dataset.interval || table.dataset.offset != canvas.dataset.offset || table.rows[0]?.querySelector('.placeholder')))
+        if (table && (table.interval != canvas.interval || table.offset != canvas.offset || table.rows[0]?.querySelector('.placeholder')))
         {
             canvas.closest('div').style.display = 'block';
-            table.dataset.interval = canvas.dataset.interval;
-            table.dataset.offset = canvas.dataset.offset;
+            table.interval = canvas.interval;
+            table.offset = canvas.offset;
             table.innerHTML = null;
         }
 
@@ -135,8 +135,8 @@ class Recorder
                     type: 'time',
                     time: {unit: aggregation, displayFormats: {hour: 'HH:mm'}},
                     ticks: {maxRotation: 0, major: {enabled: true}, font: function(context) { return context.tick?.major ? {weight: 'bold'} : new Object(); }},
-                    min: new Date(parseInt(canvas.dataset.start)),
-                    max: new Date(parseInt(canvas.dataset.end)),
+                    min: new Date(canvas.start),
+                    max: new Date(canvas.end),
                     border: {display: false},
                     grid: {color: function(context) { return context.tick?.major ? this.color.major() : this.color.grid(); }.bind(this)},
                 }
@@ -289,7 +289,7 @@ class Recorder
                 grace: '10%',
                 border: {display: false},
                 grid: {color: function() { return this.color.grid(); }.bind(this)},
-                ticks: {callback: function(value) { let label = parseFloat(value.toPrecision(12)); return canvas.dataset.unit == 'true' && unit ? label + ' ' + unit : label; }}
+                ticks: {callback: function(value) { let label = parseFloat(value.toPrecision(12)); return canvas.unit && unit ? label + ' ' + unit : label; }}
             };
 
             if (average)
@@ -325,7 +325,7 @@ class Recorder
             };
 
             if (!chart)
-                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(this.controller.findDevice({endpoint: canvas.dataset.endpoint}), canvas.dataset.endpoint, canvas.dataset.property)]}});
+                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(this.controller.findDevice({endpoint: canvas.endpoint}), canvas.endpoint, canvas.property)]}});
         }
 
         chart.data.datasets = datasets;
@@ -447,7 +447,7 @@ class Recorder
 
     aggregation(canvas)
     {
-        let days = (canvas.dataset.end - canvas.dataset.start) / 86400000;
+        let days = (canvas.end - canvas.start) / 86400000;
         return days >= 90 ? 'month' : days >= 7 ? 'day' : 'hour';
     }
 
@@ -465,12 +465,12 @@ class Recorder
     {
         let aggregation;
 
-        if (canvas.dataset.interval != 'custom')
+        if (canvas.interval != 'custom')
         {
             let date = new Date();
-            let offset = parseInt(canvas.dataset.offset) || 0;
+            let offset = canvas.offset ?? 0;
 
-            switch (canvas.dataset.interval)
+            switch (canvas.interval)
             {
                 case '2h':    date.setHours(date.getHours() - 2); break;
                 case '8h':    date.setHours(date.getHours() - 8); break;
@@ -481,28 +481,28 @@ class Recorder
             }
 
             offset *= Math.max((Date.now() - date.getTime()) / 10, 7200000);
-            canvas.dataset.start = date.getTime() - offset;
-            canvas.dataset.end = Date.now() - offset;
+            canvas.start = date.getTime() - offset;
+            canvas.end = Date.now() - offset;
         }
 
-        if (canvas.dataset.change == 'true')
+        if (canvas.change)
             aggregation = this.aggregation(canvas);
 
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.dataset.endpoint, property: canvas.dataset.property, start: aggregation ? this.truncate(parseInt(canvas.dataset.start), aggregation) : canvas.dataset.start, end: canvas.dataset.end, change: canvas.dataset.change == 'true'});
+        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.endpoint, property: canvas.property, start: aggregation ? this.truncate(canvas.start, aggregation) : canvas.start, end: canvas.end, change: canvas.change});
     }
 
     chartQuery(item, element, interval, shift, start, end)
     {
         let canvas = element.querySelector('canvas');
-        let offset = parseInt(canvas.dataset.offset) || 0;
+        let offset = canvas.offset ?? 0;
 
         if (interval)
-            canvas.dataset.interval = interval;
+            canvas.interval = interval;
 
         if (interval == 'custom')
         {
-            canvas.dataset.start = start;
-            canvas.dataset.end = end;
+            canvas.start = start;
+            canvas.end = end;
         }
 
         switch (shift)
@@ -512,9 +512,9 @@ class Recorder
             default: offset = 0; break;
         }
 
-        canvas.dataset.offset = offset;
-        canvas.dataset.endpoint = item.endpoint;
-        canvas.dataset.property = item.property;
+        canvas.offset = offset;
+        canvas.endpoint = item.endpoint;
+        canvas.property = item.property;
 
         this.dataRequest(canvas);
     }
@@ -709,7 +709,7 @@ class Recorder
                 element.addEventListener('click', function()
                 {
                     this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                    this.chartQuery(this.data, chart, chart.querySelector('canvas').dataset.interval, element.id);
+                    this.chartQuery(this.data, chart, chart.querySelector('canvas').interval, element.id);
 
                 }.bind(this))
             });
@@ -740,22 +740,22 @@ class Recorder
                 let canvas = chart.querySelector('canvas');
                 let element = this.content.querySelector('.change');
 
-                canvas.dataset.change = true;
+                canvas.change = true;
                 element.innerHTML = '<i class="mdi-toggle-switch toggleIcon"></i> SHOW CHANGE';
 
                 element.addEventListener('click', function()
                 {
-                    canvas.dataset.change = canvas.dataset.change != 'true';
-                    element.innerHTML = '<i class="' + (canvas.dataset.change == 'true' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
+                    canvas.change = canvas.change ? false : true;
+                    element.innerHTML = '<i class="' + (canvas.change ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
                     this.content.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                    this.chartQuery(this.data, chart, canvas.dataset.interval);
+                    this.chartQuery(this.data, chart, canvas.interval);
 
                 }.bind(this));
             }
             else
                 this.content.querySelector('.change').closest('.title').style.display = 'none';
 
-            chart.querySelector('canvas').dataset.unit = true;
+            chart.querySelector('canvas').unit = true;
 
             this.devicePromise(this.data, name, false, true);
             this.chartQuery(this.data, chart, interval, undefined, start ? new Date(start).getTime() : undefined, end ? new Date(end).getTime() : undefined);

@@ -295,7 +295,7 @@ class Dashboard
             cell.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
             cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '" class="' + (height ?? 'normal') + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
-            cell.querySelector('canvas').dataset.change = this.controller.services.recorder.counter(item);
+            cell.querySelector('canvas').change = this.controller.services.recorder.counter(item);
             this.controller.services.recorder.chartQuery(item, cell, interval);
 
         }.bind(this));
@@ -1063,15 +1063,15 @@ class Dashboard
                 let canvas = chart.querySelector('canvas');
                 let element = modal.querySelector('.change');
 
-                canvas.dataset.change = true;
+                canvas.change = true;
                 element.innerHTML = '<i class="mdi-toggle-switch toggleIcon"></i> SHOW CHANGE';
 
                 element.addEventListener('click', function()
                 {
-                    canvas.dataset.change = canvas.dataset.change != 'true';
-                    element.innerHTML = '<i class="' + (canvas.dataset.change == 'true' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
+                    canvas.change = canvas.change ? false : true;
+                    element.innerHTML = '<i class="' + (canvas.change ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
                     modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                    this.controller.services.recorder.chartQuery(item, chart, canvas.dataset.interval);
+                    this.controller.services.recorder.chartQuery(item, chart, canvas.interval);
 
                 }.bind(this));
             }
@@ -1080,7 +1080,7 @@ class Dashboard
 
             if (this.controller.services.recorder)
             {
-                chart.querySelector('canvas').dataset.unit = true;
+                chart.querySelector('canvas').unit = true;
                 this.controller.services.recorder.chartQuery(item, chart, interval);
             }
 
