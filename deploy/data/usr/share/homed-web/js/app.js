@@ -401,8 +401,8 @@ class Controller
             trigger:  {'Trigger property': '{{ triggerProperty }}', 'Trigger topic': '{{ triggerTopic }}', 'Trigger message': '{{ triggerMessage }}'},
             data:     {'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}', 'State value': '{{ state | stateName }}', 'File contents': '{{ file | /path/to/file }}'},
             meta:     {'Shell output': '{{ shellOutput }}', 'Loop index': '{{ loopIndex }}'},
-            time:     {'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}'},
-            color:    {'Color temperature': '{{ colorTemperature | 153 | 500 }}'},
+            time:     {'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}', 'Sunrise': '{{ sunrise | hh:mm }}', 'Sunset': '{{ sunset | hh:mm }}'},
+            light:    {'Color temperature': '{{ colorTemperature | 153 | 500 }}', 'Level': '{{ level | 100 | 255 }}'},
             property: this.propertiesList(false, true),
             camera:   this.camerasList()
         };
@@ -1708,18 +1708,18 @@ function showModal(show, focus, type)
         switch (type)
         {
             case 'trigger':
-                list = controller.patternList(['name', 'meta', 'color', 'camera']);
-                separator = 7;
+                list = controller.patternList(['name', 'meta', 'light', 'camera']);
+                separator = 9;
                 break;
 
             case 'condition':
-                list = controller.patternList(['color', 'camera']);
-                separator = 10;
+                list = controller.patternList(['light', 'camera']);
+                separator = 12;
                 break;
 
             case 'action':
                 list = controller.patternList();
-                separator = 11;
+                separator = 14;
                 break;
         }
 
