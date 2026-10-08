@@ -374,10 +374,8 @@ div.dragPreview {
     overflow: hidden;
     margin: 0;
     padding: 0;
-    border: 1px solid var(--drag-background);
+    border: 1px solid transparent;
     border-radius: var(--border-radius);
-    background-color: var(--drag-background);
-    backdrop-filter: blur(1px);
     box-sizing: border-box;
     pointer-events: none;
 }
@@ -387,7 +385,9 @@ div.dragPreview.deny {
 }
 
 div.dragPreview table {
-    margin: 0;
+    margin: -1px;
+    background-color: var(--drag-background);
+    backdrop-filter: blur(1px);
     table-layout: fixed;
 }
 
@@ -410,6 +410,7 @@ tr.dragTarget.current td {
 
 tr.dragTarget.current div {
     border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
     box-sizing: border-box;
 }
 

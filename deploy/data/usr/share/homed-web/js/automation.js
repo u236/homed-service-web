@@ -178,6 +178,15 @@ class Automation
         return 'rgba(' + this.color[(level - 1) % this.color.length] + ', var(--depth-alpha))';
     }
 
+    levelIndent(cell, level, current = true)
+    {
+        if (!level)
+            return;
+
+        cell.style.paddingLeft = 18 * (level - 1) + 5 + 'px';
+        cell.innerHTML += '<span class="small ' + (current ? 'warning' : 'shade') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
+    }
+
     isArrayStatement(statement)
     {
         return statement == 'between' || statement == 'outside';
@@ -483,7 +492,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="small ' + (j < level - 1 ? 'shade' : 'warning') + ' "><i class="mdi-subdirectory-arrow-right"></i></span> ';
+                        automation.levelIndent(cell, level);
                         cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type ?? '<span class="shade"><i>no conditions</i></span>';
                         break;
 
@@ -557,7 +566,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        for (let j = 0; j < level; j++) cell.innerHTML += '<span class="small ' + (j < level - 1 ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
+                        automation.levelIndent(cell, level);
                         cell.innerHTML += nested ? '<span class="value">' + action.type.toUpperCase() + '</span>' : action.type ?? '<span class="shade"><i>do nothing</i></span>';
                         break;
 
@@ -584,8 +593,7 @@ class Automation
                             if (disabled)
                                 actionRow.classList.add('inactive');
 
-                            for (let k = 0; k <= level - 1; k++)
-                                nameCell.innerHTML += '<span class="small ' + (k < level ? 'shade' : 'warning') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
+                            automation.levelIndent(nameCell, level, false);
 
                             nameCell.colSpan = 3;
                             actionCell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';

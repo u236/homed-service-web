@@ -1157,6 +1157,7 @@ class Drag
         this.preview.className = this.row.closest('table').parentNode.className + ' dragPreview';
         this.preview.style.left = frame.left + 'px';
         this.preview.style.width = frame.width + 'px';
+        this.preview.style.height = frame.height - 1 + 'px';
         this.preview.append(table);
 
         this.table = this.row.parentNode;
