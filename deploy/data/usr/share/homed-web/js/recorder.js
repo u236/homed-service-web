@@ -236,11 +236,12 @@ class Recorder
         }
         else
         {
+            let hole = (canvas.end - canvas.start) / 100;
             let avg = new Array();
             let min = new Array();
             let max = new Array();
 
-            message.timestamp.forEach((timestamp, index) => // TODO: check for empty hours?
+            message.timestamp.forEach((timestamp, index) =>
             {
                 let avgTooltip = 'avg: ' + Number(message.avg[index].toFixed(2)) + (unit ? ' ' + unit : '');
                 let minTooltip = 'min: ' + Number(message.min[index].toFixed(2)) + (unit ? ' ' + unit : '');
@@ -252,6 +253,14 @@ class Recorder
                     avgTooltip = tooltip;
                     minTooltip = tooltip;
                     maxTooltip = tooltip;
+                }
+
+                if (index && timestamp - message.timestamp[index - 1] > hole)
+                {
+                    let x = message.timestamp[index - 1] + (message.daily ? 86400000 : 3600000);
+                    avg.push({x: x, y: null});
+                    min.push({x: x, y: null});
+                    max.push({x: x, y: null});
                 }
 
                 avg.push({x: timestamp, y: message.avg[index], tooltip: avgTooltip});

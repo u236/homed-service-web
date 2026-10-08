@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#define SERVICE_VERSION     "2.18.0"
+#define SERVICE_VERSION     "2.19.0"
 #define COOKIE_MAX_AGE      31536000
 #define TICKET_MAX_AGE      30
 #define REQUEST_TIMEOUT     5000
