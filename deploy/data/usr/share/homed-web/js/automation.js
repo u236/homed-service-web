@@ -448,6 +448,9 @@ class Automation
         if (action.keyboard)
             data += ' <span class="flag">keyboard</span>';
 
+        if (action.rich)
+            data += ' <span class="flag">rich</span>';
+
         if (action.silent)
             data += ' <span class="flag">silent</span>';
 
@@ -1663,6 +1666,7 @@ class Automation
             modal.querySelector('input[name="thread"]').value = action.thread ? action.thread : '';
             modal.querySelector('input[name="chats"]').value = action.chats ? action.chats.join(', ') : '';
             modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="rich"]').checked = action.rich ?? false;
             modal.querySelector('input[name="silent"]').checked = action.silent ?? false;
 
             modal.querySelector('input[name="remove"]').checked = action.remove ?? false;
@@ -1682,6 +1686,7 @@ class Automation
                 action.file = form.file.trim();
                 action.keyboard = form.keyboard.trim();
                 action.chats = chats.length ? chats : null;
+                action.rich = form.rich;
                 action.silent = form.silent;
                 action.remove = form.remove;
                 action.update = form.update;
