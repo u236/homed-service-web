@@ -422,12 +422,12 @@ function addExpose(table, device, endpointId, expose, names = true)
             labelCell.innerHTML += ' <i class="mdi-chart-line-variant shade"></i>';
             element = labelCell.querySelector('i');
 
-            recorder.status.items?.forEach((data, index) =>
+            recorder.status.items?.forEach(data =>
             {
                 if (data.endpoint != endpoint || data.property != property)
                     return;
 
-                element.addEventListener('click', function() { controller.showPage('recorder?index=' + index); showModal(false); });
+                element.addEventListener('click', function() { controller.showPage('recorder?item=' + data.endpoint + '/' + data.property); showModal(false); });
                 check = true;
             });
 

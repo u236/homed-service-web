@@ -67,7 +67,7 @@ class Matter extends DeviceService
                 if (this.controller.service == this.service)
                 {
                     if (check)
-                        this.controller.showPage(this.service);
+                        this.controller.showPage(this.controller.page);
 
                     this.updatePage();
                 }
@@ -141,7 +141,7 @@ class Matter extends DeviceService
     showPage(data)
     {
         let menu = document.querySelector('.menu');
-        let list = data ? data.split('=') : new Array();
+        let list = data ? data.split(/=(.*)/) : new Array();
         let device;
 
         menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';

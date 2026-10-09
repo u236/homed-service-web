@@ -1045,12 +1045,12 @@ class Dashboard
 
             modal.querySelector('.item').addEventListener('click', function()
             {
-                this.controller.services.recorder?.status.items?.forEach((data, index) =>
+                this.controller.services.recorder?.status.items?.forEach(data =>
                 {
                     if (data.endpoint != item.endpoint || data.property != item.property)
                         return;
 
-                    this.controller.showPage('recorder?index=' + index);
+                    this.controller.showPage('recorder?item=' + data.endpoint + '/' + data.property);
                     showModal(false);
                 });
 

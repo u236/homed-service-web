@@ -404,12 +404,12 @@ class Recorder
 
                 if (this.item && this.status.items)
                 {
-                    this.status.items.forEach((item, index) =>
+                    this.status.items.forEach(item =>
                     {
                         if (item.endpoint != this.item.endpoint || item.property != this.item.property)
                             return;
 
-                        this.controller.showPage('recorder?index=' + index);
+                        this.controller.showPage('recorder?item=' + item.endpoint + '/' + item.property);
                         check = true;
                     });
                 }
@@ -417,7 +417,7 @@ class Recorder
                 if (check || this.controller.service == 'recorder')
                 {
                     if (!check)
-                        this.controller.showPage('recorder');
+                        this.controller.showPage(this.controller.page);
 
                     this.updatePage();
                 }
@@ -576,7 +576,7 @@ class Recorder
     showPage(data)
     {
         let menu = document.querySelector('.menu');
-        let list = data ? data.split('=') : new Array();
+        let list = data ? data.split(/=(.*)/) : new Array();
         let item;
 
         if (!guest)
@@ -593,8 +593,8 @@ class Recorder
         if (!this.status.version)
             return;
 
-        if (list[0] == 'index')
-            item = this.status.items?.[list[1]];
+        if (list[0] == 'item')
+            item = this.status.items?.find(value => value.endpoint + '/' + value.property == list[1]);
 
         if (item)
         {
@@ -619,11 +619,11 @@ class Recorder
         {
             let table = this.content.querySelector('.itemList table');
 
-            this.status.items.forEach((item, index) =>
+            this.status.items.forEach(item =>
             {
                 let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.controller.showPage('recorder?index=' + index); }.bind(this));
+                row.addEventListener('click', function() { this.controller.showPage('recorder?item=' + item.endpoint + '/' + item.property); }.bind(this));
 
                 for (let i = 0; i < 3; i++)
                 {
@@ -659,7 +659,7 @@ class Recorder
             let items = new Array();
             let list = new Array();
 
-            this.status.items.forEach((item, index) => { items.push([index, item.name ? item.name.toLowerCase() : item.endpoint + ' - ' + item.property]); });
+            this.status.items.forEach(item => { items.push([item.endpoint + '/' + item.property, item.name ? item.name.toLowerCase() : item.endpoint + ' - ' + item.property]); });
 
             items.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
             {
@@ -669,7 +669,7 @@ class Recorder
                 list.push(item[0]);
             });
 
-            handleArrowButtons(this.content, list, current, function(index) { this.controller.showPage('recorder?index=' + index); }.bind(this));
+            handleArrowButtons(this.content, list, current, function(key) { this.controller.showPage('recorder?item=' + key); }.bind(this));
 
             name = this.content.querySelector('.name');
             datepicker = this.content.querySelector('.datepicker');

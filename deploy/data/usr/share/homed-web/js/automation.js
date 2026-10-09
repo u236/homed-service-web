@@ -123,7 +123,7 @@ class Automation
                 if (this.controller.service == this.service)
                 {
                     if (JSON.stringify(check) != JSON.stringify(this.status.automations?.map(automation => automation.uuid)))
-                        this.controller.showPage(this.service);
+                        this.controller.showPage(this.controller.page);
 
                     this.updateStates();
                     this.updatePage();
@@ -654,7 +654,7 @@ class Automation
     showPage(data)
     {
         let menu = document.querySelector('.menu');
-        let list = data ? data.split('=') : new Array();
+        let list = data ? data.split(/=(.*)/) : new Array();
         let automation;
 
         menu.innerHTML  = '<span id="states"><i class="mdi-variable"></i> States</span>';
@@ -681,8 +681,8 @@ class Automation
         if (!this.status.version)
             return;
 
-        if (list[0] == 'index')
-            automation = this.status.automations?.[list[1]];
+        if (list[0] == 'uuid')
+            automation = this.status.automations?.find(item => item.uuid == list[1]);
 
         if (automation)
         {
@@ -722,7 +722,7 @@ class Automation
             {
                 let row = table.querySelector('tbody').insertRow();
 
-                row.addEventListener('click', function() { this.controller.showPage(this.service + '?index=' + index); }.bind(this));
+                row.addEventListener('click', function() { this.controller.showPage(this.service + '?uuid=' + item.uuid); }.bind(this));
                 row.dataset.index = index;
 
                 if (!item.active)
@@ -783,7 +783,7 @@ class Automation
                 let list = new Array();
                 let current;
 
-                this.status.automations.forEach((automation, index) => { automations.push([index, automation.name.toLowerCase()]); });
+                this.status.automations.forEach(automation => { automations.push([automation.uuid, automation.name.toLowerCase()]); });
 
                 automations.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
                 {
@@ -793,7 +793,7 @@ class Automation
                     list.push(item[0]);
                 });
 
-                handleArrowButtons(this.content, list, current, function(index) { this.controller.showPage(this.service + '?index=' + index); }.bind(this));
+                handleArrowButtons(this.content, list, current, function(uuid) { this.controller.showPage(this.service + '?uuid=' + uuid); }.bind(this));
             }
             else
             {

@@ -81,7 +81,7 @@ class Camera
                 if (check || this.controller.service == 'camera')
                 {
                     if (!check)
-                        this.controller.showPage('camera');
+                        this.controller.showPage(this.controller.page);
 
                     this.updatePage();
                 }
@@ -203,7 +203,7 @@ class Camera
     showPage(data)
     {
         let menu = document.querySelector('.menu');
-        let list = data ? data.split('=') : new Array();
+        let list = data ? data.split(/=(.*)/) : new Array();
         let device;
 
         menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';

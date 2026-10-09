@@ -101,7 +101,7 @@ class Controller
                 document.querySelector('#footerData').style.display = 'none';
             }
 
-            this.showPage(localStorage.getItem('homedPage') ?? 'dashboard');
+            this.showPage(location.hash ? decodeURI(location.hash).slice(1) : localStorage.getItem('homedPage') ?? 'dashboard');
             return;
         }
 
@@ -460,14 +460,18 @@ class Controller
 
     showPage(page)
     {
-        let list = page.split('?');
+        let list = page.split(/\?(.*)/);
         let service = list[0];
 
         if (!service)
             service = 'dashboard';
 
         if (guest && !['dashboard', 'recorder'].includes(service))
+        {
+            history.replaceState(null, null, '#dashboard');
+            this.showPage('dashboard');
             return;
+        }
 
         if (this.services[this.service]?.updated)
         {
@@ -478,10 +482,10 @@ class Controller
         document.querySelector('.menu').innerHTML = null;
         document.querySelector('#serviceVersion').innerHTML = '<i>unknown</i>';
 
-        localStorage.setItem('homedPage', page);
+        localStorage.setItem('homedPage', service);
 
-        if (location.hash.slice(1) != page)
-            history.pushState(null, null, '#' + page);
+        if (location.hash.slice(1) != encodeURI(page))
+            history.pushState(null, null, '#' + encodeURI(page));
 
         if (this.service != service)
             this.services.camera?.stop();
@@ -490,7 +494,7 @@ class Controller
         this.page = page;
 
         this.updateMenu(false);
-        this.clearPage();
+        this.clearPage(!this.services[service] ? service + ' service is unavailable' : undefined);
 
         if (!this.services[service])
             return;
@@ -506,8 +510,9 @@ class Controller
 
         if (warning)
         {
-            content.querySelector('.warning').innerHTML = warning;
+            let element = content.querySelector('.warning');
             console.log(warning);
+            setTimeout(function() { element.innerHTML = warning; }, 1000);
         }
 
         showModal(false);
@@ -546,10 +551,10 @@ class Controller
         dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
 
         Object.keys(devices).forEach(name => { let device = devices[name]; let key = this.searchTitle('Device', name); names[key] = this.searchNames(device); list[key] = device.service + '?device=' + device.id; });
-        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach((automation, index) => { list[this.searchTitle('Automation', automation.name)] = service + '?index=' + index; }); });
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { list[this.searchTitle('Automation', automation.name)] = service + '?uuid=' + automation.uuid; }); });
 
         this.services.camera?.status.devices?.forEach(device => { list[this.searchTitle('Camera', device.name)] = 'camera?device=' + device.id; });
-        this.services.recorder?.status.items?.forEach((item, index) => { list[this.searchTitle('Recorder', dashboard.itemString(item, false))] = 'recorder?index=' + index; });
+        this.services.recorder?.status.items?.forEach(item => { list[this.searchTitle('Recorder', dashboard.itemString(item, false))] = 'recorder?item=' + item.endpoint + '/' + item.property; });
         this.serviceList?.forEach(service => { let name = service.replace('zigbee', 'ZigBee'); list[this.searchTitle('Service', name.charAt(0).toUpperCase() + name.slice(1))] = service; });
 
         loadHTML('search.html', this, modal.querySelector('.data'), function()
@@ -819,6 +824,11 @@ class DeviceService
                     });
 
                     this.serviceCommand({action: 'getProperties', device: item, service: 'web'});
+
+                    if (this.controller.service != this.service || device != this.device)
+                        break;
+
+                    this.showDeviceInfo(device);
                 }
 
                 break;
