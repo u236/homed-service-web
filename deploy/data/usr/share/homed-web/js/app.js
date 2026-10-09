@@ -1,4 +1,4 @@
-let modal, controller, dropdown, drag, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', plugins = new Array();
+let modal, controller, dropdown, drag, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', cache = new Object(), plugins = new Array();
 
 class Socket
 {
@@ -1271,24 +1271,25 @@ class Drag
         if (!this.preview)
             return;
 
+        this.preview.remove();
+        document.body.classList.remove('drag');
+
+        if (apply && (this.target.list != source.list || ![source.index, source.index + 1].includes(this.target.index)))
+        {
+            this.target.list.splice(this.target.list == source.list && this.target.index > source.index ? this.target.index - 1 : this.target.index, 0, source.list.splice(source.index, 1)[0]);
+            this.callback();
+            return;
+        }
+
         if (this.next)
             this.next.before(...this.rows);
         else
             this.table.append(...this.rows);
 
-        this.preview.remove();
         this.hidden.remove();
         this.marked.forEach(item => item?.classList.remove('current', 'dragAbove', 'dragBelow'));
         this.targets.forEach(row => row.remove());
         this.placeholder?.style.removeProperty('display');
-
-        document.body.classList.remove('drag');
-
-        if (!apply || (this.target.list == source.list && [source.index, source.index + 1].includes(this.target.index)))
-            return;
-
-        this.target.list.splice(this.target.list == source.list && this.target.index > source.index ? this.target.index - 1 : this.target.index, 0, source.list.splice(source.index, 1)[0]);
-        this.callback();
     }
 }
 
@@ -1482,12 +1483,15 @@ function loadHTML(file, context, element, callback)
     if (context?.constructor?.html)
         file = file.startsWith('html/') ? 'plugin/' + file : context.constructor.html + file;
 
-    fetch(file + '?' + Date.now()).then(response => response.ok ? response.text() : Promise.reject(file)).then(html =>
+    if (!cache[file])
+        cache[file] = fetch(file + '?' + Date.now()).then(response => response.ok ? response.text() : Promise.reject(file));
+
+    cache[file].then(html =>
     {
         element.innerHTML = html;
         callback.bind(context)();
 
-    }).catch(file => { console.log('failed to load file ' + file); });
+    }).catch(function() { delete cache[file]; console.log('failed to load file ' + file); });
 }
 
 function setIcons()

@@ -257,7 +257,7 @@ class Dashboard
         }
 
         video = camera.addVideo(cell);
-        cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen().catch(() => {}) : video.webkitEnterFullscreen(); });
+        cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen().catch(function() {}) : video.webkitEnterFullscreen(); });
         camera.play(video, item.camera);
     }
 
@@ -412,7 +412,7 @@ class Dashboard
 
             loader.style.display = 'block';
 
-            this.sleep(dashboard.overview ? 100 : 0).then(() =>
+            this.sleep(dashboard.overview ? 100 : 0).then(function()
             {
                 if (dashboard.overview && !dashboard.blocks)
                     this.addOverview(dashboard);
@@ -555,7 +555,8 @@ class Dashboard
 
                     this.content.querySelector('.column.' + column).append(element);
                 });
-            });
+
+            }.bind(this));
         });
     }
 

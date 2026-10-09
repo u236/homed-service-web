@@ -281,7 +281,7 @@ class Camera
 
             handleArrowButtons(this.content, this.status.devices.map(item => item.id), this.status.devices.indexOf(device), function(id) { this.controller.showPage('camera?device=' + id); }.bind(this));
 
-            video.addEventListener('click', function() { this.requestFullscreen ? this.requestFullscreen().catch(() => {}) : this.webkitEnterFullscreen(); });
+            video.addEventListener('click', function() { this.requestFullscreen ? this.requestFullscreen().catch(function() {}) : this.webkitEnterFullscreen(); });
             this.play(video, device.id);
 
         }.bind(this));
