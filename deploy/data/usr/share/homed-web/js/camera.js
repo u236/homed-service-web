@@ -267,13 +267,14 @@ class Camera
 
         loadHTML('html/camera/deviceInfo.html', this, this.content, function()
         {
+            let list = device.frame ? device.frame.split('|').map(item => item.trim()) : new Array();
             let video = this.addVideo(this.content.querySelector('.cameraView'));
 
             this.content.querySelector('.name').innerHTML = device.name;
             this.content.querySelector('.id').innerHTML = device.id;
             this.content.querySelector('.mainStream').innerHTML = device.mainStream;
             this.content.querySelector('.subStream').innerHTML = device.subStream ?? '<i class="mdi-close-circle shade"></i>';
-            this.content.querySelector('.frame').innerHTML = device.frame ? '<a href="' + device.frame + '" target="_blank">' + device.frame + '</a>' : '<i class="mdi-close-circle shade"></i>';
+            this.content.querySelector('.frame').innerHTML = list.length ? '<a href="' + list[0] + '" target="_blank">' + list[0] + '</a>' + (list[1] ? ' <span class="shade">| ' + list[1] + '</span>' : '') : '<i class="mdi-close-circle shade"></i>';
             this.content.querySelector('.preload').innerHTML = '<i class="mdi-' + (device.preload ? 'check-circle success' : 'close-circle shade') + '"></i>';
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));

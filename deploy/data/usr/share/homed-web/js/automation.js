@@ -442,14 +442,14 @@ class Automation
         if (action.retain)
             data += ' <span class="flag">retain</span>';
 
+        if (action.rich)
+            data += ' <span class="flag">rich</span>';
+
         if (action.file)
             data += ' <span class="flag">file</span>';
 
         if (action.keyboard)
             data += ' <span class="flag">keyboard</span>';
-
-        if (action.rich)
-            data += ' <span class="flag">rich</span>';
 
         if (action.silent)
             data += ' <span class="flag">silent</span>';
