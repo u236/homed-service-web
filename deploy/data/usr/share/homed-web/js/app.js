@@ -1780,6 +1780,13 @@ function randomString(length)
     return Math.random().toString(36).substring(2, length + 2);
 }
 
+function paletteColor(index, alpha)
+{
+    let list = ['54, 162, 235', '255, 99, 132', '75, 192, 192', '255, 159, 64', '153, 102, 255', '255, 205, 86', '201, 203, 207'];
+    let color = list[index % list.length];
+    return alpha ? 'rgba(' + color + ', ' + alpha + ')' : 'rgb(' + color + ')';
+}
+
 function formData(form)
 {
     let data = new Object();

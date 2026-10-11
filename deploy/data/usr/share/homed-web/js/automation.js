@@ -14,8 +14,6 @@ class Automation
     actionStatement = ['value', 'increase', 'decrease'];
     actionNested = ['condition', 'loop'];
 
-    color = ['54, 162, 235', '255, 99, 132', '75, 192, 192', '255, 159, 64', '153, 102, 255', '255, 205, 86'];
-
     status = new Object();
     data = new Object();
 
@@ -171,11 +169,6 @@ class Automation
     parseValue(value)
     {
         return value ? value == 'true' || value == 'false' ? value == 'true' : parseFloat(value) == value ? parseFloat(value) : value : null;
-    }
-
-    levelColor(level)
-    {
-        return 'rgba(' + this.color[(level - 1) % this.color.length] + ', var(--depth-alpha))';
     }
 
     levelIndent(cell, level, current = true)
@@ -481,7 +474,7 @@ class Automation
             let row = table.insertRow();
 
             if (level)
-                row.style.backgroundColor = automation.levelColor(level);
+                row.style.backgroundColor = paletteColor(level - 1, 'var(--depth-alpha)');
 
             if (inactive || (condition.active != undefined && !condition.active))
                 row.classList.add('inactive');
@@ -555,7 +548,7 @@ class Automation
             let disabled = inactive || (action.active != undefined && !action.active);
 
             if (level)
-                row.style.backgroundColor = automation.levelColor(level);
+                row.style.backgroundColor = paletteColor(level - 1, 'var(--depth-alpha)');
 
             if (disabled)
                 row.classList.add('inactive');
@@ -591,7 +584,7 @@ class Automation
                             let nameCell = actionRow.insertCell();
                             let actionCell = actionRow.insertCell();
 
-                            actionRow.style.backgroundColor = automation.levelColor(level + 1);
+                            actionRow.style.backgroundColor = paletteColor(level, 'var(--depth-alpha)');
 
                             if (disabled)
                                 actionRow.classList.add('inactive');

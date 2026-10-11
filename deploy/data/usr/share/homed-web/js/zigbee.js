@@ -418,7 +418,7 @@ class ZigBee extends DeviceService
 
             case 'powerSource':
             {
-                let battery = ![1, 4].includes(value & 127);
+                let battery = [1, 4].includes(value & 127) ? false : true;
                 return data.logicalType ? '<i class="mdi-' + (battery ? 'battery-charging' : 'power-plug') + '"></i>' + (!battery && value & 128 ? ' + <i class="mdi-battery-charging"></i>' : '') : empty;
             }
 

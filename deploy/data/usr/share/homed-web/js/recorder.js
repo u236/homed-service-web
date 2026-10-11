@@ -13,22 +13,9 @@ class Recorder
         {
             grid:   function() { return theme == 'dark' ? 'rgb(51, 51, 51)' : 'rgb(221, 221, 221)'; },
             major:  function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
-            error:  'rgba(255, 0, 0, 0.5)',
-            line:   'rgb(54, 162, 235)',
-            area:   'rgba(54, 162, 235, 0.4)',
-            change: 'rgba(54, 162, 235, 0.8)',
             on:     'rgb(243, 168, 59)',
             off:    'rgba(127, 127, 127, 0.2)',
-            bar:
-            [
-                'rgba(54, 162, 235, 0.5)',
-                'rgba(255, 99, 132, 0.5)',
-                'rgba(75, 192, 192, 0.5)',
-                'rgba(255, 159, 64, 0.5)',
-                'rgba(153, 102, 255, 0.5)',
-                'rgba(255, 205, 86, 0.5)',
-                'rgba(201, 203, 207, 0.5)'
-            ]
+            error:  'rgba(255, 0, 0, 0.5)'
         };
 
         Chart.defaults.color = '#888888';
@@ -55,11 +42,12 @@ class Recorder
 
     parseData(message)
     {
-        let aggregation, counter, unit, options;
-        let canvas = document.querySelector('canvas#' + message.id);
-        let status = document.querySelector('.status#' + message.id);
-        let total = document.querySelector('.total#' + message.id);
-        let table = document.querySelector('.log#' + message.id);
+        let item, aggregation, counter, unit, name, options;
+        let list = message.id.split('/');
+        let canvas = document.querySelector('canvas#' + list[0]);
+        let status = document.querySelector('.status#' + list[0]);
+        let total = document.querySelector('.total#' + list[0]);
+        let table = document.querySelector('.log#' + list[0]);
         let chart = Chart.getChart(canvas);
         let datasets = new Array();
         let numeric = true;
@@ -71,12 +59,17 @@ class Recorder
         if (status)
             status.innerHTML = '<span class="mobileHidden">' + message.timestamp.length + ' records, ' + message.time + ' ms</span>';
 
+        item = canvas.items?.[list[1]] ?? canvas;
         aggregation = this.aggregation(canvas);
-        counter = this.counter(canvas);
-        unit = this.unit(canvas);
+        counter = this.counter(item);
+        unit = this.unit(item);
+        name = item.name ?? exposeTitle(this.controller.findDevice(item), item.endpoint, item.property);
 
         if (!message.timestamp.length)
         {
+            if (canvas.items)
+                delete canvas.cache[list[1]];
+
             if (table)
             {
                 canvas.closest('div').style.display = 'none';
@@ -145,14 +138,7 @@ class Recorder
 
         if (message.hasOwnProperty('value'))
         {
-            for (let i = 0; i < message.value.length; i++)
-            {
-                if (message.value[i] && isNaN(message.value[i]))
-                {
-                    numeric = false;
-                    break;
-                }
-            }
+            numeric = this.text(item) ? false : true;
 
             if (numeric)
             {
@@ -196,12 +182,12 @@ class Recorder
                 {
                     options.scales.x.min = data[0].x;
                     options.scales.x.max = data[data.length - 1].x;
-                    datasets.push({data: data, backgroundColor: this.color.change, borderRadius: 3});
+                    datasets.push({data: data, backgroundColor: paletteColor(0, 0.8), borderRadius: 3, label: name, unit: unit});
                 }
                 else
                 {
                     data.push({x: options.scales.x.max, y: data[data.length - 1].y});
-                    datasets.push({data: data, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0, stepped: true});
+                    datasets.push({data: data, borderWidth: 1.5, borderColor: paletteColor(0), pointRadius: 0, stepped: true, label: name, unit: unit});
                 }
             }
             else
@@ -213,7 +199,7 @@ class Recorder
                     let value = message.value[index];
                     let data =
                     {
-                        data: [[index ? timestamp : options.scales.x.min, message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max]],
+                        data: [{x: [index ? timestamp : options.scales.x.min, message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max], y: name}],
                         timestamp: timestamp,
                         label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
@@ -225,10 +211,7 @@ class Recorder
                     else if (['on', 'off', 'true', 'false'].includes(value))
                         data.backgroundColor = ['on', 'true'].includes(value) ? this.color.on : this.color.off;
                     else
-                        data.backgroundColor = this.color.bar[count++];
-
-                    if (count == this.color.bar.length)
-                        count = 0;
+                        data.backgroundColor = paletteColor(count++, 0.5);
 
                     datasets.push(data);
                 });
@@ -268,9 +251,9 @@ class Recorder
                 max.push({x: timestamp, y: message.max[index], tooltip: maxTooltip});
             });
 
-            datasets.push({data: avg, borderWidth: 1.5, borderColor: this.color.line, pointRadius: 0});
-            datasets.push({data: min, borderWidth: 0, backgroundColor: this.color.area, pointRadius: 0, fill: '-1'});
-            datasets.push({data: max, borderWidth: 0, backgroundColor: this.color.area, pointRadius: 0, fill: '-2'});
+            datasets.push({data: avg, borderWidth: 1.5, borderColor: paletteColor(0), pointRadius: 0, label: name});
+            datasets.push({data: min, borderWidth: 0, backgroundColor: paletteColor(0, 0.4), pointRadius: 0, fill: '-1'});
+            datasets.push({data: max, borderWidth: 0, backgroundColor: paletteColor(0, 0.4), pointRadius: 0, fill: '-2'});
 
             average = true;
         }
@@ -288,10 +271,10 @@ class Recorder
             {
                 backgroundColor: 'rgba(40, 40, 40, 0.8)',
                 caretPadding: 10,
-                displayColors: false,
+                displayColors: canvas.items ? true : false, // TODO: выглядит плохо, подумать
                 xAlign: 'center',
                 yAlign: 'bottom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (unit ? ' ' + unit : ''); }}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (context.dataset.unit ? ' ' + context.dataset.unit : ''); }}
             };
             options.scales.y =
             {
@@ -304,6 +287,29 @@ class Recorder
             if (average)
                 options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
 
+            if (canvas.items)
+            {
+                let units = canvas.items.map(value => this.unit(value)).filter((value, index, array) => array.indexOf(value) == index);
+                let color = paletteColor(list[1]);
+
+                units.forEach((value, index) =>
+                {
+                    options.scales['y' + index] = {...options.scales.y, display: index < 2, ticks: {callback: function(tick) { let label = parseFloat(tick.toPrecision(12)); return units.length > 1 && value ? label + ' ' + value : label; }}};
+
+                    if (index != 1)
+                        return;
+
+                    options.scales.y1.grid = {display: false};
+                    options.scales.y1.position = 'right';
+                });
+
+                datasets = datasets.filter(dataset => !dataset.fill);
+                datasets.forEach(dataset => { dataset.yAxisID = 'y' + units.indexOf(unit); dataset.borderColor = color; dataset.backgroundColor = color; });
+
+                options.plugins.legend = {display: canvas.items.length > 1, onClick: null, labels: {boxWidth: 10, filter: function(legend) { return legend.text; }}};
+                delete options.scales.y;
+            }
+
             if (chart && chart.config.type != type)
             {
                 chart.destroy();
@@ -315,7 +321,7 @@ class Recorder
         }
         else
         {
-            canvas.closest('div').style.height = '80px';
+            canvas.closest('div').style.height = 30 * (canvas.items?.length ?? 1) + 50 + 'px';
 
             options.indexAxis = 'y';
             options.plugins.tooltip =
@@ -325,7 +331,7 @@ class Recorder
                 xAlign: 'center',
                 yAlign: 'top',
                 position: 'custom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label + ', ' + timeInterval((context.raw[1] - context.dataset.timestamp) / 1000, false) + ' long'; }}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label + ', ' + timeInterval((context.raw.x[1] - context.dataset.timestamp) / 1000, false) + ' long'; }}
             };
             options.scales.y =
             {
@@ -334,10 +340,15 @@ class Recorder
             };
 
             if (!chart)
-                chart = new Chart(canvas, {type: 'bar', data: {labels: [exposeTitle(this.controller.findDevice({endpoint: canvas.endpoint}), canvas.endpoint, canvas.property)]}});
+                chart = new Chart(canvas, {type: 'bar'});
+
+            chart.data.labels = canvas.items ? canvas.items.map(value => value.name) : [name];
         }
 
-        chart.data.datasets = datasets;
+        if (canvas.items)
+            canvas.cache[list[1]] = datasets;
+
+        chart.data.datasets = canvas.items ? canvas.cache.reduce((result, value) => result.concat(value), new Array()) : datasets;
         chart.options = options;
         chart.update();
 
@@ -470,6 +481,11 @@ class Recorder
         return this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.unit ?? '';
     }
 
+    text(item)
+    {
+        return this.status.items?.find(value => value.endpoint == item.endpoint && value.property == item.property)?.text ?? false;
+    }
+
     dataRequest(canvas)
     {
         let aggregation;
@@ -497,7 +513,7 @@ class Recorder
         if (canvas.change)
             aggregation = this.aggregation(canvas);
 
-        this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id, endpoint: canvas.endpoint, property: canvas.property, start: aggregation ? this.truncate(canvas.start, aggregation) : canvas.start, end: canvas.end, change: canvas.change});
+        (canvas.items ?? [canvas]).forEach((item, index) => { this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id + (canvas.items ? '/' + index : ''), endpoint: item.endpoint, property: item.property, start: aggregation ? this.truncate(canvas.start, aggregation) : canvas.start, end: canvas.end, change: canvas.change}); });
     }
 
     chartQuery(item, element, interval, shift, start, end)
