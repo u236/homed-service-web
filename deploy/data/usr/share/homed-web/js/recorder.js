@@ -1,6 +1,6 @@
 class Recorder
 {
-    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.interval != 'custom') this.dataRequest(canvas); }); }.bind(this), 5000)];
+    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.interval != 'custom' && Date.now() - canvas.timestamp >= this.updatePeriod(canvas)) this.dataRequest(canvas); }); }.bind(this), 5000)];
     content = document.querySelector('.content .container');
 
     status = new Object();
@@ -11,11 +11,12 @@ class Recorder
         this.controller = controller;
         this.color =
         {
-            grid:   function() { return theme == 'dark' ? 'rgb(51, 51, 51)' : 'rgb(221, 221, 221)'; },
-            major:  function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
-            on:     'rgb(243, 168, 59)',
-            off:    'rgba(127, 127, 127, 0.2)',
-            error:  'rgba(255, 0, 0, 0.5)'
+            grid:  function() { return theme == 'dark' ? 'rgb(51, 51, 51)' : 'rgb(221, 221, 221)'; },
+            major: function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
+            on:    'rgb(243, 168, 59)',
+            off:   'rgba(127, 127, 127, 0.2)',
+            empty: 'rgba(0, 0, 0, 0.2)',
+            error: 'rgba(255, 0, 0, 0.5)'
         };
 
         Chart.defaults.color = '#888888';
@@ -131,7 +132,7 @@ class Recorder
                     min: new Date(canvas.start),
                     max: new Date(canvas.end),
                     border: {display: false},
-                    grid: {color: function(context) { return context.tick?.major ? this.color.major() : this.color.grid(); }.bind(this)},
+                    grid: {color: function(context) { return context.tick?.major ? this.color.major() : this.color.grid(); }.bind(this)}
                 }
             }
         };
@@ -194,12 +195,15 @@ class Recorder
             {
                 let count = 0;
 
+                if (message.timestamp[0] > canvas.start)
+                    datasets.push({data: [{x: [canvas.start, message.timestamp[0]], y: name}], timestamp: canvas.start, label: 'no data available', barThickness: 25, minBarLength: 1, backgroundColor: this.color.empty});
+
                 message.timestamp.forEach((timestamp, index) =>
                 {
                     let value = message.value[index];
                     let data =
                     {
-                        data: [{x: [index ? timestamp : options.scales.x.min, message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max], y: name}],
+                        data: [{x: [Math.max(timestamp, canvas.start), message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max], y: name}],
                         timestamp: timestamp,
                         label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
@@ -271,10 +275,14 @@ class Recorder
             {
                 backgroundColor: 'rgba(40, 40, 40, 0.8)',
                 caretPadding: 10,
-                displayColors: canvas.items ? true : false, // TODO: выглядит плохо, подумать
+                displayColors: canvas.items?.length > 1 ? true : false,
+                usePointStyle: true,
+                boxHeight: 8,
+                boxPadding: 3,
+                multiKeyBackground: 'transparent',
                 xAlign: 'center',
                 yAlign: 'bottom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (context.dataset.unit ? ' ' + context.dataset.unit : ''); }}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (context.dataset.unit ? ' ' + context.dataset.unit : ''); }, labelColor: function(context) { return {backgroundColor: context.dataset.backgroundColor}; }}
             };
             options.scales.y =
             {
@@ -289,8 +297,8 @@ class Recorder
 
             if (canvas.items)
             {
+                let update = function(chart) { chart.data.datasets.forEach(dataset => this.style(canvas, dataset)); chart.update(); }.bind(this);
                 let units = canvas.items.map(value => this.unit(value)).filter((value, index, array) => array.indexOf(value) == index);
-                let color = paletteColor(list[1]);
 
                 units.forEach((value, index) =>
                 {
@@ -304,9 +312,18 @@ class Recorder
                 });
 
                 datasets = datasets.filter(dataset => !dataset.fill);
-                datasets.forEach(dataset => { dataset.yAxisID = 'y' + units.indexOf(unit); dataset.borderColor = color; dataset.backgroundColor = color; });
+                datasets.forEach(dataset => { dataset.index = list[1]; dataset.yAxisID = 'y' + units.indexOf(unit); this.style(canvas, dataset); });
 
-                options.plugins.legend = {display: canvas.items.length > 1, onClick: null, labels: {boxWidth: 10, filter: function(legend) { return legend.text; }}};
+                options.plugins.legend =
+                {
+                    display: canvas.items.length > 1,
+                    position: 'bottom',
+                    labels: {usePointStyle: true, boxHeight: 6, generateLabels: function(chart) { return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => ({...item, fontColor: item.hidden ? 'rgba(136, 136, 136, 0.5)' : item.fontColor, hidden: false, lineWidth: 0})); }},
+                    onClick: function(event, item, legend) { let index = legend.chart.data.datasets[item.datasetIndex].index; canvas.disabled[index] = canvas.disabled[index] ? false : true; update(legend.chart); },
+                    onHover: function(event, item, legend) { legend.chart.canvas.style.cursor = 'pointer'; canvas.highlight = legend.chart.data.datasets[item.datasetIndex].index; update(legend.chart); },
+                    onLeave: function(event, item, legend) { legend.chart.canvas.style.cursor = 'default'; delete canvas.highlight; update(legend.chart); }
+                };
+
                 delete options.scales.y;
             }
 
@@ -321,8 +338,6 @@ class Recorder
         }
         else
         {
-            canvas.closest('div').style.height = 30 * (canvas.items?.length ?? 1) + 50 + 'px';
-
             options.indexAxis = 'y';
             options.plugins.tooltip =
             {
@@ -335,9 +350,16 @@ class Recorder
             };
             options.scales.y =
             {
+                display: canvas.items?.length > 1 ? true : false,
                 stacked: true,
                 grid: {display: false}
             };
+
+            if (canvas.items?.length > 1)
+            {
+                options.scales.y.ticks = {mirror: true, labelOffset: -22, padding: 0};
+                options.scales.y.grid.drawTicks = false;
+            }
 
             if (!chart)
                 chart = new Chart(canvas, {type: 'bar'});
@@ -351,6 +373,11 @@ class Recorder
         chart.data.datasets = canvas.items ? canvas.cache.reduce((result, value) => result.concat(value), new Array()) : datasets;
         chart.options = options;
         chart.update();
+
+        if (!numeric)
+            canvas.closest('div').style.height = (canvas.items?.length > 1 ? 45 * canvas.items.length + 40 : 80) + 'px';
+        else if (canvas.size)
+            canvas.closest('div').style.height = (canvas.size == 'small' ? 100 : canvas.size == 'large' ? 200 : 150) + chart.legend.height + 'px';
 
         if (!numeric && table)
         {
@@ -471,6 +498,27 @@ class Recorder
         return days >= 90 ? 'month' : days >= 7 ? 'day' : 'hour';
     }
 
+    updatePeriod(canvas)
+    {
+        switch (canvas.interval)
+        {
+            case '2h':    return 5000;
+            case '8h':    return 10000;
+            case 'week':  return 300000;
+            case 'month': return 600000;
+            case 'year':  return 1800000;
+            default:      return 30000;
+        }
+    }
+
+    style(canvas, dataset)
+    {
+        let color = paletteColor(dataset.index, canvas.disabled[dataset.index] || (canvas.highlight != undefined && canvas.highlight != dataset.index) ? 0.2 : null);
+        dataset.backgroundColor = color;
+        dataset.borderColor = color;
+        dataset.hidden = canvas.disabled[dataset.index] ?? false;
+    }
+
     counter(item)
     {
         return ['increasing', 'total_increasing'].includes(this.controller.findDevice(item)?.options(item.endpoint.split('/')[2] ?? 'common')?.[item.property]?.state); // TODO: remove backward compatibility for legacy total_increasing
@@ -488,7 +536,7 @@ class Recorder
 
     dataRequest(canvas)
     {
-        let aggregation;
+        let aggregation, request;
 
         if (canvas.interval != 'custom')
         {
@@ -513,7 +561,16 @@ class Recorder
         if (canvas.change)
             aggregation = this.aggregation(canvas);
 
-        (canvas.items ?? [canvas]).forEach((item, index) => { this.controller.socket.publish('command/recorder', {action: 'getData', id: canvas.id + (canvas.items ? '/' + index : ''), endpoint: item.endpoint, property: item.property, start: aggregation ? this.truncate(canvas.start, aggregation) : canvas.start, end: canvas.end, change: canvas.change}); });
+        request = {action: 'getData', start: aggregation ? this.truncate(canvas.start, aggregation) : canvas.start, end: canvas.end, change: canvas.change};
+        canvas.timestamp = Date.now();
+
+        if (canvas.items)
+        {
+            canvas.items.forEach((item, index) => { this.controller.socket.publish('command/recorder', {...request, id: canvas.id + '/' + index, endpoint: item.endpoint, property: item.property}); });
+            return;
+        }
+
+        this.controller.socket.publish('command/recorder', {...request, id: canvas.id, endpoint: canvas.endpoint, property: canvas.property});
     }
 
     chartQuery(item, element, interval, shift, start, end)
