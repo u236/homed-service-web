@@ -951,15 +951,6 @@ tr:first-child td {
 
 .dashboardBlock canvas {
     max-width: 100%;
-    height: 150px;
-}
-
-.dashboardBlock canvas.small {
-    height: 100px;
-}
-
-.dashboardBlock canvas.large {
-    height: 200px;
 }
 
 .dashboardBlock .label td {
@@ -994,6 +985,10 @@ tr:first-child td {
 .dashboardBlock .chart {
     padding-top: 0;
     border: none;
+}
+
+.dashboardBlock .combined {
+    cursor: default;
 }
 
 .dashboardBlock .value {

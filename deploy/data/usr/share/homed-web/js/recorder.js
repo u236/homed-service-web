@@ -196,7 +196,7 @@ class Recorder
                 let count = 0;
 
                 if (message.timestamp[0] > canvas.start)
-                    datasets.push({data: [{x: [canvas.start, message.timestamp[0]], y: name}], timestamp: canvas.start, label: 'no data available', barThickness: 25, minBarLength: 1, backgroundColor: this.color.empty});
+                    datasets.push({data: [{x: [canvas.start, message.timestamp[0]], y: name}], timestamp: canvas.start, label: 'no data available', barThickness: 25, minBarLength: 1, backgroundColor: this.color.empty, empty: true});
 
                 message.timestamp.forEach((timestamp, index) =>
                 {
@@ -387,6 +387,9 @@ class Recorder
                 let interval = timeInterval((Date.now() - record.timestamp) / 1000);
                 let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + interval;
                 let next = datasets[index + 1];
+
+                if (record.empty)
+                    return;
 
                 if (interval != 'now')
                     timestamp += ' ago, ' + (next ? timeInterval((next.timestamp - record.timestamp) / 1000, false) : interval) + ' long';

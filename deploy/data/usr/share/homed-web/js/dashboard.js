@@ -293,10 +293,79 @@ class Dashboard
         new Promise(wait.bind(this)).then(function()
         {
             cell.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
-            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '" class="' + (height ?? 'normal') + '"></canvas>';
+            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
             cell.querySelector('canvas').change = this.controller.services.recorder.counter(item);
+            cell.querySelector('canvas').size = height ?? 'normal';
             this.controller.services.recorder.chartQuery(item, cell, interval);
+
+        }.bind(this));
+    }
+
+    addCharts(table, items, interval, height)
+    {
+        let deadline = Date.now() + 5000;
+        let cell = table.insertRow().insertCell();
+
+        cell.innerHTML = '<div class="placeholder"></div>';
+        cell.classList.add('chart');
+        cell.colSpan = 2;
+
+        function wait(resolve)
+        {
+            if (!this.controller.services.recorder?.status.items || (deadline > Date.now() && items.find(item => !this.controller.findDevice(item).endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes)))
+            {
+                setTimeout(wait.bind(this, resolve), 10);
+                return;
+            }
+
+            resolve();
+        }
+
+        new Promise(wait.bind(this)).then(function()
+        {
+            let recorder = this.controller.services.recorder;
+            let charts = new Array();
+
+            cell.innerHTML = null;
+
+            items.forEach(item =>
+            {
+                let device = this.controller.findDevice(item);
+                let type = recorder.text(item) ? 'bar' : recorder.counter(item) ? 'change' : 'line';
+                let chart = charts[charts.length - 1];
+
+                if (!chart || chart.type != type)
+                {
+                    chart = {type: type, items: new Array()};
+                    charts.push(chart);
+                }
+
+                chart.items.push({endpoint: item.endpoint, property: item.property, name: item.name ?? (device.info ? device.info.name : item.endpoint) + ' - ' + exposeTitle(device, item.endpoint, item.property)});
+            });
+
+            charts.forEach(chart =>
+            {
+                let element = document.createElement('div');
+                let canvas;
+
+                element.innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+                cell.append(element);
+
+                if (chart.items.length > 1)
+                    element.classList.add('combined');
+                else
+                    element.addEventListener('click', function() { this.showRecorderInfo(chart.items[0], interval); }.bind(this));
+
+                canvas = element.querySelector('canvas');
+                canvas.cache = new Array();
+                canvas.disabled = new Object();
+                canvas.items = chart.items;
+                canvas.change = chart.type == 'change';
+                canvas.size = height ?? 'normal';
+
+                recorder.chartQuery(chart.items[0], element, interval);
+            });
 
         }.bind(this));
     }
@@ -433,6 +502,7 @@ class Dashboard
                     let table = document.createElement('table');
                     let status = true;
                     let items = new Array();
+                    let charts = new Array();
                     let column;
 
                     element.innerHTML = '<div class="title"><span class="name">' + this.blockName(dashboard, block) + '</span><span class="control"></span></div>';
@@ -464,6 +534,15 @@ class Dashboard
                     block.items.forEach(item =>
                     {
                         let row, endpointId, device;
+
+                        if (block.chart == 'combined' && charts.length && !item.property)
+                        {
+                            this.addCharts(table, charts, block.interval, block.height);
+                            charts = new Array();
+                        }
+
+                        if (item.break)
+                            return;
 
                         if (item.camera)
                         {
@@ -525,9 +604,18 @@ class Dashboard
                         if (item.expose)
                             return;
 
+                        if (block.chart == 'combined')
+                        {
+                            charts.push(item);
+                            return;
+                        }
+
                         row.classList.add('label');
                         this.addChart(table, tiled ? row : null, item, block.interval, block.height);
                     });
+
+                    if (charts.length)
+                        this.addCharts(table, charts, block.interval, block.height);
 
                     if (!table.rows.length)
                     {
@@ -535,7 +623,7 @@ class Dashboard
                         cell.innerHTML = '<i>block is empty<i>';
                         cell.classList.add('center', 'shade');
                     }
-                    else if (!tiled && block.items.length > 1 && status)
+                    else if (!tiled && table.rows.length > 1 && status)
                     {
                         let toggle = document.createElement('span');
 
@@ -751,6 +839,13 @@ class Dashboard
                     switch (i)
                     {
                         case 0:
+
+                            if (item.break)
+                            {
+                                cell.innerHTML = '<i>Break</i><div class="note">Combined charts separator</div>';
+                                break;
+                            }
+
                             cell.innerHTML = '<span></span><div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
@@ -801,16 +896,19 @@ class Dashboard
 
             modal.querySelector('.edit').style.display = block.add ? 'none' : 'block';
             modal.querySelector('select[name="dashboard"]').value = this.index;
+            modal.querySelector('select[name="chart"]').value = block.chart ?? 'default';
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
             modal.querySelector('select[name="height"]').value = block.height ?? 'normal';
             modal.querySelector('select[name="camera"]').value = block.camera ?? 'full';
             modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
+            modal.querySelector('.break').addEventListener('click', function() { block.items.push({break: true}); showTable(modal.querySelector('table.items'), dashboard, block); });
 
             modal.querySelector('.save').addEventListener('click', function()
             {
                 let form = formData(modal.querySelector('form'));
 
                 block.name = form.name;
+                block.chart = form.chart;
                 block.interval = form.interval;
                 block.height = form.height;
                 block.camera = form.camera;
