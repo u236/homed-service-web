@@ -261,7 +261,7 @@ class Dashboard
         camera.play(video, item.camera);
     }
 
-    addCharts(table, row, items, interval, height)
+    addCharts(table, row, items, interval, height, overlay)
     {
         let deadline = Date.now() + 5000;
         let cell;
@@ -318,12 +318,13 @@ class Dashboard
                 canvas = element.querySelector('canvas');
                 cell.append(element);
 
-                canvas.addEventListener('click', function(event) { if (!Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo(chart.items, interval); }.bind(this));
+                canvas.addEventListener('click', function(event) { if (!Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo(chart.items, interval, overlay); }.bind(this));
                 canvas.addEventListener('mousemove', function(event) { canvas.style.cursor = Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || canvas.highlight ? 'pointer' : 'default'; });
 
                 canvas.disabled = new Object();
                 canvas.change = chart.type == 'change';
                 canvas.size = height ?? 'normal';
+                canvas.overlay = overlay;
 
                 recorder.chartQuery(chart.items, element, interval);
             });
@@ -496,9 +497,9 @@ class Dashboard
                     {
                         let row, endpointId, device;
 
-                        if (block.chart == 'combined' && charts.length && !item.property)
+                        if (['combined', 'overlay'].includes(block.chart) && charts.length && !item.property)
                         {
-                            this.addCharts(table, null, charts, block.interval, block.height);
+                            this.addCharts(table, null, charts, block.interval, block.height, block.chart == 'overlay');
                             charts = new Array();
                         }
 
@@ -565,7 +566,7 @@ class Dashboard
                         if (item.expose)
                             return;
 
-                        if (block.chart == 'combined')
+                        if (['combined', 'overlay'].includes(block.chart))
                         {
                             charts.push(item);
                             return;
@@ -576,7 +577,7 @@ class Dashboard
                     });
 
                     if (charts.length)
-                        this.addCharts(table, null, charts, block.interval, block.height);
+                        this.addCharts(table, null, charts, block.interval, block.height, block.chart == 'overlay');
 
                     if (!table.rows.length)
                     {
@@ -1073,7 +1074,7 @@ class Dashboard
         });
     }
 
-    showRecorderInfo(items, interval)
+    showRecorderInfo(items, interval, overlay)
     {
         loadHTML('html/dashboard/recorderInfo.html', this, modal.querySelector('.data'), function()
         {
@@ -1141,6 +1142,7 @@ class Dashboard
             if (items.length > 1)
             {
                 chart.querySelector('canvas').disabled = new Object();
+                chart.querySelector('canvas').overlay = overlay;
                 modal.querySelectorAll('.total, .table, .item').forEach(item => item.remove());
             }
 

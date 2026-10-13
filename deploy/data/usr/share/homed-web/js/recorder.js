@@ -296,7 +296,7 @@ class Recorder
             if (canvas.items.length > 1)
             {
                 let update = function(chart) { chart.data.datasets.forEach(dataset => this.style(canvas, dataset)); chart.update(); }.bind(this);
-                let units = canvas.items.map(value => this.unit(value)).filter((value, index, array) => array.indexOf(value) == index);
+                let units = canvas.items.map(value => this.unit(value)).filter((value, index, array) => canvas.overlay || array.indexOf(value) == index);
 
                 units.forEach((value, index) =>
                 {
@@ -310,7 +310,7 @@ class Recorder
                 });
 
                 datasets = datasets.filter(dataset => !dataset.fill);
-                datasets.forEach(dataset => { dataset.index = index; dataset.yAxisID = 'y' + units.indexOf(unit); this.style(canvas, dataset); });
+                datasets.forEach(dataset => { dataset.index = index; dataset.yAxisID = 'y' + (canvas.overlay ? index : units.indexOf(unit)); this.style(canvas, dataset); });
 
                 options.plugins.legend =
                 {
