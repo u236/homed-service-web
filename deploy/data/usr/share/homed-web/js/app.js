@@ -646,6 +646,9 @@ class Device
 
     setExposes(endpointId, exposes)
     {
+        if (exposes.items?.includes('thermostat'))
+            exposes.options = {...exposes.options, temperature: {...exposes.options?.temperature, type: 'sensor', unit: '°C'}};
+
         this.endpoint(endpointId).exposes = exposes;
     }
 

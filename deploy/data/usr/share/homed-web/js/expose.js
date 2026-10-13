@@ -273,7 +273,6 @@ function exposeList(expose, options)
             let controls = ['targetTemperature', 'systemMode', 'operationMode', 'fanMode', 'swingMode', 'heatMode'];
             controls.forEach(item => { if (options[item]) list.push(item); });
             list = list.concat(options.runningStatus ? ['temperature', 'running'] : ['temperature']);
-            options['temperature'] = {...options['temperature'], type: 'sensor', unit: '°C'};
             break;
         }
 
