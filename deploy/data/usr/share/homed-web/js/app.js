@@ -494,7 +494,7 @@ class Controller
         this.page = page;
 
         this.updateMenu(false);
-        this.clearPage(!this.services[service] ? service + ' service is unavailable' : undefined);
+        this.clearPage(!this.services[service] ? service + ' service is unavailable' : null);
 
         if (!this.services[service])
             return;

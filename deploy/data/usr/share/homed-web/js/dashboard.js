@@ -261,7 +261,7 @@ class Dashboard
         camera.play(video, item.camera);
     }
 
-    addChart(table, row, item, interval, height)
+    addCharts(table, row, items, interval, height)
     {
         let deadline = Date.now() + 5000;
         let cell;
@@ -276,43 +276,6 @@ class Dashboard
 
         cell.innerHTML = '<div class="placeholder"></div>';
         cell.classList.add('chart');
-
-        function wait(resolve)
-        {
-            let device = this.controller.findDevice(item);
-
-            if (!this.controller.services.recorder || (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes))
-            {
-                setTimeout(wait.bind(this, resolve), 10);
-                return;
-            }
-
-            resolve();
-        }
-
-        new Promise(wait.bind(this)).then(function()
-        {
-            cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
-            cell.querySelector('div').classList.remove('placeholder');
-
-            cell.querySelector('canvas').addEventListener('click', function(event) { if (!Chart.getChart(event.target)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo([item], interval); }.bind(this));
-            cell.querySelector('canvas').addEventListener('mousemove', function(event) { event.target.style.cursor = Chart.getChart(event.target)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || event.target.highlight ? 'pointer' : 'default'; });
-            cell.querySelector('canvas').change = this.controller.services.recorder.counter(item);
-            cell.querySelector('canvas').size = height ?? 'normal';
-
-            this.controller.services.recorder.chartQuery(item, cell, interval);
-
-        }.bind(this));
-    }
-
-    addCharts(table, items, interval, height)
-    {
-        let deadline = Date.now() + 5000;
-        let cell = table.insertRow().insertCell();
-
-        cell.innerHTML = '<div class="placeholder"></div>';
-        cell.classList.add('chart');
-        cell.colSpan = 2;
 
         function wait(resolve)
         {
@@ -334,7 +297,6 @@ class Dashboard
 
             items.forEach(item =>
             {
-                let device = this.controller.findDevice(item);
                 let type = recorder.text(item) ? 'bar' : recorder.counter(item) ? 'change' : 'line';
                 let chart = charts[charts.length - 1];
 
@@ -344,7 +306,7 @@ class Dashboard
                     charts.push(chart);
                 }
 
-                chart.items.push({endpoint: item.endpoint, property: item.property, name: item.name ?? (device.info ? device.info.name : item.endpoint) + ' - ' + exposeTitle(device, item.endpoint, item.property)});
+                chart.items.push(item);
             });
 
             charts.forEach(chart =>
@@ -359,13 +321,11 @@ class Dashboard
                 canvas.addEventListener('click', function(event) { if (!Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo(chart.items, interval); }.bind(this));
                 canvas.addEventListener('mousemove', function(event) { canvas.style.cursor = Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || canvas.highlight ? 'pointer' : 'default'; });
 
-                canvas.cache = new Array();
                 canvas.disabled = new Object();
-                canvas.items = chart.items;
                 canvas.change = chart.type == 'change';
                 canvas.size = height ?? 'normal';
 
-                recorder.chartQuery(chart.items[0], element, interval);
+                recorder.chartQuery(chart.items, element, interval);
             });
 
         }.bind(this));
@@ -538,7 +498,7 @@ class Dashboard
 
                         if (block.chart == 'combined' && charts.length && !item.property)
                         {
-                            this.addCharts(table, charts, block.interval, block.height);
+                            this.addCharts(table, null, charts, block.interval, block.height);
                             charts = new Array();
                         }
 
@@ -612,16 +572,16 @@ class Dashboard
                         }
 
                         row.classList.add('label');
-                        this.addChart(table, tiled ? row : null, item, block.interval, block.height);
+                        this.addCharts(table, tiled ? row : null, [item], block.interval, block.height);
                     });
 
                     if (charts.length)
-                        this.addCharts(table, charts, block.interval, block.height);
+                        this.addCharts(table, null, charts, block.interval, block.height);
 
                     if (!table.rows.length)
                     {
                         let cell = table.insertRow().insertCell();
-                        cell.innerHTML = '<i>block is empty<i>';
+                        cell.innerHTML = '<i>block is empty</i>';
                         cell.classList.add('center', 'shade');
                     }
                     else if (!tiled && table.rows.length > 1 && status)
@@ -1120,7 +1080,7 @@ class Dashboard
             let id = 'chart-' + randomString(8);
             let chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = this.itemString(items[0], false) + (items.length > 1 ? ' + ' + (items.length > 2 ? items.length - 1 + ' items' : this.itemString(items[1], false)) : '');
+            modal.querySelector('.name').innerHTML = this.itemString(items[0], false) + (items.length > 1 ? ' <i class="mdi-plus"></i> ' + (items.length > 2 ? items.length - 1 + ' items' : this.itemString(items[1], false)) : '');
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
@@ -1137,7 +1097,7 @@ class Dashboard
                     if (!this.controller.services.recorder)
                         return;
 
-                    this.controller.services.recorder.chartQuery(items[0], chart, element.innerHTML);
+                    this.controller.services.recorder.chartQuery(items, chart, element.innerHTML);
 
                 }.bind(this))
             });
@@ -1171,7 +1131,7 @@ class Dashboard
                     canvas.change = canvas.change ? false : true;
                     element.innerHTML = '<i class="' + (canvas.change ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
                     modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                    this.controller.services.recorder.chartQuery(items[0], chart, canvas.interval);
+                    this.controller.services.recorder.chartQuery(items, chart, canvas.interval);
 
                 }.bind(this));
             }
@@ -1180,20 +1140,14 @@ class Dashboard
 
             if (items.length > 1)
             {
-                let canvas = chart.querySelector('canvas');
-
-                canvas.cache = new Array();
-                canvas.disabled = new Object();
-                canvas.items = items;
-
+                chart.querySelector('canvas').disabled = new Object();
                 modal.querySelectorAll('.total, .table, .item').forEach(item => item.remove());
             }
 
             if (this.controller.services.recorder)
             {
                 chart.querySelector('canvas').size = 'large';
-                chart.querySelector('canvas').unit = true;
-                this.controller.services.recorder.chartQuery(items[0], chart, interval);
+                this.controller.services.recorder.chartQuery(items, chart, interval);
             }
 
             showModal(true);
