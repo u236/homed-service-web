@@ -98,7 +98,7 @@ class Controller
             if (guest)
             {
                 document.querySelector('.header img').classList.remove('mobileHidden');
-                document.querySelector('#footerData').style.display = 'none';
+                document.querySelector('#footerData').remove();
             }
 
             this.showPage(location.hash ? decodeURI(location.hash).slice(1) : localStorage.getItem('homedPage') ?? 'dashboard');
@@ -916,7 +916,7 @@ class DeviceService
 
             if (!device.info.active)
             {
-                this.content.querySelector('.exposes').style.display = 'none';
+                this.content.querySelector('.exposes').remove();
                 return;
             }
 
@@ -1350,7 +1350,7 @@ window.onload = function()
             if (!guest)
                 modal.querySelector('.all').addEventListener('click', function() { window.location.href = 'logout?session=all'; }.bind(this));
             else
-                modal.querySelector('.all').style.display = 'none';
+                modal.querySelector('.all').remove();
 
             modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
             showModal(true);

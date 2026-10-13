@@ -256,7 +256,7 @@ class Automation
 
         if (append)
         {
-            element.style.display = 'none';
+            element.remove();
             return;
         }
 
@@ -792,13 +792,7 @@ class Automation
                 handleArrowButtons(this.content, list, current, function(uuid) { this.controller.showPage(this.service + '?uuid=' + uuid); }.bind(this));
             }
             else
-            {
-                this.content.querySelector('.remove').style.display = 'none';
-                this.content.querySelector('.copy').style.display = 'none';
-                this.content.querySelector('.export').style.display = 'none';
-                this.content.querySelector('.previous').style.display = 'none';
-                this.content.querySelector('.next').style.display = 'none';
-            }
+                this.content.querySelectorAll('.remove, .copy, .export, .previous, .next').forEach(item => item.remove());
 
             if (!this.data.name)
                 this.data.name = 'Automation ' + randomString(4);

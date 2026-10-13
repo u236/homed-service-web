@@ -292,11 +292,14 @@ class Dashboard
 
         new Promise(wait.bind(this)).then(function()
         {
-            cell.addEventListener('click', function() { this.showRecorderInfo(item, interval); }.bind(this));
             cell.querySelector('div').innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
             cell.querySelector('div').classList.remove('placeholder');
+
+            cell.querySelector('canvas').addEventListener('click', function(event) { if (!Chart.getChart(event.target)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo([item], interval); }.bind(this));
+            cell.querySelector('canvas').addEventListener('mousemove', function(event) { event.target.style.cursor = Chart.getChart(event.target)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || event.target.highlight ? 'pointer' : 'default'; });
             cell.querySelector('canvas').change = this.controller.services.recorder.counter(item);
             cell.querySelector('canvas').size = height ?? 'normal';
+
             this.controller.services.recorder.chartQuery(item, cell, interval);
 
         }.bind(this));
@@ -350,14 +353,12 @@ class Dashboard
                 let canvas;
 
                 element.innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+                canvas = element.querySelector('canvas');
                 cell.append(element);
 
-                if (chart.items.length > 1)
-                    element.classList.add('combined');
-                else
-                    element.addEventListener('click', function() { this.showRecorderInfo(chart.items[0], interval); }.bind(this));
+                canvas.addEventListener('click', function(event) { if (!Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo(chart.items, interval); }.bind(this));
+                canvas.addEventListener('mousemove', function(event) { canvas.style.cursor = Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || canvas.highlight ? 'pointer' : 'default'; });
 
-                canvas = element.querySelector('canvas');
                 canvas.cache = new Array();
                 canvas.disabled = new Object();
                 canvas.items = chart.items;
@@ -455,7 +456,7 @@ class Dashboard
                 }.bind(this));
             }
             else
-                this.content.querySelectorAll('.edit, .remove, .export').forEach(element => element.style.display = 'none');
+                this.content.querySelectorAll('.edit, .remove, .export').forEach(item => item.remove());
 
             handleArrowButtons(this.content, Array.from(this.status.dashboards.keys()), this.index, function(index) { this.setIndex(index); this.showDashboard(); }.bind(this));
 
@@ -1105,21 +1106,21 @@ class Dashboard
             if (!guest)
                 modal.querySelector('.device').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
             else
-                modal.querySelector('.device').style.display = 'none';
+                modal.querySelector('.device').remove();
 
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             showModal(true);
         });
     }
 
-    showRecorderInfo(item, interval)
+    showRecorderInfo(items, interval)
     {
         loadHTML('html/dashboard/recorderInfo.html', this, modal.querySelector('.data'), function()
         {
             let id = 'chart-' + randomString(8);
             let chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = this.itemString(item, false);
+            modal.querySelector('.name').innerHTML = this.itemString(items[0], false) + (items.length > 1 ? ' + ' + (items.length > 2 ? items.length - 1 + ' items' : this.itemString(items[1], false)) : '');
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
@@ -1136,7 +1137,7 @@ class Dashboard
                     if (!this.controller.services.recorder)
                         return;
 
-                    this.controller.services.recorder.chartQuery(item, chart, element.innerHTML);
+                    this.controller.services.recorder.chartQuery(items[0], chart, element.innerHTML);
 
                 }.bind(this))
             });
@@ -1145,7 +1146,7 @@ class Dashboard
             {
                 this.controller.services.recorder?.status.items?.forEach(data =>
                 {
-                    if (data.endpoint != item.endpoint || data.property != item.property)
+                    if (data.endpoint != items[0].endpoint || data.property != items[0].property)
                         return;
 
                     this.controller.showPage('recorder?item=' + data.endpoint + '/' + data.property);
@@ -1157,7 +1158,7 @@ class Dashboard
             modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
             modal.querySelectorAll('#data').forEach(item => { item.id = id; });
 
-            if (this.controller.services.recorder?.counter(item))
+            if (this.controller.services.recorder?.counter(items[0]))
             {
                 let canvas = chart.querySelector('canvas');
                 let element = modal.querySelector('.change');
@@ -1170,17 +1171,29 @@ class Dashboard
                     canvas.change = canvas.change ? false : true;
                     element.innerHTML = '<i class="' + (canvas.change ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> SHOW CHANGE';
                     modal.querySelector('.status').innerHTML = '<div class="dataLoader"></div>';
-                    this.controller.services.recorder.chartQuery(item, chart, canvas.interval);
+                    this.controller.services.recorder.chartQuery(items[0], chart, canvas.interval);
 
                 }.bind(this));
             }
             else
-                modal.querySelector('.change').closest('.title').style.display = 'none';
+                modal.querySelector('.change').closest('.title').remove();
+
+            if (items.length > 1)
+            {
+                let canvas = chart.querySelector('canvas');
+
+                canvas.cache = new Array();
+                canvas.disabled = new Object();
+                canvas.items = items;
+
+                modal.querySelectorAll('.total, .table, .item').forEach(item => item.remove());
+            }
 
             if (this.controller.services.recorder)
             {
+                chart.querySelector('canvas').size = 'large';
                 chart.querySelector('canvas').unit = true;
-                this.controller.services.recorder.chartQuery(item, chart, interval);
+                this.controller.services.recorder.chartQuery(items[0], chart, interval);
             }
 
             showModal(true);

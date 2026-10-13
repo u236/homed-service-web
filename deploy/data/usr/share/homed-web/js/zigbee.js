@@ -613,12 +613,7 @@ class ZigBee extends DeviceService
 
             if (!device.info.logicalType)
             {
-                this.content.querySelector('.edit').style.display = 'none';
-                this.content.querySelector('.remove').style.display = 'none';
-                this.content.querySelector('.upgrade').style.display = 'none';
-                this.content.querySelector('.previous').style.display = 'none';
-                this.content.querySelector('.next').style.display = 'none';
-                this.content.querySelector('.exposes').style.display = 'none';
+                this.content.querySelectorAll('.edit, .remove, .upgrade, .previous, .next, .exposes').forEach(item => item.remove());
                 return;
             }
 
@@ -626,15 +621,14 @@ class ZigBee extends DeviceService
 
             if (!device.info.active)
             {
-                this.content.querySelector('.upgrade').style.display = 'none';
-                this.content.querySelector('.exposes').style.display = 'none';
+                this.content.querySelectorAll('.upgrade, .exposes').forEach(item => item.remove());
                 return;
             }
 
             device.info.endpoints?.forEach(item => { if (item.outClusters?.includes(25)) ota = true; });
 
             if (!ota)
-                this.content.querySelector('.upgrade').style.display = 'none';
+                this.content.querySelector('.upgrade').remove();
 
             table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { addExpose(table, device, endpointId, expose); }); });

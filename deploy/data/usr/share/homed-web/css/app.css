@@ -983,12 +983,9 @@ tr:first-child td {
 }
 
 .dashboardBlock .chart {
+    cursor: default;
     padding-top: 0;
     border: none;
-}
-
-.dashboardBlock .combined {
-    cursor: default;
 }
 
 .dashboardBlock .value {

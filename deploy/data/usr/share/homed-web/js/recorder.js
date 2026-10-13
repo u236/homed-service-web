@@ -15,7 +15,7 @@ class Recorder
             major: function() { return theme == 'dark' ? 'rgb(68, 68, 68)' : 'rgb(204, 204, 204)'; },
             on:    'rgb(243, 168, 59)',
             off:   'rgba(127, 127, 127, 0.2)',
-            empty: 'rgba(0, 0, 0, 0.2)',
+            empty: 'rgba(63, 63, 63, 0.2)',
             error: 'rgba(255, 0, 0, 0.5)'
         };
 
@@ -761,7 +761,7 @@ class Recorder
                 this.content.querySelector('.remove').addEventListener('click', function() { this.showItemRemove(); }.bind(this));
             }
             else
-                this.content.querySelectorAll('.edit, .remove').forEach(element => element.style.display = 'none');
+                this.content.querySelectorAll('.edit, .remove').forEach(item => item.remove());
 
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + this.data.debounce + '</span> seconds';
             this.content.querySelector('.threshold').innerHTML = '<span class="value">' + this.data.threshold + '</span>';
@@ -838,7 +838,7 @@ class Recorder
                 }.bind(this));
             }
             else
-                this.content.querySelector('.change').closest('.title').style.display = 'none';
+                this.content.querySelector('.change').closest('.title').remove();
 
             chart.querySelector('canvas').unit = true;
 
