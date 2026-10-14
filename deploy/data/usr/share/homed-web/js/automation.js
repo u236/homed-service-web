@@ -792,7 +792,7 @@ class Automation
                 handleArrowButtons(this.content, list, current, function(uuid) { this.controller.showPage(this.service + '?uuid=' + uuid); }.bind(this));
             }
             else
-                this.content.querySelectorAll('.remove, .copy, .export, .previous, .next').forEach(item => item.remove());
+                this.content.querySelectorAll('.remove, .copy, .export, .previous, .next').forEach(item => item.style.display = 'none');
 
             if (!this.data.name)
                 this.data.name = 'Automation ' + randomString(4);

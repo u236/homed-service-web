@@ -98,7 +98,7 @@ class Controller
             if (guest)
             {
                 document.querySelector('.header img').classList.remove('mobileHidden');
-                document.querySelector('#footerData').remove();
+                document.querySelector('#footerData').style.display = 'none';
             }
 
             this.showPage(location.hash ? decodeURI(location.hash).slice(1) : localStorage.getItem('homedPage') ?? 'dashboard');
