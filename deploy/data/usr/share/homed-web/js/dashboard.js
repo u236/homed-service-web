@@ -494,7 +494,7 @@ class Dashboard
                     {
                         let row, endpointId, device;
 
-                        if (['combined', 'overlay'].includes(block.chart) && charts.length && !item.property)
+                        if (charts.length && (!['combined', 'overlay'].includes(block.chart) || !item.property))
                         {
                             this.addCharts(table, last, charts, block.interval, block.height, block.chart == 'overlay', tiled);
                             charts = new Array();
@@ -560,17 +560,11 @@ class Dashboard
 
                         }.bind(this));
 
-                        if (item.expose)
-                            return;
-
-                        if (['combined', 'overlay'].includes(block.chart))
+                        if (!item.expose)
                         {
                             last = charts.length ? null : row;
-                            charts.push(item);
-                            return;
+                            charts.push({...item, row: row});
                         }
-
-                        this.addCharts(table, row, [item], block.interval, block.height, false, tiled);
                     });
 
                     if (charts.length)

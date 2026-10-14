@@ -70,7 +70,7 @@ class Recorder
         unit = this.unit(item);
         device = this.controller.findDevice(item);
         name = item.name ?? (device.info ? device.info.name : item.endpoint) + ' - ' + exposeTitle(device, item.endpoint, item.property);
-        cell = canvas.closest('table')?.querySelector('tr[data-device="' + device.service + '/' + device.id + '"][data-endpoint-id="' + (item.endpoint.split('/')[2] ?? 'common') + '"] td.value[data-property="' + item.property + '"]');
+        cell = canvas.closest('table') ? item.row?.querySelector('td.value') : null;
 
         if (!message.timestamp.length)
         {
@@ -319,10 +319,14 @@ class Recorder
                 {
                     position: 'bottom',
                     labels: {usePointStyle: true, boxHeight: 6, generateLabels: function(chart) { return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => ({...item, fontColor: item.hidden ? 'rgba(136, 136, 136, 0.5)' : item.fontColor, hidden: false, lineWidth: 0})); }},
-                    onClick: function(event, item, legend) { let index = legend.chart.data.datasets[item.datasetIndex].index; canvas.disabled[index] = canvas.disabled[index] ? false : true; update(legend.chart); },
-                    onHover: function(event, item, legend) { legend.chart.canvas.style.cursor = 'pointer'; canvas.highlight = legend.chart.data.datasets[item.datasetIndex].index; update(legend.chart); },
-                    onLeave: function(event, item, legend) { legend.chart.canvas.style.cursor = 'default'; delete canvas.highlight; update(legend.chart); }
+                    onClick: function(event, item, legend) { let index = legend.chart.data.datasets[item.datasetIndex].index; canvas.disabled[index] = canvas.disabled[index] ? false : true; update(legend.chart); }
                 };
+
+                if (window.matchMedia('(hover: hover)').matches)
+                {
+                    options.plugins.legend.onHover = function(event, item, legend) { legend.chart.canvas.style.cursor = 'pointer'; canvas.highlight = legend.chart.data.datasets[item.datasetIndex].index; update(legend.chart); };
+                    options.plugins.legend.onLeave = function(event, item, legend) { legend.chart.canvas.style.cursor = 'default'; delete canvas.highlight; update(legend.chart); };
+                }
 
                 delete options.scales.y;
             }
