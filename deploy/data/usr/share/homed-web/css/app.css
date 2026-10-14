@@ -47,6 +47,18 @@
     font-size: 1.15em;
 }
 
+[data-trend="up"] {
+    --trend: "\F005D";
+}
+
+[data-trend="down"] {
+    --trend: "\F0045";
+}
+
+[data-trend="flat"] {
+    --trend: "\F0054";
+}
+
 html {
     --color-success:    #008000;
     --color-warning:    #fbb040;
@@ -993,6 +1005,13 @@ tr:first-child td {
     text-align: right;
 }
 
+.dashboardBlock .value[data-trend]::before {
+    content: var(--trend);
+    margin-right: 4px;
+    font-family: 'Material Design Icons';
+    color: var(--color-shade);
+}
+
 .dashboardBlock .edit, .dashboardBlock .toggle {
     cursor: pointer;
     color: var(--color-shade);
@@ -1100,6 +1119,17 @@ tr:first-child td {
     margin-top: 5px;
     text-align: left;
     text-overflow: ellipsis;
+}
+
+.tiled .dashboardBlock tr:not(:has(td.chart)) td.value[data-trend]::before {
+    content: none;
+}
+
+.tiled .dashboardBlock tr:not(:has(td.chart)) td.value[data-trend]::after {
+    content: var(--trend);
+    margin-left: 4px;
+    font-family: 'Material Design Icons';
+    color: var(--color-shade);
 }
 
 .tiled .dashboardBlock td.value [data-property="runningStatus"] {

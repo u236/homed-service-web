@@ -1,5 +1,7 @@
 class Recorder
 {
+    duration = {second: 1000, minute: 60000, hour: 3600000, day: 86400000};
+
     intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.interval != 'custom' && Date.now() - canvas.timestamp >= this.updatePeriod(canvas)) this.dataRequest(canvas); }); }.bind(this), 5000)];
     content = document.querySelector('.content .container');
 
@@ -44,7 +46,7 @@ class Recorder
 
     parseData(message)
     {
-        let item, aggregation, counter, unit, device, name, options;
+        let item, aggregation, counter, unit, device, name, cell, options;
         let list = message.id.split('/');
         let index = list[1] ?? 0;
         let canvas = document.querySelector('canvas#' + list[0]);
@@ -68,6 +70,7 @@ class Recorder
         unit = this.unit(item);
         device = this.controller.findDevice(item);
         name = item.name ?? (device.info ? device.info.name : item.endpoint) + ' - ' + exposeTitle(device, item.endpoint, item.property);
+        cell = canvas.closest('table')?.querySelector('tr[data-device="' + device.service + '/' + device.id + '"][data-endpoint-id="' + (item.endpoint.split('/')[2] ?? 'common') + '"] td.value[data-property="' + item.property + '"]');
 
         if (!message.timestamp.length)
         {
@@ -242,7 +245,7 @@ class Recorder
 
                 if (index && timestamp - message.timestamp[index - 1] > hole)
                 {
-                    let x = message.timestamp[index - 1] + (message.daily ? 86400000 : 3600000);
+                    let x = message.timestamp[index - 1] + (message.daily ? this.duration.day : this.duration.hour);
                     avg.push({x: x, y: null});
                     min.push({x: x, y: null});
                     max.push({x: x, y: null});
@@ -376,63 +379,71 @@ class Recorder
         chart.options = options;
         chart.update();
 
-        if (!numeric)
-            canvas.closest('div').style.height = (canvas.items.length > 1 ? 45 * canvas.items.length + 40 : 80) + 'px';
-        else if (canvas.size)
-            canvas.closest('div').style.height = (canvas.size == 'small' ? 100 : canvas.size == 'large' ? 200 : 150) + chart.legend.height + 'px';
-
-        if (!numeric && table)
+        if (numeric)
         {
-            datasets.forEach((record, index) =>
-            {
-                let row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
-                let interval = timeInterval((Date.now() - record.timestamp) / 1000);
-                let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + interval;
-                let next = datasets[index + 1];
+            if (canvas.size)
+                canvas.closest('div').style.height = (canvas.size == 'small' ? 100 : canvas.size == 'large' ? 200 : 150) + chart.legend.height + 'px';
 
-                if (record.empty)
-                    return;
+            if (!message.change && cell)
+                cell.dataset.trend = this.trend(canvas, datasets[0].data);
 
-                if (interval != 'now')
-                    timestamp += ' ago, ' + (next ? timeInterval((next.timestamp - record.timestamp) / 1000, false) : interval) + ' long';
-
-                if (!row)
-                {
-                    let circleCell, recordCell;
-
-                    row = table.insertRow(0);
-                    row.dataset.timestamp = record.timestamp;
-
-                    circleCell = row.insertCell();
-                    circleCell.innerHTML = '<div class="circle"></div>';
-                    circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
-
-                    recordCell = row.insertCell();
-                    recordCell.innerHTML = record.label + '<div class="timestamp">' + timestamp + '</div>';
-
-                    row.addEventListener('mouseover', function()
-                    {
-                        let index = chart.data.datasets.length - this.rowIndex - 1;
-
-                        if (index < 0)
-                            return;
-
-                        chart.tooltip.setActiveElements([{datasetIndex: index, index: 0}]);
-                        chart.update();
-                    });
-
-                    row.addEventListener('mouseleave', function()
-                    {
-                        chart.tooltip.setActiveElements(new Array());
-                        chart.update();
-                    });
-
-                    return;
-                }
-
-                row.querySelector('.timestamp').innerHTML = timestamp;
-            });
+            return;
         }
+
+        canvas.closest('div').style.height = (canvas.items.length > 1 ? 45 * canvas.items.length + 40 : 80) + 'px';
+
+        if (!table)
+            return;
+
+        datasets.forEach((record, index) =>
+        {
+            let row = table.querySelector('tr[data-timestamp="' + record.timestamp + '"');
+            let interval = timeInterval((Date.now() - record.timestamp) / 1000);
+            let timestamp = this.timestampString(record.timestamp, true, true) + ', ' + interval;
+            let next = datasets[index + 1];
+
+            if (record.empty)
+                return;
+
+            if (interval != 'now')
+                timestamp += ' ago, ' + (next ? timeInterval((next.timestamp - record.timestamp) / 1000, false) : interval) + ' long';
+
+            if (!row)
+            {
+                let circleCell, recordCell;
+
+                row = table.insertRow(0);
+                row.dataset.timestamp = record.timestamp;
+
+                circleCell = row.insertCell();
+                circleCell.innerHTML = '<div class="circle"></div>';
+                circleCell.querySelector('.circle').style.backgroundColor = record.backgroundColor;
+
+                recordCell = row.insertCell();
+                recordCell.innerHTML = record.label + '<div class="timestamp">' + timestamp + '</div>';
+
+                row.addEventListener('mouseover', function()
+                {
+                    let index = chart.data.datasets.length - this.rowIndex - 1;
+
+                    if (index < 0)
+                        return;
+
+                    chart.tooltip.setActiveElements([{datasetIndex: index, index: 0}]);
+                    chart.update();
+                });
+
+                row.addEventListener('mouseleave', function()
+                {
+                    chart.tooltip.setActiveElements(new Array());
+                    chart.update();
+                });
+
+                return;
+            }
+
+            row.querySelector('.timestamp').innerHTML = timestamp;
+        });
     }
 
     parseMessage(list, message)
@@ -499,7 +510,7 @@ class Recorder
 
     aggregation(canvas)
     {
-        let days = (canvas.end - canvas.start) / 86400000;
+        let days = (canvas.end - canvas.start) / this.duration.day;
         return days >= 90 ? 'month' : days >= 7 ? 'day' : 'hour';
     }
 
@@ -507,13 +518,47 @@ class Recorder
     {
         switch (canvas.interval)
         {
-            case '2h':    return 5000;
-            case '8h':    return 10000;
-            case 'week':  return 300000;
-            case 'month': return 600000;
-            case 'year':  return 1800000;
-            default:      return 30000;
+            case '2h':    return this.duration.second * 5;
+            case '8h':    return this.duration.second * 10;
+            case '24h':   return this.duration.second * 30;
+            case 'week':  return this.duration.minute * 5;
+            case 'month': return this.duration.minute * 10;
+            case 'year':  return this.duration.minute * 30;
         }
+    }
+
+    trend(canvas, data)
+    {
+        let period, change;
+        let points = data.filter(point => point.y != null && !isNaN(point.y));
+        let values = new Array();
+        let smooth = new Array();
+        let count = 1;
+
+        if (!points.length)
+            return 'flat';
+
+        switch (canvas.interval)
+        {
+            case '2h':     period = this.duration.minute * 30; break;
+            case '8h':     period = this.duration.hour; break;
+            case '24h':    period = this.duration.hour * 3; break;
+            case 'week':   period = this.duration.day * 2; count = 30; break;
+            case 'month':  period = this.duration.day * 7; count = 26; break;
+            case 'year':   period = this.duration.day * 60; count = 7; break;
+            case 'custom': period = (canvas.end - canvas.start) * 0.15; break;
+        }
+
+        period /= 60;
+
+        for (let i = 0; i < count + 60; i++)
+            values.push((points.findLast(point => point.x <= canvas.end - period * (count + 59 - i)) ?? points[0]).y);
+
+        for (let i = 0; i < 61; i++)
+            smooth.push(values.slice(i, count + i).reduce((result, value) => result + value, 0) / count);
+
+        change = smooth.reduce((result, value, index) => result + (index - 30) * value, 0) / smooth.reduce((result, value, index) => result + Math.pow(index - 30, 2), 0) * 60;
+        return Math.abs(change) < (Math.max(...points.map(point => point.y)) - Math.min(...points.map(point => point.y))) * 0.1 || Math.abs(change) <= (Math.max(...smooth) - Math.min(...smooth)) * 0.5 ? 'flat' : change > 0 ? 'up' : 'down';
     }
 
     style(canvas, dataset)
@@ -552,13 +597,13 @@ class Recorder
             {
                 case '2h':    date.setHours(date.getHours() - 2); break;
                 case '8h':    date.setHours(date.getHours() - 8); break;
+                case '24h':   date.setHours(date.getHours() - 24); break;
                 case 'week':  date.setDate(date.getDate() - 7); break;
                 case 'month': date.setMonth(date.getMonth() - 1); break;
                 case 'year':  date.setFullYear(date.getFullYear() - 1); break;
-                default:      date.setHours(date.getHours() - 24); break;
             }
 
-            offset *= Math.max((Date.now() - date.getTime()) / 10, 7200000);
+            offset *= Math.max((Date.now() - date.getTime()) / 10, this.duration.hour * 2);
             canvas.start = date.getTime() - offset;
             canvas.end = Date.now() - offset;
         }
@@ -577,9 +622,6 @@ class Recorder
         let canvas = element.querySelector('canvas');
         let offset = canvas.offset ?? 0;
 
-        if (interval)
-            canvas.interval = interval;
-
         if (interval == 'custom')
         {
             canvas.start = start;
@@ -595,6 +637,7 @@ class Recorder
 
         canvas.cache = new Array();
         canvas.items = items;
+        canvas.interval = interval ?? '24h';
         canvas.offset = offset;
 
         this.dataRequest(canvas);

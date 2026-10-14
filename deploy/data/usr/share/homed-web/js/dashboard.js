@@ -261,18 +261,15 @@ class Dashboard
         camera.play(video, item.camera);
     }
 
-    addCharts(table, row, items, interval, height, overlay)
+    addCharts(table, row, items, interval, height, overlay, tiled)
     {
+        let cell = tiled && row ? row.insertCell() : table.insertRow().insertCell();
         let deadline = Date.now() + 5000;
-        let cell;
 
-        if (!row)
-        {
-            cell = table.insertRow().insertCell();
+        row?.classList.add('label');
+
+        if (!tiled)
             cell.colSpan = 2;
-        }
-        else
-            cell = row.insertCell();
 
         cell.innerHTML = '<div class="placeholder"></div>';
         cell.classList.add('chart');
@@ -460,12 +457,12 @@ class Dashboard
 
                 dashboard.blocks.forEach((block, index) =>
                 {
+                    let last, column;
                     let element = document.createElement('div');
                     let table = document.createElement('table');
                     let status = true;
                     let items = new Array();
                     let charts = new Array();
-                    let column;
 
                     element.innerHTML = '<div class="title"><span class="name">' + this.blockName(dashboard, block) + '</span><span class="control"></span></div>';
 
@@ -499,7 +496,7 @@ class Dashboard
 
                         if (['combined', 'overlay'].includes(block.chart) && charts.length && !item.property)
                         {
-                            this.addCharts(table, null, charts, block.interval, block.height, block.chart == 'overlay');
+                            this.addCharts(table, last, charts, block.interval, block.height, block.chart == 'overlay', tiled);
                             charts = new Array();
                         }
 
@@ -568,16 +565,16 @@ class Dashboard
 
                         if (['combined', 'overlay'].includes(block.chart))
                         {
+                            last = charts.length ? null : row;
                             charts.push(item);
                             return;
                         }
 
-                        row.classList.add('label');
-                        this.addCharts(table, tiled ? row : null, [item], block.interval, block.height);
+                        this.addCharts(table, row, [item], block.interval, block.height, false, tiled);
                     });
 
                     if (charts.length)
-                        this.addCharts(table, null, charts, block.interval, block.height, block.chart == 'overlay');
+                        this.addCharts(table, last, charts, block.interval, block.height, block.chart == 'overlay', tiled);
 
                     if (!table.rows.length)
                     {
