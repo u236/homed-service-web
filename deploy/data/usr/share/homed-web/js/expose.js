@@ -649,10 +649,11 @@ function addExpose(table, device, endpointId, expose, names = true)
     Object.keys(properties).forEach(property => { updateExpose(device, endpointId, property, properties[property]); });
 }
 
-function updateExpose(device, endpointId, property, value)
+function updateExpose(device, endpointId, property, data)
 {
     document.querySelectorAll('tr[data-device="' + device.service + '/' + device.id + '"][data-endpoint-id="' + endpointId + '"]').forEach(row =>
     {
+        let value = row.value ?? data;
         let cell;
 
         if (property.match('^[a-z]+P[0-9]+(Hour|Minute)$'))
@@ -726,7 +727,10 @@ function updateExpose(device, endpointId, property, value)
                     break;
 
                 case 'status':
-                    cell.innerHTML = '<i class="mdi-power-standby"></i>';
+
+                    if (value != undefined)
+                        cell.innerHTML = '<i class="mdi-power-standby"></i>';
+
                     break;
 
                 default:

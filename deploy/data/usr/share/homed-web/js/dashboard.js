@@ -177,11 +177,16 @@ class Dashboard
         let labelCell = row.insertCell();
         let valueCell = row.insertCell();
 
+        row.classList.toggle('history', item.shift ? true : false);
+
         this.devicePromise(item, labelCell);
         labelCell.classList.add('label');
 
         valueCell.innerHTML = empty;
         valueCell.classList.add('value');
+
+        if (item.shift)
+            row.value = empty;
 
         if (item.expose)
         {
@@ -222,7 +227,7 @@ class Dashboard
             if (exposeMeta(item.property).name == 'status')
             {
                 valueCell.dataset.type = 'status';
-                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[item.property]: 'toggle'}); }.bind(this));
+                valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device && !item.shift) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[item.property]: 'toggle'}); }.bind(this));
             }
         }
 
@@ -311,13 +316,14 @@ class Dashboard
                 let element = document.createElement('div');
                 let canvas;
 
-                element.innerHTML = '<canvas id="chart-' + randomString(8) + '"></canvas>';
+                element.innerHTML = '<div class="placeholder"></div><canvas id="chart-' + randomString(8) + '"></canvas>';
                 canvas = element.querySelector('canvas');
                 cell.append(element);
 
                 canvas.addEventListener('click', function(event) { if (!Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo(chart.items, interval, overlay); }.bind(this));
                 canvas.addEventListener('mousemove', function(event) { canvas.style.cursor = Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || canvas.highlight ? 'pointer' : 'default'; });
 
+                canvas.style.display = 'none';
                 canvas.disabled = new Object();
                 canvas.change = chart.type == 'change';
                 canvas.size = height ?? 'normal';
@@ -553,7 +559,7 @@ class Dashboard
                             if (!isNaN(option.round))
                                 cell.dataset.round = option.round;
 
-                            if (option.unit)
+                            if (option.unit && row.value != empty)
                                 cell.dataset.unit = option.unit;
 
                             Object.keys(properties).forEach(property => { updateExpose(device, endpointId, property, properties[property]); });
@@ -702,7 +708,7 @@ class Dashboard
         loadHTML('html/dashboard/dashboardEdit.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('.name').innerHTML = this.dashboardName(dashboard, false);
-            modal.querySelector('input[name="name"]').value = dashboard.name;
+            modal.querySelector('input[name="name"]').value = dashboard.name ?? '';
             modal.querySelector('select[name="mode"]').value = dashboard.mode ?? 'default';
             modal.querySelector('select[name="columnPriority"]').value = dashboard.columnPriority ?? 'equal';
 
@@ -726,10 +732,14 @@ class Dashboard
             {
                 let form = formData(modal.querySelector('form'));
 
-                dashboard.name = form.name;
                 dashboard.mode = form.mode;
                 dashboard.columnPriority = form.columnPriority;
                 dashboard.overview = form.overview;
+
+                if (form.name)
+                    dashboard.name = form.name;
+                else
+                    delete dashboard.name;
 
                 if (dashboard.overview)
                 {
@@ -799,7 +809,8 @@ class Dashboard
                                 break;
                             }
 
-                            cell.innerHTML = '<span></span><div class="note">' + this.itemString(item) + '</div>';
+                            cell.innerHTML = '<span class="name"></span><div class="note">' + this.itemString(item) + '</div>';
+                            cell.classList.toggle('history', item.shift ? true : false);
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
                             this.devicePromise(item, cell.querySelector('span'), false);
@@ -836,7 +847,7 @@ class Dashboard
         loadHTML('html/dashboard/blockEdit.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('.name').innerHTML = this.dashboardName(dashboard, false) + ' <i class="mdi-arrow-right"></i> ' + this.blockName(dashboard, block);
-            modal.querySelector('input[name="name"]').value = block.name;
+            modal.querySelector('input[name="name"]').value = block.name ?? '';
             modal.querySelector('textarea[name="note"]').value = block.note ?? '';
 
             this.status.dashboards.forEach((dashboard, index) =>
@@ -860,11 +871,15 @@ class Dashboard
             {
                 let form = formData(modal.querySelector('form'));
 
-                block.name = form.name;
                 block.chart = form.chart;
                 block.interval = form.interval;
                 block.height = form.height;
                 block.camera = form.camera;
+
+                if (form.name)
+                    block.name = form.name;
+                else
+                    delete block.name;
 
                 if (form.note)
                     block.note = form.note;
@@ -961,8 +976,6 @@ class Dashboard
             if (!item.add)
                 this.devicePromise(item, name.querySelector('span'), false);
 
-            modal.querySelector('input[name="name"]').placeholder = 'Default name';
-            modal.querySelector('input[name="name"]').value = item.name ?? '';
             modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.itemString(item);
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
@@ -970,15 +983,19 @@ class Dashboard
                 data = list[key];
                 modal.querySelector('.item').innerHTML = this.itemString(data);
                 modal.querySelector('.item').classList.remove('error');
+                modal.querySelector('.shift').style.display = data.property ? 'block' : 'none';
 
             }.bind(this));
 
+            modal.querySelector('input[name="name"]').placeholder = 'Default name';
+            modal.querySelector('input[name="name"]').value = item.name ?? '';
+
+            modal.querySelector('select[name="shift"]').value = item.shift ?? 'none';
+            modal.querySelector('.shift').style.display = item.property ? 'block' : 'none';
+
             modal.querySelector('.save').addEventListener('click', function()
             {
-                item.name = modal.querySelector('input[name="name"]').value;
-
-                if (!item.name)
-                    delete item.name;
+                let form = formData(modal.querySelector('form'));
 
                 if (data)
                 {
@@ -989,6 +1006,16 @@ class Dashboard
 
                     Object.keys(data).forEach(key => item[key] = data[key]);
                 }
+
+                if (form.name)
+                    item.name = form.name;
+                else
+                    delete item.name;
+
+                if (item.property && form.shift != 'none')
+                    item.shift = form.shift;
+                else
+                    delete item.shift;
 
                 if (!item.camera && (!item.endpoint || (!item.expose && !item.property)))
                 {

@@ -44,9 +44,9 @@ class Recorder
         });
     }
 
-    parseData(message)
+    parseData(message) // TODO: refactor this spaghetti
     {
-        let item, aggregation, counter, unit, device, name, cell, options;
+        let item, device, name, cell, aggregation, shift, counter, unit, options;
         let list = message.id.split('/');
         let index = list[1] ?? 0;
         let canvas = document.querySelector('canvas#' + list[0]);
@@ -65,25 +65,65 @@ class Recorder
             status.innerHTML = '<span class="mobileHidden">' + message.timestamp.length + ' records, ' + message.time + ' ms</span>';
 
         item = canvas.items[index];
-        aggregation = this.aggregation(canvas);
-        counter = this.counter(item);
-        unit = this.unit(item);
         device = this.controller.findDevice(item);
         name = item.name ?? (device.info ? device.info.name : item.endpoint) + ' - ' + exposeTitle(device, item.endpoint, item.property);
         cell = canvas.closest('table') ? item.row?.querySelector('td.value') : null;
+        aggregation = this.aggregation(canvas);
+        shift = this.shift(canvas, item);
+        counter = this.counter(item);
+        unit = this.unit(item);
+
+        if (shift && cell && (!canvas.change || list[2]))
+        {
+            let value = (message.value ?? (list[2] ? message.max : message.avg))?.[message.timestamp.length - 1] ?? empty;
+            let endpointId = item.endpoint.split('/')[2] ?? 'common';
+
+            if (value == empty)
+                delete cell.dataset.unit;
+            else
+                cell.dataset.unit = unit;
+
+            item.row.value = ['true', 'false'].includes(value) ? value == 'true' : !isNaN(value) ? parseFloat(value) : value;
+            updateExpose(device, endpointId, item.property, device.properties(endpointId)[item.property]);
+        }
+
+        if (list[2])
+            return;
 
         if (!message.timestamp.length)
         {
-            delete canvas.cache[index];
-
             if (table)
             {
                 canvas.closest('div').style.display = 'none';
                 table.innerHTML = '<tr><td><div class="placeholder"></div><div class="center shade">no data available for selected period</div></td></tr>';
             }
 
+            if (canvas.items.length > 1 && !this.text(item))
+            {
+                canvas.cache[index] = [{data: new Array(), label: name, index: index, shift: shift, empty: true}];
+                this.style(canvas, canvas.cache[index][0]);
+
+                if (chart)
+                {
+                    chart.data.datasets = canvas.cache.reduce((result, value) => result.concat(value), new Array());
+                    chart.update();
+                }
+
+                return;
+            }
+
+            delete canvas.cache[index];
             return;
         }
+
+        if (canvas.style.display == 'none')
+        {
+            canvas.closest('div').querySelector('.placeholder').remove();
+            canvas.style.display = 'block';
+        }
+
+        if (shift)
+            message.timestamp = message.timestamp.map(timestamp => timestamp + shift);
 
         if (message.change)
         {
@@ -190,7 +230,7 @@ class Recorder
                     datasets.push({data: data, borderWidth: 1.5, borderColor: paletteColor(0), pointRadius: 0, stepped: true, label: name, unit: unit});
                 }
                 else
-                    datasets.push({data: data, backgroundColor: paletteColor(0, 0.8), borderRadius: 3, label: name, unit: unit});
+                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit});
             }
             else
             {
@@ -283,7 +323,7 @@ class Recorder
                 multiKeyBackground: 'transparent',
                 xAlign: 'center',
                 yAlign: 'bottom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x, average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (context.dataset.unit ? ' ' + context.dataset.unit : ''); }, labelColor: function(context) { return {backgroundColor: context.dataset.backgroundColor}; }}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.data[context[0].dataIndex].x - (context[0].dataset.shift ?? 0), average ? false : true); }.bind(this), label: function(context) { return context.parsed.y + (context.dataset.unit ? ' ' + context.dataset.unit : ''); }, labelColor: function(context) { return {backgroundColor: context.dataset.backgroundColor}; }}
             };
             options.scales.y =
             {
@@ -295,6 +335,9 @@ class Recorder
 
             if (average)
                 options.plugins.tooltip.callbacks.label = function(context) { return context.dataset.data[context.dataIndex].tooltip; };
+
+            if (shift)
+                datasets.forEach(dataset => { dataset.borderDash = [4, 4]; dataset.shift = shift; });
 
             if (canvas.items.length > 1)
             {
@@ -318,7 +361,7 @@ class Recorder
                 options.plugins.legend =
                 {
                     position: 'bottom',
-                    labels: {usePointStyle: true, boxHeight: 6, generateLabels: function(chart) { return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => ({...item, fontColor: item.hidden ? 'rgba(136, 136, 136, 0.5)' : item.fontColor, hidden: false, lineWidth: 0})); }},
+                    labels: {usePointStyle: true, boxHeight: 6, generateLabels: function(chart) { return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => { let dataset = chart.data.datasets[item.datasetIndex]; return {...item, fontColor: item.hidden ? 'rgba(136, 136, 136, 0.5)' : item.fontColor, hidden: dataset.empty ?? false, fillStyle: dataset.shift ? 'transparent' : item.fillStyle, lineWidth: dataset.shift ? 1 : 0}; }); }},
                     onClick: function(event, item, legend) { let index = legend.chart.data.datasets[item.datasetIndex].index; canvas.disabled[index] = canvas.disabled[index] ? false : true; update(legend.chart); }
                 };
 
@@ -350,7 +393,7 @@ class Recorder
                 xAlign: 'center',
                 yAlign: 'top',
                 position: 'custom',
-                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp); }.bind(this), label: function(context) { return context.dataset.label + ', ' + timeInterval((context.raw.x[1] - context.dataset.timestamp) / 1000, false) + ' long'; }}
+                callbacks: {title: function(context) { return this.timestampString(context[0].dataset.timestamp - (context[0].dataset.shift ?? 0)); }.bind(this), label: function(context) { return context.dataset.label + ', ' + timeInterval((context.raw.x[1] - context.dataset.timestamp) / 1000, false) + ' long'; }}
             };
             options.scales.y =
             {
@@ -365,6 +408,9 @@ class Recorder
                 options.scales.y.grid.drawTicks = false;
             }
 
+            if (shift)
+                datasets.forEach(dataset => { dataset.backgroundColor = Chart.helpers.color(dataset.backgroundColor).clearer(0.5).rgbString(); dataset.shift = shift; });
+
             if (!chart)
                 chart = new Chart(canvas, {type: 'bar'});
 
@@ -376,8 +422,8 @@ class Recorder
 
         if (message.change)
         {
-            options.scales.x.min = Math.min(...chart.data.datasets.map(dataset => dataset.data[0].x));
-            options.scales.x.max = Math.max(...chart.data.datasets.map(dataset => dataset.data[dataset.data.length - 1].x));
+            options.scales.x.min = Math.min(...chart.data.datasets.filter(dataset => !dataset.empty).map(dataset => dataset.data[0].x));
+            options.scales.x.max = Math.max(...chart.data.datasets.filter(dataset => !dataset.empty).map(dataset => dataset.data[dataset.data.length - 1].x));
         }
 
         chart.options = options;
@@ -518,6 +564,27 @@ class Recorder
         return days >= 90 ? 'month' : days >= 7 ? 'day' : 'hour';
     }
 
+    shift(canvas, item)
+    {
+        let date = new Date(canvas.end);
+        let day = date.getDate();
+        let check = false;
+
+        switch (item.shift)
+        {
+            case '1 hour':  date.setHours(date.getHours() - 1); break;
+            case '1 day':   date.setDate(date.getDate() - 1); break;
+            case '1 week':  date.setDate(date.getDate() - 7); break;
+            case '1 month': date.setMonth(date.getMonth() - 1); check = true; break;
+            case '1 year':  date.setFullYear(date.getFullYear() - 1); check = true; break;
+        }
+
+        if (check && date.getDate() != day)
+            date.setDate(0);
+
+        return canvas.end - date.getTime();
+    }
+
     updatePeriod(canvas)
     {
         switch (canvas.interval)
@@ -568,7 +635,7 @@ class Recorder
     style(canvas, dataset)
     {
         let color = paletteColor(dataset.index, canvas.disabled[dataset.index] || (canvas.highlight != undefined && canvas.highlight != dataset.index) ? 0.2 : null);
-        dataset.backgroundColor = color;
+        dataset.backgroundColor = dataset.shift ? Chart.helpers.color(color).clearer(0.5).rgbString() : color;
         dataset.borderColor = color;
         dataset.hidden = canvas.disabled[dataset.index] ?? false;
     }
@@ -616,9 +683,17 @@ class Recorder
             aggregation = this.aggregation(canvas);
 
         request = {action: 'getData', start: aggregation ? this.truncate(canvas.start, aggregation) : canvas.start, end: canvas.end, change: canvas.change};
-
         canvas.timestamp = Date.now();
-        canvas.items.forEach((item, index) => { this.controller.socket.publish('command/recorder', {...request, id: canvas.id + (index ? '/' + index : ''), endpoint: item.endpoint, property: item.property}); });
+
+        canvas.items.forEach((item, index) =>
+        {
+            let shift = this.shift(canvas, item);
+
+            if (canvas.change && shift)
+                this.controller.socket.publish('command/recorder', {...request, id: canvas.id + '/' + index + '/value', endpoint: item.endpoint, property: item.property, start: request.end - shift - this.duration.hour, end: request.end - shift, change: false});
+
+            this.controller.socket.publish('command/recorder', {...request, id: canvas.id + (index ? '/' + index : ''), endpoint: item.endpoint, property: item.property, start: request.start - shift, end: request.end - shift});
+        });
     }
 
     chartQuery(items, element, interval, shift, start, end)

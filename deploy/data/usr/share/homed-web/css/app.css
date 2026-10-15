@@ -572,7 +572,7 @@ tr:first-child td {
     margin: 5px 0;
     border-radius: var(--border-radius);
     background: repeating-linear-gradient(135deg, var(--color-shade), var(--color-shade) 5px, transparent 5px, transparent 10px);
-    opacity: 0.75;
+    opacity: 0.5;
 }
 
 .title {
@@ -1007,7 +1007,7 @@ tr:first-child td {
 
 .dashboardBlock .value[data-trend]::before {
     content: var(--trend);
-    margin-right: 4px;
+    margin-right: 3px;
     font-family: 'Material Design Icons';
     color: var(--color-shade);
 }
@@ -1025,7 +1025,7 @@ tr:first-child td {
     margin-left: 8px;
 }
 
-.dashboardBlock:has(td.value[data-type="status"][data-value="on"]) .toggle {
+.dashboardBlock:has(tr:not(.history) td.value[data-type="status"][data-value="on"]) .toggle {
     color: var(--color-warning);
 }
 
@@ -1127,7 +1127,7 @@ tr:first-child td {
 
 .tiled .dashboardBlock tr:not(:has(td.chart)) td.value[data-trend]::after {
     content: var(--trend);
-    margin-left: 4px;
+    margin-left: 3px;
     font-family: 'Material Design Icons';
     color: var(--color-shade);
 }
@@ -1159,11 +1159,11 @@ tr:first-child td {
     display: none;
 }
 
-.tiled .dashboardBlock tr:not(.label):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) {
+.tiled .dashboardBlock tr:not(.label, .history):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) {
     background-color: var(--background-hover);
 }
 
-.tiled .dashboardBlock tr:not(.label):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) .exposeIcon {
+.tiled .dashboardBlock tr:not(.label, .history):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) .exposeIcon {
     background-color: var(--border-edge);
     color: var(--color-warning);
 }
@@ -1464,6 +1464,13 @@ tr:first-child td {
 
 .shift span:hover {
     color: var(--color-highlight);
+}
+
+.history .name::after {
+    content: "\F054C";
+    margin-left: 4px;
+    font-family: 'Material Design Icons';
+    color: var(--color-shade);
 }
 
 #modal {
