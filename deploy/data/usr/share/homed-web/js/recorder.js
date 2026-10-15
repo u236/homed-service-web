@@ -230,7 +230,7 @@ class Recorder
                     datasets.push({data: data, borderWidth: 1.5, borderColor: paletteColor(0), pointRadius: 0, stepped: true, label: name, unit: unit});
                 }
                 else
-                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit});
+                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit, total: Number(data.reduce((value, item) => value + item.y, 0).toFixed(2)) + (unit ? ' ' + unit : '')});
             }
             else
             {
@@ -361,7 +361,7 @@ class Recorder
                 options.plugins.legend =
                 {
                     position: 'bottom',
-                    labels: {usePointStyle: true, boxHeight: 6, generateLabels: function(chart) { return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => { let dataset = chart.data.datasets[item.datasetIndex]; return {...item, fontColor: item.hidden ? 'rgba(136, 136, 136, 0.5)' : item.fontColor, hidden: dataset.empty ?? false, fillStyle: dataset.shift ? 'transparent' : item.fillStyle, lineWidth: dataset.shift ? 1 : 0}; }); }},
+                    labels: {usePointStyle: true, boxWidth: 8, boxHeight: 5, generateLabels: function(chart) { return Chart.defaults.plugins.legend.labels.generateLabels(chart).map(item => { let dataset = chart.data.datasets[item.datasetIndex]; return {...item, text: dataset.total ? item.text + ' · ' + dataset.total : item.text, fontColor: item.hidden ? 'rgba(136, 136, 136, 0.5)' : item.fontColor, hidden: dataset.empty ?? false, fillStyle: dataset.shift ? 'transparent' : item.fillStyle, lineWidth: 1}; }); }},
                     onClick: function(event, item, legend) { let index = legend.chart.data.datasets[item.datasetIndex].index; canvas.disabled[index] = canvas.disabled[index] ? false : true; update(legend.chart); }
                 };
 
