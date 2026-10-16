@@ -230,7 +230,7 @@ class Recorder
                     datasets.push({data: data, borderWidth: 1.5, borderColor: paletteColor(0), pointRadius: 0, stepped: true, label: name, unit: unit});
                 }
                 else
-                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit, total: Number(data.reduce((value, item) => value + item.y, 0).toFixed(2)) + (unit ? ' ' + unit : '')});
+                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit, total: Number(message.value.reduce((value, item) => value + parseFloat(item), 0).toFixed(2)) + (unit ? ' ' + unit : '')});
             }
             else
             {
@@ -373,6 +373,8 @@ class Recorder
 
                 delete options.scales.y;
             }
+            else if (message.change && !total)
+                options.plugins.legend = {position: 'bottom', labels: {boxWidth: 0, generateLabels: function(chart) { return [{text: chart.data.datasets[0].total, fontColor: Chart.defaults.color, lineWidth: 0}]; }}, onClick: null};
 
             if (chart && chart.config.type != type)
             {

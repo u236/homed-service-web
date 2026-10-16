@@ -1099,7 +1099,8 @@ class Dashboard
             let id = 'chart-' + randomString(8);
             let chart = modal.querySelector('.chart');
 
-            modal.querySelector('.name').innerHTML = this.itemString(items[0], false) + (items.length > 1 ? ' <i class="mdi-plus"></i> ' + (items.length > 2 ? items.length - 1 + ' items' : this.itemString(items[1], false)) : '');
+            modal.querySelector('.name').innerHTML = this.itemString(items[0], false) + (items.length > 1 ? ' <i class="mdi-plus"></i> ' + (items.length - 1) + ' ' + (items.length != 2 ? 'items' : 'item') : '');
+            modal.querySelector('.name').parentNode.classList.toggle('history', items.length == 1 && items[0].shift ? true : false);
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
