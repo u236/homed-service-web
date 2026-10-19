@@ -48,7 +48,7 @@ class Recorder
     {
         let item, device, name, cell, aggregation, shift, counter, unit, options;
         let list = message.id.split('/');
-        let index = list[1] ?? 0;
+        let id = list[1] ?? '0';
         let canvas = document.querySelector('canvas#' + list[0]);
         let status = document.querySelector('.status#' + list[0]);
         let total = document.querySelector('.total#' + list[0]);
@@ -61,10 +61,7 @@ class Recorder
         if (!canvas)
             return;
 
-        if (status)
-            status.innerHTML = '<span class="mobileHidden">' + message.timestamp.length + ' records, ' + message.time + ' ms</span>';
-
-        item = canvas.items[index];
+        item = canvas.items[id];
         device = this.controller.findDevice(item);
         name = item.name ?? (device.info ? device.info.name : item.endpoint) + ' - ' + exposeTitle(device, item.endpoint, item.property);
         cell = canvas.closest('table') ? item.row?.querySelector('td.value') : null;
@@ -72,6 +69,12 @@ class Recorder
         shift = this.shift(canvas, item);
         counter = this.counter(item);
         unit = this.unit(item);
+
+        if (status && !list[2])
+        {
+            canvas.status[id] = {records: message.timestamp.length, time: message.time};
+            status.innerHTML = '<span class="mobileHidden">' + canvas.status.reduce((result, value) => result + value.records, 0) + ' records, ' + canvas.status.reduce((result, value) => result + value.time, 0) + ' ms</span>';
+        }
 
         if (shift && cell && (!canvas.change || list[2]))
         {
@@ -100,8 +103,8 @@ class Recorder
 
             if (canvas.items.length > 1 && !this.text(item))
             {
-                canvas.cache[index] = [{data: new Array(), label: name, index: index, shift: shift, empty: true}];
-                this.style(canvas, canvas.cache[index][0]);
+                canvas.cache[id] = [{data: new Array(), label: name, index: id, shift: shift, empty: true}];
+                this.style(canvas, canvas.cache[id][0]);
 
                 if (chart)
                 {
@@ -112,7 +115,7 @@ class Recorder
                 return;
             }
 
-            delete canvas.cache[index];
+            delete canvas.cache[id];
             return;
         }
 
@@ -145,7 +148,7 @@ class Recorder
             let value;
 
             if (message.change && message.value?.length)
-                value = message.value.reduce((value, item) => value + parseFloat(item), 0);
+                value = message.value.reduce((result, value) => result + parseFloat(value), 0);
             else if (counter && message.value?.length)
                 value = parseFloat(message.value[message.value.length - 1]) - parseFloat(message.value[0]);
             else if (counter && message.max?.length)
@@ -230,21 +233,21 @@ class Recorder
                     datasets.push({data: data, borderWidth: 1.5, borderColor: paletteColor(0), pointRadius: 0, stepped: true, label: name, unit: unit});
                 }
                 else
-                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit, total: Number(message.value.reduce((value, item) => value + parseFloat(item), 0).toFixed(2)) + (unit ? ' ' + unit : '')});
+                    datasets.push({data: data, backgroundColor: paletteColor(0, shift ? 0.4 : 0.8), borderRadius: 3, label: name, unit: unit, total: Number(message.value.reduce((result, value) => result + parseFloat(value), 0).toFixed(2)) + (unit ? ' ' + unit : '')});
             }
             else
             {
                 let count = 0;
 
                 if (message.timestamp[0] > canvas.start)
-                    datasets.push({data: [{x: [canvas.start, message.timestamp[0]], y: name}], timestamp: canvas.start, label: 'no data available', barThickness: 25, minBarLength: 1, backgroundColor: this.color.empty, empty: true});
+                    datasets.push({data: [{x: [canvas.start, message.timestamp[0]], y: id}], timestamp: canvas.start, label: 'no data available', barThickness: 25, minBarLength: 1, backgroundColor: this.color.empty, empty: true});
 
                 message.timestamp.forEach((timestamp, index) =>
                 {
                     let value = message.value[index];
                     let data =
                     {
-                        data: [{x: [Math.max(timestamp, canvas.start), message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max], y: name}],
+                        data: [{x: [Math.max(timestamp, canvas.start), message.timestamp[index + 1] ? message.timestamp[index + 1] : options.scales.x.max], y: id}],
                         timestamp: timestamp,
                         label: value ?? 'UNAVAILABLE',
                         barThickness: 25,
@@ -356,7 +359,7 @@ class Recorder
                 });
 
                 datasets = datasets.filter(dataset => !dataset.fill);
-                datasets.forEach(dataset => { dataset.index = index; dataset.yAxisID = 'y' + (canvas.overlay ? index : units.indexOf(unit)); this.style(canvas, dataset); });
+                datasets.forEach(dataset => { dataset.index = id; dataset.yAxisID = 'y' + (canvas.overlay ? id : units.indexOf(unit)); this.style(canvas, dataset); });
 
                 options.plugins.legend =
                 {
@@ -406,7 +409,7 @@ class Recorder
 
             if (canvas.items.length > 1)
             {
-                options.scales.y.ticks = {mirror: true, labelOffset: -22, padding: 0};
+                options.scales.y.ticks = {mirror: true, labelOffset: -22, padding: 0, callback: function(value) { return canvas.labels[value]; }};
                 options.scales.y.grid.drawTicks = false;
             }
 
@@ -416,10 +419,12 @@ class Recorder
             if (!chart)
                 chart = new Chart(canvas, {type: 'bar'});
 
-            chart.data.labels[index] = name;
+            canvas.labels[id] = name;
+            chart.data.labels[id] = id;
         }
 
-        canvas.cache[index] = datasets;
+        canvas.closest('div').dataset.type = numeric ? 'numeric' : 'text';
+        canvas.cache[id] = datasets;
         chart.data.datasets = canvas.cache.reduce((result, value) => result.concat(value), new Array());
 
         if (message.change)
@@ -699,7 +704,9 @@ class Recorder
             default: offset = 0; break;
         }
 
+        canvas.status = new Array();
         canvas.cache = new Array();
+        canvas.labels = new Array();
         canvas.items = items;
         canvas.interval = interval ?? '24h';
         canvas.offset = offset;

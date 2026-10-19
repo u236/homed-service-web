@@ -1168,7 +1168,7 @@ class Drag
 
         this.offset = this.origin.y - frame.top;
         this.size = frame.height;
-        this.colspan = Array.from(this.row.cells).reduce((sum, item) => sum + item.colSpan, 0);
+        this.colspan = Array.from(this.row.cells).reduce((result, value) => result + value.colSpan, 0);
         this.scroll = this.row.closest('#modal') ?? document.scrollingElement;
         this.next = this.rows[this.rows.length - 1].nextElementSibling;
 

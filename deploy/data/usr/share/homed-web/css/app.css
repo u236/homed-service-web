@@ -1442,6 +1442,14 @@ tr:first-child td {
     color: var(--color-highlight);
 }
 
+.log tr:first-child td {
+    border-top: 1px solid var(--border-shade);
+}
+
+.log tr:last-child td {
+    border-bottom: 1px solid var(--border-shade);
+}
+
 .log td:first-child {
     width: 1%;
 }
@@ -1512,7 +1520,7 @@ tr:first-child td {
 
 #modal table {
     margin-top: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 #modal tbody tr:first-child td {
@@ -1571,6 +1579,14 @@ tr:first-child td {
     box-shadow: var(--box-shadow);
 }
 
+#modal .data:not(:has(.table)) .chart, #modal .data:has(.log:empty) .chart {
+    margin-bottom: 10px;
+}
+
+#modal .data:not(:has(.table)) .chart[data-type="numeric"] {
+    margin-bottom: 5px;
+}
+
 #modal .title {
     margin: 0;
     margin-bottom: 10px;
@@ -1607,6 +1623,14 @@ tr:first-child td {
 
 #modal .legend, #modal .log, #modal .states {
     border: none;
+}
+
+#modal .log {
+    margin-top: 10px;
+}
+
+#modal .log:empty {
+    display: none;
 }
 
 #modal .groups td:first-child, #modal .legend td:first-child, #modal .states td:first-child {
@@ -1716,6 +1740,7 @@ tr:first-child td {
 @media (pointer: coarse) {
     input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; }
     input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+    .touchHidden { display: none; }
 }
 
 @media (max-width: 1030px) {

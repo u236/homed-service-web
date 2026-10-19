@@ -321,7 +321,7 @@ class Dashboard
                 cell.append(element);
 
                 canvas.addEventListener('click', function(event) { if (!Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY})) return; this.showRecorderInfo(chart.items, interval, overlay); }.bind(this));
-                canvas.addEventListener('mousemove', function(event) { canvas.style.cursor = Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || canvas.highlight ? 'pointer' : 'default'; });
+                canvas.addEventListener('mousemove', function(event) { canvas.style.cursor = Chart.getChart(canvas)?.isPointInArea({x: event.offsetX, y: event.offsetY}) || canvas.highlight != undefined ? 'pointer' : 'default'; });
 
                 canvas.style.display = 'none';
                 canvas.disabled = new Object();
