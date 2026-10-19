@@ -96,7 +96,9 @@ class Custom extends DeviceService
             loadFile(function(data)
             {
                 let random = randomString(4);
-                this.serviceCommand({action: 'updateDevice', data: {cloud: false, discovery: false, name: 'Device ' + random, id: 'custom-' + random, ...data}});
+                let device = {cloud: false, discovery: false, name: 'Device ' + random, id: 'custom-' + random, ...data};
+                this.controller.setPage(this.service + '?device=' + device.id);
+                this.serviceCommand({action: 'updateDevice', data: device});
 
             }.bind(this));
 
@@ -217,6 +219,9 @@ class Custom extends DeviceService
                     try { form.bindings = JSON.parse(form.bindings); } catch { modal.querySelector('textarea[name="bindings"]').classList.add('error'); return; }
                 else
                     delete form.bindings;
+
+                if (add)
+                    this.controller.setPage(this.service + '?device=' + form.id);
 
                 this.serviceCommand({action: 'updateDevice', device: add ? null : device.id, data: form});
 

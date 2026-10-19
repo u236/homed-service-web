@@ -62,31 +62,14 @@ class Camera
         {
             case 'status':
             {
-                let check = false;
-
                 this.status = message;
 
-                if (this.device && this.status.devices)
+                if (this.controller.service == 'camera')
                 {
-                    this.status.devices.forEach(device =>
-                    {
-                        if (device.id != this.device.id)
-                            return;
-
-                        this.controller.showPage('camera?device=' + device.id);
-                        check = true;
-                    });
-                }
-
-                if (check || this.controller.service == 'camera')
-                {
-                    if (!check)
-                        this.controller.showPage(this.controller.page);
-
+                    this.controller.showPage(this.controller.page);
                     this.updatePage();
                 }
 
-                delete this.device;
                 break;
             }
 
@@ -295,7 +278,7 @@ class Camera
 
         if (!device)
         {
-            device = {name: 'Camera ' + (this.status.devices ? this.status.devices.length + 1 : 1)};
+            device = {id: randomString(10), name: 'Camera ' + (this.status.devices ? this.status.devices.length + 1 : 1)};
             add = true;
         }
 
@@ -310,8 +293,8 @@ class Camera
 
             modal.querySelector('.save').addEventListener('click', function()
             {
-                this.device = device;
-                this.controller.socket.publish('command/camera', {action: 'updateDevice', device: add ? null : device.id, data: formData(modal.querySelector('form'))});
+                this.controller.setPage('camera?device=' + device.id);
+                this.controller.socket.publish('command/camera', {action: 'updateDevice', device: add ? null : device.id, data: {id: device.id, ...formData(modal.querySelector('form'))}});
 
             }.bind(this));
 

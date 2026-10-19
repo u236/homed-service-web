@@ -1786,7 +1786,7 @@ function handleArrowButtons(element, list, index, callback)
 
 function randomString(length)
 {
-    return Math.random().toString(36).substring(2, length + 2);
+    return Math.random().toString(16).substring(2, length + 2);
 }
 
 function paletteColor(index, alpha)

@@ -504,31 +504,14 @@ class Recorder
         {
             case 'status':
             {
-                let check = false;
-
                 this.status = message;
 
-                if (this.item && this.status.items)
+                if (this.controller.service == 'recorder')
                 {
-                    this.status.items.forEach(item =>
-                    {
-                        if (item.endpoint != this.item.endpoint || item.property != this.item.property)
-                            return;
-
-                        this.controller.showPage('recorder?item=' + item.endpoint + '/' + item.property);
-                        check = true;
-                    });
-                }
-
-                if (check || this.controller.service == 'recorder')
-                {
-                    if (!check)
-                        this.controller.showPage(this.controller.page);
-
+                    this.controller.showPage(this.controller.page);
                     this.updatePage();
                 }
 
-                delete this.item;
                 break;
             }
 
@@ -1029,9 +1012,9 @@ class Recorder
                 item.debounce = form.debounce;
                 item.threshold = form.threshold;
 
-                this.item = item;
+                this.controller.setPage('recorder?item=' + item.endpoint + '/' + item.property);
                 this.controller.socket.publish('command/recorder', {...{action: 'updateItem'}, ...item});
-                this.controller.clearPage();
+                this.controller.clearPage(); // TODO: close modal on events
 
             }.bind(this));
 
