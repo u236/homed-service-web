@@ -130,7 +130,6 @@ class Camera
     play(video, id, subStream = false)
     {
         let device = this.findDevice(id);
-        let deadline = Date.now() + 5000;
         let connection;
 
         if (!device)
@@ -143,6 +142,8 @@ class Camera
 
         connection.createOffer().then(offer => connection.setLocalDescription(offer)).then(function()
         {
+            let deadline = Date.now() + 5000;
+
             function wait(resolve)
             {
                 if (deadline > Date.now() && connection.iceGatheringState != 'complete')

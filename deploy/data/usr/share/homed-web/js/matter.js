@@ -72,6 +72,7 @@ class Matter extends DeviceService
                     this.updatePage();
                 }
 
+                this.ready = true;
                 break;
             }
 

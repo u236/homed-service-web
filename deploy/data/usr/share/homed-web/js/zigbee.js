@@ -242,9 +242,9 @@ class ZigBee extends DeviceService
             {
                 let check = false;
 
+                this.permitJoin = message.permitJoin;
                 this.names = message.names;
                 this.version = message.version;
-                this.permitJoin = message.permitJoin;
 
                 message.devices.forEach(device =>
                 {
@@ -310,6 +310,7 @@ class ZigBee extends DeviceService
                     this.updatePage();
                 }
 
+                this.ready = true;
                 break;
             }
 

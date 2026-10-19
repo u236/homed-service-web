@@ -682,9 +682,26 @@ class Automation
 
         if (automation)
         {
-            this.data = structuredClone(automation);
-            this.uuid = automation.uuid;
-            this.showAutomationInfo(false);
+            let deadline = Date.now() + 5000;
+
+            function wait(resolve)
+            {
+                if (deadline > Date.now() && Object.values(this.controller.services).find(service => service.devices && !service.ready))
+                {
+                    setTimeout(wait.bind(this, resolve), 10);
+                    return;
+                }
+
+                resolve();
+            }
+
+            new Promise(wait.bind(this)).then(function()
+            {
+                this.data = structuredClone(automation);
+                this.uuid = automation.uuid;
+                this.showAutomationInfo(false);
+
+            }.bind(this));
         }
         else
             this.showAutomationList();

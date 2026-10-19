@@ -69,6 +69,7 @@ class Custom extends DeviceService
                     this.updatePage();
                 }
 
+                this.ready = true;
                 break;
             }
 

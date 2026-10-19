@@ -127,6 +127,7 @@ class Modbus extends DeviceService
                     this.updatePage();
                 }
 
+                this.ready = true;
                 break;
             }
 
