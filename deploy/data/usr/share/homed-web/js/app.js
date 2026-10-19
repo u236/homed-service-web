@@ -328,7 +328,7 @@ class Controller
         return device ?? new Device();
     }
 
-    devicesList()
+    deviceList()
     {
         let devices = new Object();
         let list = new Object();
@@ -355,9 +355,9 @@ class Controller
         return list;
     }
 
-    propertiesList(triggerProperty, pattern)
+    propertyList(triggerProperty, pattern)
     {
-        let devices = this.devicesList();
+        let devices = this.deviceList();
         let list = new Object();
 
         if (triggerProperty)
@@ -385,7 +385,7 @@ class Controller
         return list;
     }
 
-    camerasList()
+    cameraList()
     {
         let list = new Object();
         this.services.camera?.status.devices?.forEach(device => { list['<span class="mdi-video exposeIcon"></span>Camera <i class="mdi-arrow-right"></i> ' + device.name] = '{{ camera | ' + device.id + ' }}'; });
@@ -403,8 +403,8 @@ class Controller
             meta:     {'Shell output': '{{ shellOutput }}', 'Loop index': '{{ loopIndex }}'},
             time:     {'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}', 'Sunrise': '{{ sunrise | hh:mm }}', 'Sunset': '{{ sunset | hh:mm }}'},
             light:    {'Color temperature': '{{ colorTemperature | 153 | 500 }}', 'Level': '{{ level | 100 | 255 }}'},
-            property: this.propertiesList(false, true),
-            camera:   this.camerasList()
+            property: this.propertyList(false, true),
+            camera:   this.cameraList()
         };
 
         Object.keys(groups).forEach(group =>
@@ -550,7 +550,7 @@ class Controller
     showSearch()
     {
         let dashboard = this.services.dashboard;
-        let devices = this.devicesList();
+        let devices = this.deviceList();
         let names = new Object();
         let list = new Object();
 

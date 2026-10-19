@@ -137,7 +137,7 @@ class Dashboard
 
         dashboard.exposes.forEach(expose =>
         {
-            let devices = this.controller.devicesList();
+            let devices = this.controller.deviceList();
             let block = {items: new Array()};
 
             switch (expose)
@@ -919,7 +919,7 @@ class Dashboard
 
     showItemEdit(dashboard, block, item, callback)
     {
-        let devices = this.controller.devicesList();
+        let devices = this.controller.deviceList();
         let recorder = this.controller.services.recorder;
         let camera = this.controller.services.camera;
         let list = new Object();

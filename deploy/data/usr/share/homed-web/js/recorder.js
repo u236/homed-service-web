@@ -966,7 +966,7 @@ class Recorder
 
             if (add)
             {
-                let properties = this.controller.propertiesList();
+                let properties = this.controller.propertyList();
 
                 item = new Object();
                 name.innerHTML = 'New recorder item';

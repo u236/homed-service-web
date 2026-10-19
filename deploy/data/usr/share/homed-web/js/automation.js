@@ -1011,7 +1011,7 @@ class Automation
     {
         loadHTML('html/automation/propertyItem.html', this, modal.querySelector('.data'), function()
         {
-            let properties = this.controller.propertiesList(type != 'trigger');
+            let properties = this.controller.propertyList(type != 'trigger');
             let data;
 
             modal.querySelector('.name').innerHTML = 'Property ' + type;
