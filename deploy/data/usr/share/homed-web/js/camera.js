@@ -228,6 +228,7 @@ class Camera
 
     showDeviceList()
     {
+        this.controller.setPage('camera');
         this.stop();
 
         if (!this.status.devices?.length)

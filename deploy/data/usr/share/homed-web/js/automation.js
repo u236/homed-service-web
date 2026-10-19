@@ -704,6 +704,8 @@ class Automation
 
     showAutomationList()
     {
+        this.controller.setPage(this.service);
+
         if (!this.status.automations?.length)
         {
             this.content.innerHTML = '<div class="emptyList">automations list is empty</div>';

@@ -805,6 +805,8 @@ class Recorder
 
     showItemList()
     {
+        this.controller.setPage('recorder');
+
         if (!this.status.items?.length)
         {
             this.content.innerHTML = '<div class="emptyList">recorder items list is empty</div>';

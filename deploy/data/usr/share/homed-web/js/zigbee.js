@@ -463,6 +463,8 @@ class ZigBee extends DeviceService
 
     showDeviceList()
     {
+        this.controller.setPage(this.service);
+
         loadHTML('html/zigbee/deviceList.html', this, this.content, function()
         {
             let table = this.content.querySelector('.deviceList table');

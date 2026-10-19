@@ -168,6 +168,8 @@ class Modbus extends DeviceService
 
     showDeviceList()
     {
+        this.controller.setPage(this.service);
+
         if (!Object.keys(this.devices).length)
         {
             this.content.innerHTML = '<div class="emptyList">' + this.service + ' devices list is empty</div>';

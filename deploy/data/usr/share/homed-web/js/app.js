@@ -458,6 +458,12 @@ class Controller
         this.services.dashboard.storeNames();
     }
 
+    setPage(page)
+    {
+        history.replaceState(null, null, '#' + encodeURI(page));
+        this.page = page;
+    }
+
     showPage(page)
     {
         let list = page.split(/\?(.*)/);
@@ -468,7 +474,7 @@ class Controller
 
         if (guest && !['dashboard', 'recorder'].includes(service))
         {
-            history.replaceState(null, null, '#dashboard');
+            this.setPage('dashboard');
             this.showPage('dashboard');
             return;
         }
