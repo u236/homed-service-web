@@ -1807,10 +1807,10 @@ function formData(form)
         {
             case 'checkbox': data[input.name] = input.checked; break;
             case 'number':   data[input.name] = parseFloat(input.value); break;
-            default:         data[input.name] = input.value; break;
+            default:         data[input.name] = input.value.trim(); break;
         }
 
-        if (input.required && input.offsetParent && (input.type == 'number' ? isNaN(data[input.name]) : !input.value.trim()))
+        if (input.required && input.offsetParent && (input.type == 'number' ? isNaN(data[input.name]) : !data[input.name]))
         {
             input.classList.add('error');
             check = false;

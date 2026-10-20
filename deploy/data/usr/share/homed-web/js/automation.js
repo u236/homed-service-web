@@ -4,13 +4,13 @@ class Automation
     content = document.querySelector('.content .container');
     service = 'automation';
 
-    triggerType = ['property', 'mqtt', 'state', 'telegram', 'time', 'interval', 'startup'];
+    triggerType = ['property', 'mqtt', 'state', 'scene', 'telegram', 'time', 'interval', 'startup'];
     triggerStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside', 'changes', 'updates'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside'];
 
-    actionType = ['property', 'mqtt', 'state', 'telegram', 'shell', 'condition', 'loop', 'delay', 'exit'];
+    actionType = ['property', 'mqtt', 'state', 'scene', 'telegram', 'shell', 'condition', 'loop', 'delay', 'exit'];
     actionStatement = ['value', 'increase', 'decrease'];
     actionNested = ['condition', 'loop'];
 
@@ -314,6 +314,10 @@ class Automation
 
                 break;
 
+            case 'scene':
+                data = '<span class="value">' + this.shieldValue(trigger.scene) + '</span>';
+                break;
+
             case 'telegram':
                 data = '<span class="value">' + this.shieldValue(trigger.message) + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>' : '');
                 break;
@@ -405,6 +409,10 @@ class Automation
 
             case 'state':
                 data = (action.value || action.value == false ? 'set' : 'remove') + ' <span class="value">' + action.name + '</span>' + (action.value || action.value == false ? ' to <span class="value">' + this.shieldValue(action.value) + '</span>' : '');
+                break;
+
+            case 'scene':
+                data = '<span class="value">' + this.shieldValue(action.scene) + '</span>';
                 break;
 
             case 'telegram':
@@ -606,14 +614,14 @@ class Automation
                                 case 1:
                                     actionRow.drag = {type: 'action', list: action.type == 'loop' ? action.actions : action.then, index: 0, level: level + 1, header: true};
                                     nameCell.innerHTML += '<span class="value">' + (action.type == 'loop' ? 'DO' : 'THEN') + '</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.type == 'loop' ? action.actions : action.then, true); }, 5);
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.type == 'loop' ? action.actions : action.then, true); }, 6);
                                     automation.actionList(automation, action.type == 'loop' ? action.actions : action.then, table, level + 1, disabled);
                                     break;
 
                                 case 2:
                                     actionRow.drag = {type: 'action', list: action.else, index: 0, level: level + 1, header: true};
                                     nameCell.innerHTML += '<span class="value">ELSE</span>';
-                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.else, true); }, 5);
+                                    addDropdown(actionCell.querySelector('.dropdown'), automation.actionType, function(type) { automation.showAction({type: type}, action.else, true); }, 6);
                                     automation.actionList(automation, action.else, table, level + 1, disabled);
                                     break;
                             }
@@ -865,7 +873,7 @@ class Automation
 
             addDropdown(this.content.querySelector('.addTrigger'), this.triggerType, function(type) { this.showTrigger({type: type}, true); }.bind(this));
             addDropdown(this.content.querySelector('.addCondition'), this.conditionType, function(type) { this.conditionDropdown(this, this.data.conditions, type); }.bind(this), 7);
-            addDropdown(this.content.querySelector('.addAction'), this.actionType, function(type) { this.showAction({type: type}, this.data.actions, true); }.bind(this), 5);
+            addDropdown(this.content.querySelector('.addAction'), this.actionType, function(type) { this.showAction({type: type}, this.data.actions, true); }.bind(this), 6);
 
             this.data.triggers.forEach((trigger, index) =>
             {
@@ -970,6 +978,7 @@ class Automation
             case 'property':  this.showPropertyItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
             case 'mqtt':      this.showMqttItem(trigger, this.data.triggers, this.triggerStatement, append, 'trigger'); break;
             case 'state':     this.showStateTrigger(trigger, append); break;
+            case 'scene':     this.showSceneTrigger(trigger, append); break;
             case 'telegram':  this.showTelegramTrigger(trigger, append); break;
             case 'time':      this.showTimeTrigger(trigger, append); break;
             case 'interval':  this.showIntervalTrigger(trigger, append); break;
@@ -998,6 +1007,7 @@ class Automation
             case 'property':  this.showPropertyItem(action, list, this.actionStatement, append, 'action'); break;
             case 'mqtt':      this.showMqttAction(action, list, append); break;
             case 'state':     this.showStateAction(action, list, append); break;
+            case 'scene':     this.showSceneAction(action, list, append); break;
             case 'telegram':  this.showTelegramAction(action, list, append); break;
             case 'shell':     this.showShellAction(action, list, append); break;
             case 'condition': this.showConditionAction(action, list, append); break;
@@ -1285,6 +1295,43 @@ class Automation
         });
     }
 
+    showSceneTrigger(trigger, append)
+    {
+        loadHTML('html/automation/sceneTrigger.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('input[name="scene"]').value = trigger.scene ?? '';
+            modal.querySelector('textarea[name="name"]').value = trigger.name ?? '';
+            modal.querySelector('input[name="active"]').checked = trigger.active ?? true;
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
+
+                trigger.scene = form.scene;
+                trigger.active = form.active;
+
+                if (form.name)
+                    trigger.name = form.name;
+                else
+                    delete trigger.name;
+
+                if (append)
+                    this.data.triggers.push(trigger);
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(trigger, this.data.triggers, append);
+            showModal(true, 'input[name="scene"]', 'trigger');
+        });
+    }
+
     showTelegramTrigger(trigger, append)
     {
         loadHTML('html/automation/telegramTrigger.html', this, modal.querySelector('.data'), function()
@@ -1302,7 +1349,7 @@ class Automation
                 if (!form)
                     return;
 
-                trigger.message = form.message.trim();
+                trigger.message = form.message;
                 trigger.chats = chats.length ? chats : null;
                 trigger.active = form.active;
 
@@ -1600,7 +1647,7 @@ class Automation
                     return;
 
                 action.topic = form.topic;
-                action.message = form.message.trim();
+                action.message = form.message;
                 action.retain = form.retain;
                 action.active = form.active;
 
@@ -1662,6 +1709,43 @@ class Automation
         });
     }
 
+    showSceneAction(action, list, append)
+    {
+        loadHTML('html/automation/sceneAction.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('textarea[name="scene"]').value = action.scene ?? '';
+            modal.querySelector('input[name="triggerName"]').value = action.triggerName ?? '';
+            modal.querySelector('input[name="active"]').checked = action.active ?? true;
+
+            modal.querySelector('.save').addEventListener('click', function()
+            {
+                let form = formData(modal.querySelector('form'));
+
+                if (!form)
+                    return;
+
+                action.scene = form.scene;
+                action.active = form.active;
+
+                if (form.triggerName)
+                    action.triggerName = form.triggerName;
+                else
+                    delete action.triggerName;
+
+                if (append)
+                    list.push(action);
+
+                this.showAutomationInfo();
+
+            }.bind(this));
+
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+
+            this.handleCopy(action, list, append);
+            showModal(true, 'textarea[name="scene"]', 'action');
+        });
+    }
+
     showTelegramAction(action, list, append)
     {
         loadHTML('html/automation/telegramAction.html', this, modal.querySelector('.data'), function()
@@ -1688,9 +1772,9 @@ class Automation
                 let form = formData(modal.querySelector('form'));
                 let chats = form.chats ? form.chats.split(',').map(item => parseInt(item)).filter(item => !isNaN(item)) : new Array();
 
-                action.message = form.message.trim();
-                action.file = form.file.trim();
-                action.keyboard = form.keyboard.trim();
+                action.message = form.message;
+                action.file = form.file;
+                action.keyboard = form.keyboard;
                 action.chats = chats.length ? chats : null;
                 action.rich = form.rich;
                 action.silent = form.silent;
@@ -1738,7 +1822,7 @@ class Automation
                 if (!form)
                     return;
 
-                action.command = form.command.trim();
+                action.command = form.command;
                 action.timeout = form.timeout;
                 action.active = form.active;
 
