@@ -847,11 +847,11 @@ class Recorder
             let items = new Array();
             let list = new Array();
 
-            this.status.items.forEach(item => { items.push([item.endpoint + '/' + item.property, item.name ? item.name.toLowerCase() : item.endpoint + ' - ' + item.property]); });
+            this.status.items.forEach(item => { items.push([item.endpoint + '/' + item.property, item.name || item.endpoint + ' - ' + item.property]); });
 
-            items.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
+            items.sort(function(a, b) { return compareStrings(a[1], b[1]); }).forEach((item, index) =>
             {
-                if (item[1] == this.data.name?.toLowerCase() || item[1] == this.data.endpoint + ' - ' + this.data.property)
+                if (item[0] == this.data.endpoint + '/' + this.data.property)
                     current = index;
 
                 list.push(item[0]);

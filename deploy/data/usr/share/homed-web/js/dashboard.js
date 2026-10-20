@@ -44,9 +44,9 @@ class Dashboard
 
     devicePromise(item, cell, icon = true)
     {
-        let name = item.name ?? (item.camera ? this.cameraTitle(item.camera, icon) : item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
+        let name = item.name ?? item.scene ?? (item.camera ? this.cameraTitle(item.camera, icon) : item.endpoint ? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + (item.expose ?? item.property) : 'New item');
 
-        cell.innerHTML = icon ? (item.camera ? '<span class="mdi-video exposeIcon"></span>' : item.endpoint ? exposeIcon(this.controller.findDevice(item), item.endpoint, item.expose ?? item.property) : '') + '<span class="name">' + name + '</span>' : name;
+        cell.innerHTML = icon ? (item.scene ? '<span class="mdi-play exposeIcon"></span>' : item.camera ? '<span class="mdi-video exposeIcon"></span>' : item.endpoint ? exposeIcon(this.controller.findDevice(item), item.endpoint, item.expose ?? item.property) : '') + '<span class="name">' + name + '</span>' : name;
 
         if (item.endpoint)
         {
@@ -82,13 +82,16 @@ class Dashboard
 
     itemString(item, edit = true)
     {
-        if (!item.camera)
-        {
-            let device = this.controller.findDevice(item);
-            return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
-        }
+        let device;
 
-        return (edit ? 'Camera <i class="mdi-arrow-right"></i> ' : '') + this.cameraTitle(item.camera);
+        if (item.scene)
+            return (edit ? 'Scene <i class="mdi-arrow-right"></i> ' : '') + item.scene;
+
+        if (item.camera)
+            return (edit ? 'Camera <i class="mdi-arrow-right"></i> ' : '') + this.cameraTitle(item.camera);
+
+        device = this.controller.findDevice(item);
+        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
     dashboardName(dashboard, icon = true)
@@ -200,7 +203,7 @@ class Dashboard
                 case 'switch':
                 {
                     let name = meta.id ? 'status_' + meta.id : 'status';
-                    valueCell.dataset.type = 'status';
+                    valueCell.dataset.type = 'action';
                     valueCell.dataset.property = name;
                     valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[name]: 'toggle'}); }.bind(this));
                     break;
@@ -226,12 +229,28 @@ class Dashboard
 
             if (exposeMeta(item.property).name == 'status')
             {
-                valueCell.dataset.type = 'status';
+                valueCell.dataset.type = 'action';
                 valueCell.addEventListener('click', function() { let device = this.controller.findDevice(item); if (device && !item.shift) deviceCommand(device, item.endpoint.split('/')[2] ?? 'common', {[item.property]: 'toggle'}); }.bind(this));
             }
         }
 
         return row;
+    }
+
+    addScene(table, item)
+    {
+        let row = table.insertRow();
+        let labelCell = row.insertCell();
+        let valueCell = row.insertCell();
+
+        this.devicePromise(item, labelCell);
+        labelCell.classList.add('label');
+
+        valueCell.innerHTML = '<i class="mdi-play"></i>';
+        valueCell.classList.add('value');
+        valueCell.dataset.type = 'action';
+
+        row.addEventListener('click', function() { this.controller.callScene(item.scene); }.bind(this));
     }
 
     addCamera(table, item, size)
@@ -509,6 +528,13 @@ class Dashboard
                         if (item.break)
                             return;
 
+                        if (item.scene)
+                        {
+                            this.addScene(table, item);
+                            status = false;
+                            return;
+                        }
+
                         if (item.camera)
                         {
                             this.addCamera(table, item, tiled ? block.camera : null);
@@ -519,7 +545,7 @@ class Dashboard
                         row = this.addBlockItem(table, item);
                         endpointId = item.endpoint.split('/')[2] ?? 'common';
 
-                        if (!row.querySelector('td.value[data-type="status"]'))
+                        if (!row.querySelector('td.value[data-type="action"]'))
                             status = false;
 
                         row.classList.add('inactive');
@@ -545,9 +571,9 @@ class Dashboard
 
                             row.dataset.device = device.service + '/' + device.id;
                             row.dataset.endpointId = endpointId;
-                            row.querySelectorAll(cell.dataset.type == 'status' ? 'td.label' : 'td.label, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
+                            row.querySelectorAll(cell.dataset.type == 'action' ? 'td.label' : 'td.label, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
 
-                            if (tiled && item.expose && cell.dataset.type == 'status')
+                            if (tiled && item.expose && cell.dataset.type == 'action')
                                 row.addEventListener('click', function(event) { if (event.target.closest('.exposeIcon')) return; event.stopPropagation(); deviceCommand(device, endpointId, {[cell.dataset.property]: 'toggle'}); }, true);
 
                             if (status)
@@ -919,6 +945,7 @@ class Dashboard
 
     showItemEdit(dashboard, block, item, callback)
     {
+        let scenes = this.controller.sceneList();
         let devices = this.controller.deviceList();
         let recorder = this.controller.services.recorder;
         let camera = this.controller.services.camera;
@@ -926,6 +953,12 @@ class Dashboard
 
         if (!item)
             item = {add: true};
+
+        Object.keys(scenes).forEach(item =>
+        {
+            let scene = scenes[item];
+            list['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene};
+        });
 
         Object.keys(devices).forEach(name =>
         {
@@ -948,7 +981,7 @@ class Dashboard
 
         if (recorder?.status?.items?.length)
         {
-            let items = new Object();
+            let items = new Array();
 
             recorder.status.items.forEach(item =>
             {
@@ -957,10 +990,10 @@ class Dashboard
                 if (!device.info)
                     return;
 
-                items[exposeIcon(device, item.endpoint, item.property) + 'Recorder <i class="mdi-arrow-right"></i> ' + device.info.name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property)] = {endpoint: item.endpoint, property: item.property};
+                items.push([exposeIcon(device, item.endpoint, item.property) + 'Recorder <i class="mdi-arrow-right"></i> ' + device.info.name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property), {endpoint: item.endpoint, property: item.property}, device.info.name + ' ' + exposeTitle(device, item.endpoint, item.property)]);
             });
 
-            Object.keys(items).sort().forEach(id => list[id] = items[id]);
+            items.sort(function(a, b) { return compareStrings(a[2], b[2]); }).forEach(item => list[item[0]] = item[1]);
         }
 
         if (camera?.status?.devices?.length)
@@ -999,6 +1032,7 @@ class Dashboard
 
                 if (data)
                 {
+                    delete item.scene;
                     delete item.camera;
                     delete item.endpoint;
                     delete item.expose;
@@ -1017,7 +1051,7 @@ class Dashboard
                 else
                     delete item.shift;
 
-                if (!item.camera && (!item.endpoint || (!item.expose && !item.property)))
+                if (!item.scene && !item.camera && (!item.endpoint || (!item.expose && !item.property)))
                 {
                     modal.querySelector('.item').classList.add('error');
                     return;

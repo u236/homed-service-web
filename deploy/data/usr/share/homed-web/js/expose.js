@@ -533,7 +533,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                 break;
 
             case 'status':
-                valueCell.dataset.type = 'status';
+                valueCell.dataset.type = 'action';
                 controlCell.innerHTML = '<span>on</span>/<span>off</span>/<span>toggle</span>';
                 controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { deviceCommand(device, endpointId, {[property]: item.innerHTML}); }) );
                 break;

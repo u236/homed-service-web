@@ -806,11 +806,11 @@ class Automation
                 let list = new Array();
                 let current;
 
-                this.status.automations.forEach(automation => { automations.push([automation.uuid, automation.name.toLowerCase()]); });
+                this.status.automations.forEach(automation => { automations.push([automation.uuid, automation.name]); });
 
-                automations.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach((item, index) =>
+                automations.sort(function(a, b) { return compareStrings(a[1], b[1]); }).forEach((item, index) =>
                 {
-                    if (this.data.name.toLowerCase() == item[1])
+                    if (item[0] == this.uuid)
                         current = index;
 
                     list.push(item[0]);

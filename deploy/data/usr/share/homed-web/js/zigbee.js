@@ -810,7 +810,7 @@ class ZigBee extends DeviceService
             });
 
             if (!isNaN(clusterId))
-                groups.sort().forEach(group => { list['group/' + group] = 'Group ' + group; });
+                groups.sort(function(a, b) { return a - b; }).forEach(group => { list['group/' + group] = 'Group ' + group; });
 
             Object.keys(list).forEach(item =>
             {

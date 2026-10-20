@@ -284,30 +284,6 @@ class Controller
         this.showPage(this.serviceList[index]);
     }
 
-    searchNames(device)
-    {
-        let endpoint = device.service.split('/')[0] + '/' + device.id + '/';
-        let names = this.services.dashboard.status.names ?? new Object();
-        let list = new Array();
-        Object.keys(names).forEach(item => { if (item.startsWith(endpoint) && !list.includes(names[item])) list.push(names[item]); });
-        return list;
-    }
-
-    searchTitle(type, name)
-    {
-        let icon =
-        {
-            automation: 'auto-fix',
-            camera:     'video',
-            dashboard:  'view-dashboard',
-            device:     'devices',
-            recorder:   'chart-line-variant',
-            service:    'puzzle-outline'
-        }
-
-        return '<i class="mdi-' + (icon[type.toLowerCase()] ?? 'help') + '"></i> ' + type + ' <i class="mdi-arrow-right"></i> ' + name;
-    }
-
     findDevice(item)
     {
         let list = item.endpoint.split('/');
@@ -326,6 +302,15 @@ class Controller
         });
 
         return device ?? new Device();
+    }
+
+    sceneList()
+    {
+        let scenes = new Object();
+        let list = new Object();
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { automation.triggers.filter(trigger => trigger.type == 'scene').forEach(trigger => { scenes[trigger.scene.toLowerCase()] = trigger.scene; }); }); });
+        Object.keys(scenes).sort(compareStrings).forEach(item => list[item] = scenes[item]);
+        return list;
     }
 
     deviceList()
@@ -351,7 +336,7 @@ class Controller
             });
         });
 
-        Object.keys(devices).sort().forEach(item => list[item] = devices[item]);
+        Object.keys(devices).sort(compareStrings).forEach(item => list[item] = devices[item]);
         return list;
     }
 
@@ -416,6 +401,20 @@ class Controller
         });
 
         return list;
+    }
+
+    callScene(scene)
+    {
+        let name = this.sceneList()[scene.toLowerCase()];
+
+        if (!name)
+        {
+            this.showToast('Scene <b>' + scene + '</b> not found', 'warning');
+            return;
+        }
+
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.socket.publish('command/' + service, {action: 'callScene', scene: name}); });
+        this.showToast('Scene <b>' + name + '</b> called');
     }
 
     propertyIcon(item)
@@ -547,20 +546,47 @@ class Controller
         item.classList.add('fade-out');
     }
 
+    searchNames(device)
+    {
+        let endpoint = device.service.split('/')[0] + '/' + device.id + '/';
+        let names = this.services.dashboard.status.names ?? new Object();
+        let list = new Array();
+        Object.keys(names).forEach(item => { if (item.startsWith(endpoint) && !list.includes(names[item])) list.push(names[item]); });
+        return list;
+    }
+
+    searchTitle(type, name)
+    {
+        let icon =
+        {
+            automation: 'auto-fix',
+            camera:     'video',
+            dashboard:  'view-dashboard',
+            device:     'devices',
+            recorder:   'chart-line-variant',
+            scene:      'play',
+            service:    'puzzle-outline'
+        }
+
+        return '<i class="mdi-' + (icon[type.toLowerCase()] ?? 'help') + '"></i> ' + type + ' <i class="mdi-arrow-right"></i> ' + name;
+    }
+
     showSearch()
     {
+        let scenes = this.sceneList();
         let dashboard = this.services.dashboard;
         let devices = this.deviceList();
         let names = new Object();
         let list = new Object();
 
+        Object.keys(scenes).forEach(item => { let scene = scenes[item]; list[this.searchTitle('Scene', scene)] = {scene: scene}; });
         dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
 
         Object.keys(devices).forEach(name => { let device = devices[name]; let key = this.searchTitle('Device', name); names[key] = this.searchNames(device); list[key] = device.service + '?device=' + device.id; });
-        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { list[this.searchTitle('Automation', automation.name)] = service + '?uuid=' + automation.uuid; }); });
-
-        this.services.camera?.status.devices?.forEach(device => { list[this.searchTitle('Camera', device.name)] = 'camera?device=' + device.id; });
         this.services.recorder?.status.items?.forEach(item => { list[this.searchTitle('Recorder', dashboard.itemString(item, false))] = 'recorder?item=' + item.endpoint + '/' + item.property; });
+        this.services.camera?.status.devices?.forEach(device => { list[this.searchTitle('Camera', device.name)] = 'camera?device=' + device.id; });
+
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { list[this.searchTitle('Automation', automation.name)] = service + '?uuid=' + automation.uuid; }); });
         this.serviceList?.forEach(service => { let name = service.replace('zigbee', 'ZigBee'); list[this.searchTitle('Service', name.charAt(0).toUpperCase() + name.slice(1))] = service; });
 
         loadHTML('search.html', this, modal.querySelector('.data'), function()
@@ -574,7 +600,7 @@ class Controller
 
                 item.innerHTML = key;
                 item.classList.add('item');
-                item.addEventListener('click', function() { dropdown = undefined; showModal(false); this.showPage(list[key]); }.bind(this));
+                item.addEventListener('click', function() { dropdown = undefined; showModal(false); list[key].scene ? this.callScene(list[key].scene) : this.showPage(list[key]); }.bind(this));
 
                 if (names[key]?.length)
                 {
@@ -757,10 +783,10 @@ class DeviceService
             if (this.service.startsWith('zigbee') && !this.devices[id].info.logicalType)
                 return;
 
-            devices.push([id, this.devices[id].info.name.toLowerCase()]);
+            devices.push([id, this.devices[id].info.name]);
         });
 
-        devices.sort(function(a, b) { return a[1] < b[1] ? -1 : 1; }).forEach(item => { list.push(item[0]); });
+        devices.sort(function(a, b) { return compareStrings(a[1], b[1]); }).forEach(item => { list.push(item[0]); });
         handleArrowButtons(this.content, list, list.indexOf(device.id), function(id) { this.controller.showPage(this.service + '?device=' + id); }.bind(this));
     }
 
@@ -1531,6 +1557,11 @@ function setWide()
     document.querySelector('html').setAttribute('wide', wide);
     document.querySelector('#toggleWide').innerHTML = '<i class="' + (wide != 'off' ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off') + ' toggleIcon"></i> WIDE MODE';
     controller.updateMenu(true);
+}
+
+function compareStrings(a, b)
+{
+    return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
 }
 
 function searchMatch(value, search)

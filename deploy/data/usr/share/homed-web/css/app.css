@@ -436,11 +436,11 @@ tr.dragBelow td {
     border-top-color: transparent;
 }
 
-td.value[data-type="status"] {
+td.value[data-type="action"] {
     color: var(--color-shade);
 }
 
-td.value[data-type="status"][data-value="on"] {
+td.value[data-type="action"][data-value="on"] {
     color: var(--color-warning);
 }
 
@@ -1031,7 +1031,7 @@ tr:first-child td {
     margin-left: 8px;
 }
 
-.dashboardBlock:has(tr:not(.history) td.value[data-type="status"][data-value="on"]) .toggle {
+.dashboardBlock:has(tr:not(.history) td.value[data-type="action"][data-value="on"]) .toggle {
     color: var(--color-warning);
 }
 
@@ -1114,7 +1114,7 @@ tr:first-child td {
     -webkit-line-clamp: 2;
 }
 
-.tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name {
+.tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="action"])) td.label .name {
     color: var(--color-shade);
 }
 
@@ -1161,15 +1161,15 @@ tr:first-child td {
     font-size: 1.5rem;
 }
 
-.tiled .dashboardBlock tr:not(.label) td.value[data-type="status"] {
+.tiled .dashboardBlock tr:not(.label) td.value[data-type="action"] {
     display: none;
 }
 
-.tiled .dashboardBlock tr:not(.label, .history):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) {
+.tiled .dashboardBlock tr:not(.label, .history):has(td.value[data-type="action"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) {
     background-color: var(--background-hover);
 }
 
-.tiled .dashboardBlock tr:not(.label, .history):has(td.value[data-type="status"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) .exposeIcon {
+.tiled .dashboardBlock tr:not(.label, .history):has(td.value[data-type="action"][data-value="on"], td.value[data-binary="true"], [data-property="runningStatus"].warning) .exposeIcon {
     background-color: var(--border-edge);
     color: var(--color-warning);
 }
@@ -1753,7 +1753,7 @@ tr:first-child td {
     .header .dropdown .list { left: 13px; padding-right: 10px;}
     .automationInfo td span { max-width: 150px; }
     .automationInfo td:first-child, .itemInfo td:first-child { width: 75px; }
-    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="status"])) td.label .name { font-size: var(--font-size-small); }
+    .tiled .dashboardBlock tr:not(.label):has(td.value:not([data-type="action"])) td.label .name { font-size: var(--font-size-small); }
     .tiled .dashboardBlock tr[data-size]:has(td.camera) { grid-column: 1 / -1; grid-row: auto; aspect-ratio: auto; }
     .tiled .dashboardBlock tr[data-size] td.camera { display: block; }
     .tiled .dashboardBlock tr[data-size] td.camera video { height: auto; }

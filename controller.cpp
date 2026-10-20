@@ -417,8 +417,9 @@ void Controller::textMessageReceived(const QString &message)
     else if (action == "publish")
     {
         QJsonObject message = json.value("message").toObject();
+        QString command = message.value("action").toString();
 
-        if (subTopic.startsWith("command/") && !message.value("action").toString().startsWith("get") && it.key()->parent() ? it.key()->parent()->property("guest").toBool() : false)
+        if ((it.key()->parent() ? it.key()->parent()->property("guest").toBool() : false) && (subTopic.startsWith("command/") ? !command.startsWith("get") && command != "callScene" : !subTopic.startsWith("td/")))
         {
             it.key()->sendTextMessage(QJsonDocument({{"topic", "error"}, {"message", "access denied"}}).toJson(QJsonDocument::Compact));
             return;
