@@ -1095,7 +1095,7 @@ class Dashboard
                 thermostat: ['systemMode', 'operationMode', 'fanMode', 'swingMode', 'targetTemperature', 'temperature', 'running']
             };
 
-            Object.keys(list).forEach(key => { if (list[key].includes(meta.name) && device.items(endpointId).includes(meta.id ? key + '_' + meta.id : key)) expose = key; });
+            Object.keys(list).forEach(type => { if (list[type].includes(meta.name) && device.items(endpointId).includes(meta.id ? type + '_' + meta.id : type)) expose = type; });
 
             if (!expose)
                 expose = meta.name;

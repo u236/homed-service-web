@@ -857,7 +857,7 @@ class Recorder
                 list.push(item[0]);
             });
 
-            handleArrowButtons(this.content, list, current, function(key) { this.controller.showPage('recorder?item=' + key); }.bind(this));
+            handleArrowButtons(this.content, list, current, function(item) { this.controller.showPage('recorder?item=' + item); }.bind(this));
 
             name = this.content.querySelector('.name');
             datepicker = this.content.querySelector('.datepicker');

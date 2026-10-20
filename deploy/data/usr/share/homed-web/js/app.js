@@ -686,7 +686,7 @@ class Device
 
     setProperties(endpointId, data)
     {
-        Object.keys(data).forEach(key => { this.endpoint(endpointId).properties[key] = data[key]; });
+        Object.keys(data).forEach(property => { this.endpoint(endpointId).properties[property] = data[property]; });
     }
 }
 
@@ -1793,7 +1793,7 @@ function showModal(show, focus, type)
     if (modal.style.display != 'block')
         return;
 
-    Object.keys(modal.dataset).forEach(item => { delete modal.dataset[item]; });
+    Object.keys(modal.dataset).forEach(key => { delete modal.dataset[key]; });
 
     modal.addEventListener('animationend', closeModal);
     modal.classList.remove('fade-in');

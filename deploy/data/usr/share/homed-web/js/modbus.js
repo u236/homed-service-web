@@ -236,22 +236,22 @@ class Modbus extends DeviceService
             modal.querySelector('input[name="name"]').value = device.info.name;
             modal.querySelector('textarea[name="note"]').value = device.info.note ?? '';
 
-            Object.keys(this.deviceType).forEach(key =>
+            Object.keys(this.deviceType).forEach(type =>
             {
                 let option = document.createElement('option');
 
-                option.innerHTML = this.deviceType[key];
-                option.value = key;
+                option.innerHTML = this.deviceType[type];
+                option.value = type;
 
                 modal.querySelector('select[name="type"]').append(option);
 
-                if (device.info.type != key)
+                if (device.info.type != type)
                     return;
 
-                if (key != 'customController')
+                if (type != 'customController')
                     modal.querySelector('.custom').style.display = 'none';
 
-                modal.querySelector('select[name="type"]').value = key;
+                modal.querySelector('select[name="type"]').value = type;
             });
 
             modal.querySelector('input[name="portId"]').value = device.info.portId ?? 1;
