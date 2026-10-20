@@ -313,6 +313,64 @@ table {
     border-collapse: collapse;
 }
 
+div.dragPreview {
+    position: fixed;
+    z-index: 2;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+div.dragPreview.deny {
+    border-color: var(--color-error);
+}
+
+div.dragPreview table {
+    margin: -1px;
+    background-color: var(--drag-background);
+    backdrop-filter: blur(1px);
+    table-layout: fixed;
+}
+
+div.dragPreview td {
+    box-sizing: border-box;
+}
+
+tbody.dragHidden {
+    display: none;
+}
+
+tr.dragTarget td {
+    padding: 0;
+    border-bottom: 1px solid var(--border-shade);
+}
+
+tr.dragTarget.current td {
+    border-color: transparent;
+}
+
+tr.dragTarget.current div {
+    border: 1px solid var(--border-main);
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+}
+
+tr.dragAbove td {
+    border-bottom-color: transparent;
+}
+
+tr.dragBelow td {
+    border-top-color: transparent;
+}
+
+tr:first-child td {
+    border: none;
+}
+
 th {
     padding: 5px;
     font-size: var(--font-size-tiny);
@@ -382,60 +440,6 @@ td.remove:hover {
     color: var(--color-error);
 }
 
-div.dragPreview {
-    position: fixed;
-    z-index: 2;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-    pointer-events: none;
-}
-
-div.dragPreview.deny {
-    border-color: var(--color-error);
-}
-
-div.dragPreview table {
-    margin: -1px;
-    background-color: var(--drag-background);
-    backdrop-filter: blur(1px);
-    table-layout: fixed;
-}
-
-div.dragPreview td {
-    box-sizing: border-box;
-}
-
-tbody.dragHidden {
-    display: none;
-}
-
-tr.dragTarget td {
-    padding: 0;
-    border-bottom: 1px solid var(--border-shade);
-}
-
-tr.dragTarget.current td {
-    border-color: transparent;
-}
-
-tr.dragTarget.current div {
-    border: 1px solid var(--border-main);
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-}
-
-tr.dragAbove td {
-    border-bottom-color: transparent;
-}
-
-tr.dragBelow td {
-    border-top-color: transparent;
-}
-
 td.value[data-type="action"] {
     color: var(--color-shade);
 }
@@ -450,10 +454,6 @@ th:first-child, td:first-child {
 
 th:last-child, td:last-child {
     padding-right: 5px;
-}
-
-tr:first-child td {
-    border: none;
 }
 
 .fade-in {
@@ -958,6 +958,14 @@ tr:first-child td {
     color: var(--color-highlight);
 }
 
+.dashboardBlock tr.scene:hover .value i {
+    color: var(--color-warning);
+}
+
+.dashboardBlock .label td {
+    padding-bottom: 0;
+}
+
 .dashboardBlock td {
     border-top: 1px solid var(--border-main);
     vertical-align: top;
@@ -969,10 +977,6 @@ tr:first-child td {
 
 .dashboardBlock canvas {
     max-width: 100%;
-}
-
-.dashboardBlock .label td {
-    padding-bottom: 0;
 }
 
 .dashboardBlock .camera {
@@ -1092,10 +1096,8 @@ tr:first-child td {
     box-sizing: border-box;
 }
 
-.tiled .dashboardBlock td {
-    display: block;
-    padding: 0;
-    border: none;
+.tiled .dashboardBlock tr.scene:hover .exposeIcon {
+    color: var(--color-warning);
 }
 
 .tiled .dashboardBlock tr:not(.label) td.label {
@@ -1118,15 +1120,6 @@ tr:first-child td {
     color: var(--color-shade);
 }
 
-.tiled .dashboardBlock td.value {
-    overflow: hidden;
-    flex-shrink: 0;
-    width: auto;
-    margin-top: 5px;
-    text-align: left;
-    text-overflow: ellipsis;
-}
-
 .tiled .dashboardBlock tr:not(:has(td.chart)) td.value[data-trend]::before {
     content: none;
 }
@@ -1136,14 +1129,6 @@ tr:first-child td {
     margin-left: 3px;
     font-family: 'Material Design Icons';
     color: var(--color-shade);
-}
-
-.tiled .dashboardBlock td.value [data-property="runningStatus"] {
-    display: none;
-}
-
-.tiled .dashboardBlock .exposeIcon {
-    display: inline;
 }
 
 .tiled .dashboardBlock tr:not(.label) td.label .exposeIcon {
@@ -1210,15 +1195,6 @@ tr:first-child td {
     object-fit: cover;
 }
 
-.tiled .dashboardBlock td.camera .label {
-    margin-bottom: 10px;
-}
-
-.tiled .dashboardBlock td.camera .streamAlert {
-    top: 2px;
-    right: 0;
-}
-
 .tiled .dashboardBlock tr:has(td.chart) {
     display: grid;
     align-items: baseline;
@@ -1231,22 +1207,54 @@ tr:first-child td {
     text-align: right;
 }
 
+.tiled .dashboardBlock td {
+    display: block;
+    padding: 0;
+    border: none;
+}
+
+.tiled .dashboardBlock td.value {
+    overflow: hidden;
+    flex-shrink: 0;
+    width: auto;
+    margin-top: 5px;
+    text-align: left;
+    text-overflow: ellipsis;
+}
+
+.tiled .dashboardBlock td.value [data-property="runningStatus"] {
+    display: none;
+}
+
+.tiled .dashboardBlock td.camera .label {
+    margin-bottom: 10px;
+}
+
+.tiled .dashboardBlock td.camera .streamAlert {
+    top: 2px;
+    right: 0;
+}
+
 .tiled .dashboardBlock td.chart {
     grid-column: 1 / -1;
     margin-top: 5px;
+}
+
+.tiled .dashboardBlock .exposeIcon {
+    display: inline;
 }
 
 .automationInfo table, .itemInfo table, .deviceInfo table {
     margin-bottom: 20px;
 }
 
-.automationInfo td:first-child, .itemInfo td:first-child {
-    width: 150px;
-}
-
 .automationInfo td {
     white-space: normal;
     vertical-align: top;
+}
+
+.automationInfo td:first-child, .itemInfo td:first-child {
+    width: 150px;
 }
 
 .automationInfo td span {
@@ -1289,6 +1297,10 @@ tr:first-child td {
     text-decoration: underline;
 }
 
+.deviceInfo .summary tr {
+    display: none;
+}
+
 .deviceInfo td:first-child {
     width: 25%;
     min-width: 150px;
@@ -1297,10 +1309,6 @@ tr:first-child td {
 .deviceInfo td:last-child {
     font-family: var(--font-mono);
     font-size: var(--font-size-mono);
-}
-
-.deviceInfo .summary tr {
-    display: none;
 }
 
 .deviceInfo .exposes .label .name {
@@ -1523,16 +1531,16 @@ tr:first-child td {
     margin-bottom: 15px;
 }
 
+#modal table.select {
+    margin-bottom: 10px;
+}
+
 #modal tbody tr:first-child td {
     border-top: 1px solid var(--border-shade);
 }
 
 #modal tbody tr:last-child td {
     border-bottom: 1px solid var(--border-shade);
-}
-
-#modal table.select {
-    margin-bottom: 10px;
 }
 
 #modal table.select td.icon i {

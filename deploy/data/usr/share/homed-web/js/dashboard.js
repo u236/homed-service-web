@@ -243,10 +243,12 @@ class Dashboard
         let labelCell = row.insertCell();
         let valueCell = row.insertCell();
 
+        row.classList.add('scene');
+
         this.devicePromise(item, labelCell);
         labelCell.classList.add('label');
 
-        valueCell.innerHTML = '<i class="mdi-play"></i>';
+        valueCell.innerHTML = '<i class="mdi-fast-forward"></i>';
         valueCell.classList.add('value');
         valueCell.dataset.type = 'action';
 
