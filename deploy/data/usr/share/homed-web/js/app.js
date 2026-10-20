@@ -409,12 +409,12 @@ class Controller
 
         if (!name)
         {
-            this.showToast('Scene <b>' + scene + '</b> not found', 'warning');
+            this.showToast('Scene <b>' + scene + '</b> not found', 'warning', 1000);
             return;
         }
 
         Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.socket.publish('command/' + service, {action: 'callScene', scene: name}); });
-        this.showToast('Scene <b>' + name + '</b> called');
+        this.showToast('Scene <b>' + name + '</b> called', 'success', 1000);
     }
 
     propertyIcon(item)
@@ -523,7 +523,7 @@ class Controller
         showModal(false);
     }
 
-    showToast(message, style = 'success')
+    showToast(message, style = 'success', timeout = 3000)
     {
         let element = document.createElement('div');
 
@@ -531,7 +531,7 @@ class Controller
         element.classList.add('item', 'fade-in', style);
         element.addEventListener('click', function() { this.clearToast(element); }.bind(this));
 
-        setTimeout(function() { this.clearToast(element); }.bind(this), 5000);
+        setTimeout(function() { this.clearToast(element); }.bind(this), timeout);
         document.querySelector('#toast').appendChild(element);
     }
 
@@ -539,11 +539,13 @@ class Controller
     {
         let toast = document.querySelector('#toast');
 
-        if (!toast.contains(item))
+        if (!toast.contains(item) || item.classList.contains('collapse'))
             return;
 
-        setTimeout(function() { toast?.removeChild(item); }, 200);
-        item.classList.add('fade-out');
+        item.addEventListener('animationend', function() { toast.removeChild(item); });
+        item.style.height = item.offsetHeight + 'px';
+        item.classList.remove('fade-in');
+        item.classList.add('collapse');
     }
 
     searchNames(device)
