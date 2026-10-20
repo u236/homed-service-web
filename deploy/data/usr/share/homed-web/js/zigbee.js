@@ -142,7 +142,7 @@ class ZigBee extends DeviceService
 
         modal.querySelector('.dataLoader').style.display = 'none';
         table.querySelectorAll('tr').forEach(row => { if (row.dataset.id && !list.includes(row.dataset.id)) row.remove(); });
-        table.style.display = list.length ? 'table' : 'none';
+        table.parentNode.style.display = list.length ? 'block' : 'none';
         sortTable(table, 0);
     }
 
@@ -207,7 +207,7 @@ class ZigBee extends DeviceService
 
         modal.querySelector('.dataLoader').style.display = 'none';
         table.querySelectorAll('tr').forEach(row => { if (row.dataset.id && !list.includes(row.dataset.id)) row.remove(); });
-        table.style.display = list.length ? 'table' : 'none';
+        table.parentNode.style.display = list.length ? 'block' : 'none';
         sortTable(table, 0);
     }
 

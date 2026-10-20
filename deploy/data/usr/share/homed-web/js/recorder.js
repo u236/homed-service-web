@@ -81,10 +81,10 @@ class Recorder
             let value = (message.value ?? (list[2] ? message.max : message.avg))?.[message.timestamp.length - 1] ?? empty;
             let endpointId = item.endpoint.split('/')[2] ?? 'common';
 
-            if (value == empty)
-                delete cell.dataset.unit;
-            else
+            if (value != empty && unit)
                 cell.dataset.unit = unit;
+            else
+                delete cell.dataset.unit;
 
             item.row.value = ['true', 'false'].includes(value) ? value == 'true' : !isNaN(value) ? parseFloat(value) : value;
             updateExpose(device, endpointId, item.property, device.properties(endpointId)[item.property]);

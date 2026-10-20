@@ -1456,6 +1456,11 @@ th:last-child, td:last-child {
     max-height: 480px;
 }
 
+.log tbody {
+    display: table;
+    width: 100%;
+}
+
 .log tr:hover {
     color: var(--color-highlight);
 }
@@ -1469,7 +1474,7 @@ th:last-child, td:last-child {
 }
 
 .log td:first-child {
-    width: 1%;
+    width: 8px;
 }
 
 .log .circle {
@@ -1537,12 +1542,7 @@ th:last-child, td:last-child {
 }
 
 #modal table {
-    margin-top: 5px;
-    margin-bottom: 15px;
-}
-
-#modal table.select {
-    margin-bottom: 10px;
+    margin: 0;
 }
 
 #modal tbody tr:first-child td {
@@ -1588,13 +1588,20 @@ th:last-child, td:last-child {
 }
 
 #modal .data {
-    max-width: min(600px, calc(100% - 40px));
+    max-width: min(620px, calc(100% - 20px));
     margin: 10px auto;
     padding: 10px;
     border: 1px solid var(--border-shade);
     border-radius: var(--border-radius);
     background-color: var(--background-main);
+    box-sizing: border-box;
     box-shadow: var(--box-shadow);
+}
+
+#modal .data:has(.log) {
+    display: flex;
+    flex-direction: column;
+    max-height: max(340px, calc(100% - 20px));
 }
 
 #modal .data:not(:has(.table)) .chart, #modal .data:has(.log:empty) .chart {
@@ -1619,18 +1626,32 @@ th:last-child, td:last-child {
     position: relative;
     left: -5px;
     width: calc(100% + 10px);
+    margin-top: 5px;
+    margin-bottom: 15px;
 }
 
 #modal .table.overflow {
     overflow-x: auto;
 }
 
-#modal .copy {
+#modal .table:has(.select) {
+    margin-bottom: 10px;
+}
+
+#modal .table:has(.log) {
+    margin-top: 10px;
+}
+
+#modal .table:has(.log:empty) {
+    display: none;
+}
+
+#modal .copy, #modal .fullscreen {
     cursor: pointer;
     color: var(--color-shade);
 }
 
-#modal .copy:hover {
+#modal .copy:hover, #modal .fullscreen:hover {
     color: var(--color-warning);
 }
 
@@ -1641,14 +1662,6 @@ th:last-child, td:last-child {
 
 #modal .legend, #modal .log, #modal .states {
     border: none;
-}
-
-#modal .log {
-    margin-top: 10px;
-}
-
-#modal .log:empty {
-    display: none;
 }
 
 #modal .groups td:first-child, #modal .legend td:first-child, #modal .states td:first-child {
@@ -1696,6 +1709,21 @@ th:last-child, td:last-child {
 
 #modal .search .current, #modal .search .current .shade {
     color: var(--color-warning);
+}
+
+#modal[data-fullscreen] .data {
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100% - 20px);
+}
+
+#modal[data-fullscreen] .data:has(.log, .chart[data-type="numeric"]) {
+    max-height: clamp(340px, calc(100% - 20px), 700px);
+}
+
+#modal[data-fullscreen] .chart[data-type="numeric"] {
+    flex: 1 1 700px;
+    min-height: 0;
 }
 
 #toast {

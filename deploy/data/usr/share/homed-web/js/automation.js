@@ -92,7 +92,7 @@ class Automation
         table.querySelectorAll('tr').forEach(row => { if (!list.includes(row.dataset.state)) row.remove(); });
 
         modal.querySelector('.empty').style.display = list.length ? 'none' : 'block';
-        table.style.display = list.length ? 'table' : 'none';
+        table.parentNode.style.display = list.length ? 'block' : 'none';
 
         sortTable(table, 0);
     }

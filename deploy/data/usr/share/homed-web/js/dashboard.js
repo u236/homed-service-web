@@ -686,7 +686,7 @@ class Dashboard
     {
         let showTable = function(table, dashboard, overview)
         {
-            table.style.display = dashboard.blocks.length && !overview ? 'table' : 'none';
+            table.parentNode.style.display = dashboard.blocks.length && !overview ? 'block' : 'none';
             table.innerHTML = null;
 
             dashboard.blocks?.forEach((block, index) =>
@@ -814,7 +814,7 @@ class Dashboard
     {
         let showTable = function(table, dashboard, block)
         {
-            table.style.display = block.items.length ? 'table' : 'none';
+            table.parentNode.style.display = block.items.length ? 'block' : 'none';
             table.innerHTML = null;
 
             block.items.forEach((item, index) =>
@@ -1137,6 +1137,16 @@ class Dashboard
 
             modal.querySelector('.name').innerHTML = this.itemString(items[0], false) + (items.length > 1 ? ' <i class="mdi-plus"></i> ' + (items.length - 1) + ' ' + (items.length != 2 ? 'items' : 'item') : '');
             modal.querySelector('.name').parentNode.classList.toggle('history', items.length == 1 && items[0].shift ? true : false);
+
+            modal.querySelector('.fullscreen').addEventListener('click', function()
+            {
+                if (!modal.dataset.fullscreen)
+                    modal.dataset.fullscreen = true;
+                else
+                    delete modal.dataset.fullscreen;
+
+                this.querySelector('i').className = modal.dataset.fullscreen ? 'mdi-arrow-collapse' : 'mdi-arrow-expand';
+            });
 
             modal.querySelector('.interval').querySelectorAll('span').forEach(element =>
             {
