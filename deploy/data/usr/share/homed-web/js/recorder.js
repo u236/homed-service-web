@@ -409,7 +409,7 @@ class Recorder
 
             if (canvas.items.length > 1)
             {
-                options.scales.y.ticks = {mirror: true, labelOffset: -22, padding: 0, callback: function(value) { return canvas.labels[value]; }};
+                options.scales.y.ticks = {mirror: true, labelOffset: -22, padding: 0, showLabelBackdrop: true, backdropPadding: {top: 10, right: 2, bottom: 2, left: 2}, backdropColor: function(context) { let element = context.chart.canvas; while (getComputedStyle(element).backgroundColor == 'rgba(0, 0, 0, 0)') element = element.parentElement; return getComputedStyle(element).backgroundColor; }, callback: function(value) { return canvas.labels[value]; }};
                 options.scales.y.grid.drawTicks = false;
             }
 
