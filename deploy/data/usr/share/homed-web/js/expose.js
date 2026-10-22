@@ -217,6 +217,7 @@ function exposeTitle(device, endpoint, itemName, names = true)
         switch (list[0])
         {
             case 'co2':  list[0] = 'CO2'; break;
+            case 'cpu':  list[0] = 'CPU'; break;
             case 'ec':   list[0] = 'EC'; break;
             case 'eco2': list[0] = 'eCO2'; break;
             case 'pm':   list[0] = 'PM'; break;
@@ -388,12 +389,15 @@ function addExpose(table, device, endpointId, expose, names = true)
 
     list.forEach(property =>
     {
+        let meta = exposeMeta(property);
         let recorder = controller.services.recorder;
-        let last = table.rows[table.rows.length - 1]?.dataset.expose;
-        let edge = last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
+        let group = endpointId != 'common' && meta.id ? endpointId + '/' + meta.id : meta.id ?? endpointId;
+        let previous = table.rows[table.rows.length - 1];
+        let single = previous?.dataset.group != table.rows[table.rows.length - 2]?.dataset.group;
+        let last = previous?.dataset.expose;
+        let edge = names && previous && previous.dataset.group != group && !single || last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
         let endpoint = device.service.split('/')[0] + '/' + device.id;
-        let name = property.split('_')[0];
-        let option = options[property] ?? options[name] ?? new Object();
+        let option = options[property] ?? options[meta.name] ?? new Object();
         let row = table.insertRow();
         let labelCell = row.insertCell();
         let valueCell = row.insertCell();
@@ -402,9 +406,13 @@ function addExpose(table, device, endpointId, expose, names = true)
         if (endpointId != 'common')
             endpoint += '/' + endpointId;
 
+        if (names && previous?.dataset.group == group && single && previous.rowIndex)
+            previous.querySelectorAll('td').forEach(item => item.classList.add('edge'));
+
         row.dataset.device = device.service + '/' + device.id;
         row.dataset.endpointId = endpointId;
         row.dataset.expose = expose;
+        row.dataset.group = group;
 
         labelCell.innerHTML = exposeIcon(device, endpoint, property) + '<span class="name">' + exposeTitle(device, endpoint, property) + '</span>';
         labelCell.classList.add('label');
@@ -488,7 +496,7 @@ function addExpose(table, device, endpointId, expose, names = true)
             controlCell.classList.add('control');
         }
 
-        switch (name)
+        switch (meta.name)
         {
             case 'color':
                 colorPicker = new iro.ColorPicker(controlCell, {layout: [{component: iro.ui.Wheel}], width: 150});
@@ -529,7 +537,7 @@ function addExpose(table, device, endpointId, expose, names = true)
                 valueCell.dataset.type = 'number';
                 controlCell.innerHTML = '<input type="range" min="0" max="100" class="' + property + '">';
                 controlCell.querySelector('input').addEventListener('input', function() { valueCell.innerHTML = '<span' + (valueCell.dataset.value != this.value ? ' class="shade"' : '') + '>' + this.value + ' %</span>'; });
-                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: name == 'level' ? Math.round(this.value * 2.55) : parseInt(this.value)}); });
+                controlCell.querySelector('input').addEventListener('change', function() { if (valueCell.dataset.value != this.value) deviceCommand(device, endpointId, {[property]: meta.name == 'level' ? Math.round(this.value * 2.55) : parseInt(this.value)}); });
                 break;
 
             case 'status':
@@ -775,6 +783,12 @@ function updateExpose(device, endpointId, property, data)
                         }
 
                         case 'select': row.querySelector('td.control select').value = value; break;
+                    }
+
+                    if (name == 'uptime' && cell.dataset.unit == 'sec' && typeof value == 'number')
+                    {
+                        cell.innerHTML = parseInt(value / 86400) + 'd ' + new Date(value * 1000).toISOString().slice(11, 19);
+                        break;
                     }
 
                     if (typeof value == 'number' && cell.dataset.round)
