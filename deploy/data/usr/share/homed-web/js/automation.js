@@ -239,11 +239,13 @@ class Automation
         if (item.endpoint != 'triggerEndpoint' || item.property != 'triggerProperty')
         {
             let device = this.controller.findDevice(item);
+            let check = item.endpoint.split('/')[2] == 'any';
+            let title = exposeTitle(device, check ? item.endpoint.slice(0, -4) : item.endpoint, item.property) + (check ? ' (any)' : '');
 
             if (form)
-                return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.property);
+                return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + title;
 
-            return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="mdi-arrow-right"></i> <span class="value">' + exposeTitle(device, item.endpoint, item.property) + '</span>';
+            return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="mdi-arrow-right"></i> <span class="value">' + title + '</span>';
         }
 
         return form ? '<i>Trigger Property</i>' : '<span class="value"><i>Trigger Property</i></span>';
@@ -1021,7 +1023,7 @@ class Automation
     {
         loadHTML('html/automation/propertyItem.html', this, modal.querySelector('.data'), function()
         {
-            let properties = this.controller.propertyList(type != 'trigger');
+            let properties = this.controller.propertyList(type != 'trigger', false, type == 'trigger');
             let data;
 
             modal.querySelector('.name').innerHTML = 'Property ' + type;
@@ -1097,7 +1099,7 @@ class Automation
                 item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
                 item.active = form.active;
 
-                if (form.hold && type == 'trigger')
+                if (form.hold && type == 'trigger' && item.endpoint.split('/')[2] != 'any')
                     item.hold = form.hold;
                 else
                     delete item.hold;
@@ -1107,7 +1109,7 @@ class Automation
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
 
-                if (form.force && type == 'trigger')
+                if (form.force && type == 'trigger' && !['changes', 'updates'].includes(form.statement))
                     item.force = true;
                 else
                     delete item.force;
@@ -1197,7 +1199,7 @@ class Automation
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
 
-                if (form.force && type == 'trigger')
+                if (form.force && type == 'trigger' && !['changes', 'updates'].includes(form.statement))
                     item.force = true;
                 else
                     delete item.force;
@@ -1275,7 +1277,7 @@ class Automation
                 else
                     delete trigger.name;
 
-                if (form.force)
+                if (form.force && !['changes', 'updates'].includes(form.statement))
                     trigger.force = true;
                 else
                     delete trigger.force;

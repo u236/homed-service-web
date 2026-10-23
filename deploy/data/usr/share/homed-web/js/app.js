@@ -340,7 +340,7 @@ class Controller
         return list;
     }
 
-    propertyList(triggerProperty, pattern)
+    propertyList(triggerProperty, pattern, any)
     {
         let devices = this.deviceList();
         let list = new Object();
@@ -351,10 +351,14 @@ class Controller
         Object.keys(devices).forEach(name =>
         {
             let device = devices[name];
+            let endpoint = device.service.split('/')[0] + '/' + device.id;
+            let groups = new Array();
+            let items = new Array();
 
             Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { exposeList(expose, device.options(endpointId)).forEach(property =>
             {
-                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, property: property};
+                let value = {endpoint: endpoint, property: property};
+                let meta = exposeMeta(property);
 
                 if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
                     return;
@@ -362,9 +366,27 @@ class Controller
                 if (endpointId != 'common')
                     value.endpoint += '/' + endpointId;
 
-                list[exposeIcon(device, value.endpoint, property) + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, property)] = pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value;
+                if (!groups.includes(meta.name))
+                    groups.push(meta.name);
+
+                items.push([groups.indexOf(meta.name), 0, parseInt(meta.id ?? endpointId) || 0, exposeIcon(device, value.endpoint, property) + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, property), pattern ? '{{ property | ' + value.endpoint + ' | ' + property + ' }}' : value]);
 
             }); }); });
+
+            if (any)
+            {
+                groups.forEach((group, index) =>
+                {
+                    let list = items.filter(item => item[0] == index);
+
+                    if (list.length < 2)
+                        return;
+
+                    items.push([index, 1, 0, exposeIcon(device, list[0][4].endpoint, list[0][4].property) + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, endpoint, group) + ' (any)', {endpoint: endpoint + '/any', property: group}]);
+                });
+            }
+
+            items.sort(function(a, b) { return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach(item => list[item[3]] = item[4]);
         });
 
         return list;
@@ -383,7 +405,7 @@ class Controller
         let groups =
         {
             name:     {'Trigger name': '{{ triggerName }}'},
-            trigger:  {'Trigger property': '{{ triggerProperty }}', 'Trigger topic': '{{ triggerTopic }}', 'Trigger message': '{{ triggerMessage }}'},
+            trigger:  {'Trigger endpoint': '{{ triggerEndpoint }}', 'Trigger property': '{{ triggerProperty }}', 'Trigger topic': '{{ triggerTopic }}', 'Trigger message': '{{ triggerMessage }}'},
             data:     {'MQTT data': '{{ mqtt | mqtt/topic/name | jsonField }}', 'State value': '{{ state | stateName }}', 'File contents': '{{ file | /path/to/file }}'},
             meta:     {'Shell output': '{{ shellOutput }}', 'Loop index': '{{ loopIndex }}'},
             time:     {'Timestamp': '{{ timestamp | dd.MM.yy hh:mm }}', 'Sunrise': '{{ sunrise | hh:mm }}', 'Sunset': '{{ sunset | hh:mm }}'},
