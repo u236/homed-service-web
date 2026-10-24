@@ -343,6 +343,9 @@ class Automation
         if (trigger.name)
             data += (trigger.offset ? ' and ' : ' with ') + 'name <span class="value">' + trigger.name + '</span>';
 
+        if (trigger.startup == false)
+            data += ' <span class="flag">skip startup</span>';
+
         if (trigger.hold)
             data += ' <span class="flag">' + trigger.hold + ' ' + (trigger.hold != 1 ? 'seconds' : 'second') + '</span>';
         else if (trigger.force)
@@ -1070,6 +1073,9 @@ class Automation
             modal.querySelector('#triggerName.dropdown').style.display = type == 'trigger' ? 'inline' : 'none';
             modal.querySelector('textarea[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
+            modal.querySelector('input[name="startup"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
+            modal.querySelector('input[name="startup"]').checked = item.startup ?? true;
+
             modal.querySelector('input[name="force"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
 
@@ -1108,6 +1114,11 @@ class Automation
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
+
+                if (!form.startup && type == 'trigger')
+                    item.startup = false;
+                else
+                    delete item.startup;
 
                 if (form.force && type == 'trigger' && !['changes', 'updates'].includes(form.statement))
                     item.force = true;
@@ -1170,6 +1181,9 @@ class Automation
             modal.querySelector('#triggerName.dropdown').style.display = type == 'trigger' ? 'inline' : 'none';
             modal.querySelector('textarea[name="triggerName"]').value = (type == 'trigger' ? item.name : item.triggerName) ?? '';
 
+            modal.querySelector('input[name="startup"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
+            modal.querySelector('input[name="startup"]').checked = item.startup ?? true;
+
             modal.querySelector('input[name="force"]').closest('label').style.display = type == 'trigger' ? 'block' : 'none';
             modal.querySelector('input[name="force"]').checked = item.force ?? false;
 
@@ -1198,6 +1212,11 @@ class Automation
                     item[type == 'trigger' ? 'name' : 'triggerName'] = form.triggerName;
                 else
                     delete item[type == 'trigger' ? 'name' : 'triggerName'];
+
+                if (!form.startup && type == 'trigger')
+                    item.startup = false;
+                else
+                    delete item.startup;
 
                 if (form.force && type == 'trigger' && !['changes', 'updates'].includes(form.statement))
                     item.force = true;
