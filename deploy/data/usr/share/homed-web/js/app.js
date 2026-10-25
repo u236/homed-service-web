@@ -429,10 +429,10 @@ class Controller
             if (!device.info.active || (device.availability != 'offline' && !status))
                 return;
 
-            list[this.searchTitle('Device', name) + (device.availability == 'offline' ? ' <span class="flag error">offline</span>' : ' <span class="' + status + ' flag">battery</span>')] = device.service + '?device=' + device.id;
+            list[this.searchTitle('Device', name, device.availability == 'offline' ? 'cube error' : 'battery-charging ' + status)] = device.service + '?device=' + device.id;
         });
 
-        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].broken(automation)) list[this.searchTitle('Automation', automation.name) + ' <span class="flag error">broken</span>'] = service + '?uuid=' + automation.uuid; }); });
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].broken(automation)) list[this.searchTitle('Automation', automation.name, 'script error')] = service + '?uuid=' + automation.uuid; }); });
         return list;
     }
 
@@ -616,20 +616,20 @@ class Controller
         return list;
     }
 
-    searchTitle(type, name)
+    searchTitle(type, name, icon)
     {
-        let icon =
+        let icons =
         {
-            automation: 'auto-fix',
+            automation: 'script',
             camera:     'video',
             dashboard:  'view-dashboard',
-            device:     'devices',
+            device:     'cube',
             recorder:   'chart-line-variant',
             scene:      'play',
-            service:    'puzzle-outline'
+            service:    'server'
         }
 
-        return '<i class="mdi-' + (icon[type.toLowerCase()] ?? 'help') + '"></i> ' + type + ' <i class="mdi-arrow-right"></i> ' + name;
+        return '<i class="mdi-' + (icon ?? icons[type.toLowerCase()] ?? 'help') + '"></i> ' + type + ' <i class="mdi-arrow-right"></i> ' + name;
     }
 
     showSearch()

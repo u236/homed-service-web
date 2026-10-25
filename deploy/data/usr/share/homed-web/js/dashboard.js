@@ -69,7 +69,15 @@ class Dashboard
             new Promise(wait.bind(this)).then(function()
             {
                 let name = item.name ?? (device.info?.name ?? item.endpoint) + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+                let row = cell.closest('tr');
+
                 cell.innerHTML = (icon ? (device.info ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '<span class="mdi-ghost exposeIcon error"></span>') + '<span class="name">' + name + '</span>' : name);
+
+                if (row && !device.info)
+                {
+                    row.classList.remove('inactive');
+                    row.classList.add('missing');
+                }
 
             }.bind(this));
         }
@@ -576,6 +584,7 @@ class Dashboard
 
                             row.dataset.device = device.service + '/' + device.id;
                             row.dataset.endpointId = endpointId;
+                            row.classList.remove('missing');
                             row.querySelectorAll(cell.dataset.type == 'action' ? 'td.label' : 'td.label, td.value').forEach(element => element.addEventListener('click', function() { this.showExposeInfo(item, device, endpointId); }.bind(this)));
 
                             if (tiled && item.expose && cell.dataset.type == 'action')

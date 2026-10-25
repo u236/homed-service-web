@@ -765,6 +765,7 @@ th:last-child, td:last-child {
     border: none;
     background-color: var(--color-error);
     color: var(--background-shade);
+    opacity: 0.75;
 }
 
 .header .menu {
@@ -1063,6 +1064,14 @@ th:last-child, td:last-child {
 .dashboardBlock .offline {
     background-color: var(--background-shade);
     opacity: 0.5;
+}
+
+.dashboardBlock .missing td.value, .dashboardBlock .missing .name {
+    opacity: 0.5;
+}
+
+.dashboardBlock .missing .exposeIcon {
+    opacity: 0.75;
 }
 
 .tiled .column.b {
@@ -1727,16 +1736,8 @@ th:last-child, td:last-child {
     margin-right: 6px;
 }
 
-#modal .search .issue .flag {
-    float: right;
-}
-
-#modal .search .issue .warning {
-    color: var(--color-warning);
-}
-
-#modal .search .issue .error {
-    color: var(--color-error);
+#modal .search .issue i:first-child {
+    opacity: 0.75;
 }
 
 #modal .search .current, #modal .search .current .shade {
