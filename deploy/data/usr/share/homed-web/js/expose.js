@@ -395,7 +395,7 @@ function addExpose(table, device, endpointId, expose, names = true)
         let previous = table.rows[table.rows.length - 1];
         let single = previous?.dataset.group != table.rows[table.rows.length - 2]?.dataset.group;
         let last = previous?.dataset.expose;
-        let edge = names && previous && previous.dataset.group != group && !single || last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram');
+        let edge = (names && previous && previous.dataset.group != group && !single) || (last != expose && (last == 'thermostatProgram' || expose == 'thermostatProgram')) ? true : false;
         let endpoint = device.service.split('/')[0] + '/' + device.id;
         let option = options[property] ?? options[meta.name] ?? new Object();
         let row = table.insertRow();

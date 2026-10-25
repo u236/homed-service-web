@@ -1728,10 +1728,18 @@ th:last-child, td:last-child {
 }
 
 #modal .search .issue .flag {
+    float: right;
+}
+
+#modal .search .issue .warning {
+    color: var(--color-warning);
+}
+
+#modal .search .issue .error {
     color: var(--color-error);
 }
 
-#modal .search .current, #modal .search .current .shade, #modal .search .current .flag {
+#modal .search .current, #modal .search .current .shade {
     color: var(--color-warning);
 }
 

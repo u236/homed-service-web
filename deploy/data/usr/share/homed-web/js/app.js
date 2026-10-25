@@ -420,8 +420,19 @@ class Controller
     {
         let devices = this.deviceList();
         let list = new Object();
-        Object.keys(devices).forEach(name => { let device = devices[name]; if (device.info.active && device.availability == 'offline') list[this.searchTitle('Device', name) + ' <span class="flag">offline</span>'] = device.service + '?device=' + device.id; });
-        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].broken(automation)) list[this.searchTitle('Automation', automation.name) + ' <span class="flag">broken</span>'] = service + '?uuid=' + automation.uuid; }); });
+
+        Object.keys(devices).forEach(name =>
+        {
+            let device = devices[name];
+            let status = batteryStatus(device.properties('common').battery ?? device.properties('common').batteryLow);
+
+            if (!device.info.active || (device.availability != 'offline' && !status))
+                return;
+
+            list[this.searchTitle('Device', name) + (device.availability == 'offline' ? ' <span class="flag error">offline</span>' : ' <span class="' + status + ' flag">battery</span>')] = device.service + '?device=' + device.id;
+        });
+
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].broken(automation)) list[this.searchTitle('Automation', automation.name) + ' <span class="flag error">broken</span>'] = service + '?uuid=' + automation.uuid; }); });
         return list;
     }
 
@@ -1639,7 +1650,7 @@ function searchMatch(value, search)
 
 function sortTable(table, index, first = true, once = false)
 {
-    let invert = once && index == table.dataset.index ? true : false;
+    let invert = once && index == table.dataset.index;
     let check = true;
 
     while (check)
@@ -1974,14 +1985,20 @@ function loadFile(callback)
     input.click();
 }
 
+function batteryStatus(value)
+{
+    let check = typeof(value) == 'boolean';
+    return value == undefined || parseInt(value) > 20 || (check && !value) ? false : parseInt(value) > 10 || check ? 'warning' : 'error';
+}
+
 function checkBattery(element, value)
 {
-    let type = typeof(value);
+    let status = batteryStatus(value);
 
     element.classList.remove('error', 'warning');
 
-    if (parseInt(value) > 20 || (type == 'boolean' && !value))
+    if (!status)
         return;
 
-    element.classList.add(parseInt(value) > 10 || type == 'boolean' ? 'warning' : 'error');
+    element.classList.add(status);
 }
