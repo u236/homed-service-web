@@ -185,6 +185,17 @@ class Controller
         delete this.services[item];
     }
 
+    updateHealth()
+    {
+        let element = document.querySelector('.header .search');
+        let count = Object.keys(this.healthList()).length;
+
+        if (!element)
+            return;
+
+        element.innerHTML = '<i class="mdi-magnify"></i>' + (count ? ' <span class="value">' + count + '</span>' : '');
+    }
+
     updateMenu(redraw)
     {
         let menu = document.querySelector('.header .services');
@@ -402,6 +413,14 @@ class Controller
     {
         let list = new Object();
         this.services.camera?.status.devices?.forEach(device => { list['<span class="mdi-video exposeIcon"></span>Camera <i class="mdi-arrow-right"></i> ' + device.name] = '{{ camera | ' + device.id + ' }}'; });
+        return list;
+    }
+
+    healthList()
+    {
+        let devices = this.deviceList();
+        let list = new Object();
+        Object.keys(devices).forEach(name => { let device = devices[name]; if (device.info.active && device.availability == 'offline') list[this.searchTitle('Device', name) + ' <span class="flag">offline</span>'] = device.service + '?device=' + device.id; });
         return list;
     }
 
@@ -672,25 +691,6 @@ class Controller
             modal.querySelector('.close').addEventListener('click', function() { dropdown = undefined; showModal(false); });
             showModal(true, 'input');
         });
-    }
-
-    healthList()
-    {
-        let devices = this.deviceList();
-        let list = new Object();
-        Object.keys(devices).forEach(name => { let device = devices[name]; if (device.info.active && device.availability == 'offline') list[this.searchTitle('Device', name) + ' <span class="flag">offline</span>'] = device.service + '?device=' + device.id; });
-        return list;
-    }
-
-    updateHealth()
-    {
-        let element = document.querySelector('.header .search');
-        let count = Object.keys(this.healthList()).length;
-
-        if (!element)
-            return;
-
-        element.innerHTML = '<i class="mdi-magnify"></i>' + (count ? ' <span class="value">' + count + '</span>' : '');
     }
 }
 
@@ -1067,7 +1067,6 @@ class Dropdown
         this.list = list;
         this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
         this.list.addEventListener('mouseout', function() { if (this.mouse) this.setIndex(-1); }.bind(this));
-        this.list.style.display = 'block';
 
         this.trigger = trigger;
     }
@@ -1111,6 +1110,12 @@ class Dropdown
         }
 
         return true;
+    }
+
+    open()
+    {
+        this.setIndex(-1);
+        this.list.style.display = 'block';
     }
 
     close()
@@ -1798,9 +1803,12 @@ function addDropdown(element, options, callback, separator, trigger)
         }
 
         dropdown?.close();
-        dropdown = new Dropdown(list, trigger);
+        dropdown = list.dropdown;
+        dropdown.open();
         search?.focus();
     });
+
+    list.dropdown = new Dropdown(list, trigger);
 }
 
 function addDrag(cell, callback)

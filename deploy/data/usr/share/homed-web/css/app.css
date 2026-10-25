@@ -658,7 +658,7 @@ th:last-child, td:last-child {
 
 .dropdown hr {
     height: 1px;
-    margin: 5px -10px;
+    margin: 3px -10px;
     border: none;
     background-color: var(--border-main);
 }
@@ -1687,8 +1687,13 @@ th:last-child, td:last-child {
     overflow-x: auto;
     min-width: min(400px, calc(100vw - 50px));
     max-width: calc(100vw - 50px);
-    max-height: clamp(148px, calc(round(down, 100vh - 220px, 23px) + 56px), 424px);
+    max-height: clamp(149px, calc(round(down, 100vh - 220px, 23px) + 57px), 425px);
+    padding-bottom: 8px;
     box-sizing: border-box;
+}
+
+#modal .dropdown .list:has(hr) {
+    max-height: clamp(156px, calc(round(down, 100vh - 220px, 23px) + 64px), 432px);
 }
 
 #modal .dropdown .list input[type="text"] {
@@ -1703,6 +1708,10 @@ th:last-child, td:last-child {
     overflow-y: auto;
     max-height: clamp(100px, calc(round(down, 100vh - 220px, 25px)), 400px);
     margin-bottom: 10px;
+}
+
+#modal .search:has(hr) {
+    max-height: clamp(107px, calc(round(down, 100vh - 220px, 25px) + 7px), 407px);
 }
 
 #modal .search .item {
@@ -1728,7 +1737,7 @@ th:last-child, td:last-child {
 
 #modal .search hr {
     height: 1px;
-    margin: 5px 0;
+    margin: 3px 0;
     border: none;
     background-color: var(--border-main);
 }
