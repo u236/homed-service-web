@@ -180,7 +180,7 @@ class Automation
         cell.innerHTML += '<span class="small ' + (current ? 'warning' : 'shade') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
     }
 
-    isArrayStatement(statement)
+    arrayStatement(statement)
     {
         return statement == 'between' || statement == 'outside';
     }
@@ -195,35 +195,30 @@ class Automation
         }
     }
 
+    broken(item)
+    {
+        let check = false;
+
+        if (Object.values(this.controller.services).find(service => service.devices && !service.ready))
+            return false;
+
+        Object.keys(item).forEach(key =>
+        {
+            if (!Array.isArray(item[key]))
+                return;
+
+            item[key].forEach(element => { if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty' && !this.controller.findDevice(element).info) check = true; });
+        });
+
+        return check;
+    }
+
     checkDevices()
     {
         if (this.controller.page != this.service || !this.status.automations)
             return;
 
-        this.status.automations.forEach((item, index) =>
-        {
-            let row = document.querySelector('tr[data-index="' + index + '"]');
-            let check = false;
-
-            if (!row)
-                return;
-
-            Object.keys(item).forEach(key =>
-            {
-                if (!Array.isArray(item[key]))
-                    return;
-
-                item[key].forEach(element => { if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty' && !this.controller.findDevice(element).info) check = true; });
-            });
-
-            if (check)
-            {
-                row.classList.add('incomplete');
-                return;
-            }
-
-            row.classList.remove('incomplete');
-        });
+        this.status.automations.forEach((item, index) => { document.querySelector('tr[data-index="' + index + '"]')?.classList.toggle('broken', this.broken(item)); });
     }
 
     shieldValue(value)
@@ -311,7 +306,7 @@ class Automation
                     if (statement == 'updates')
                         break;
 
-                    data += ' <span class="value">' + (this.isArrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : this.shieldValue(trigger[statement])) + '</span>'; // TODO: shieldValue for array statements
+                    data += ' <span class="value">' + (this.arrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : this.shieldValue(trigger[statement])) + '</span>'; // TODO: shieldValue for array statements
                 }
 
                 break;
@@ -367,7 +362,7 @@ class Automation
             if (!condition.hasOwnProperty(statement))
                 continue;
 
-            value = this.isArrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : this.shieldValue(condition[statement]); // TODO: parseString for array statements
+            value = this.arrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : this.shieldValue(condition[statement]); // TODO: parseString for array statements
 
             switch (condition.type)
             {
@@ -1053,7 +1048,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (this.isArrayStatement(statement))
+                if (this.arrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = item[statement][0];
                     modal.querySelector('input[name="max"]').value = item[statement][1];
@@ -1102,7 +1097,7 @@ class Automation
 
                 statements.forEach(statement => delete item[statement]);
 
-                item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                item[form.statement] = this.arrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
                 item.active = form.active;
 
                 if (form.hold && type == 'trigger' && item.endpoint.split('/')[2] != 'any')
@@ -1161,7 +1156,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (this.isArrayStatement(statement))
+                if (this.arrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = item[statement][0];
                     modal.querySelector('input[name="max"]').value = item[statement][1];
@@ -1200,7 +1195,7 @@ class Automation
 
                 item.topic = form.topic;
                 item.property = form.property;
-                item[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                item[form.statement] = this.arrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
                 item.active = form.active;
 
                 if (form.hold && type == 'trigger')
@@ -1257,7 +1252,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (this.isArrayStatement(statement))
+                if (this.arrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = trigger[statement][0];
                     modal.querySelector('input[name="max"]').value = trigger[statement][1];
@@ -1283,7 +1278,7 @@ class Automation
                 this.triggerStatement.forEach(statement => delete trigger[statement]);
 
                 trigger.state = form.state;
-                trigger[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
+                trigger[form.statement] = this.arrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : form.statement != 'updates' ? this.parseValue(form.value) : true;
                 trigger.active = form.active;
 
                 if (form.hold)
@@ -1521,7 +1516,7 @@ class Automation
 
                     modal.querySelector('select[name="statement"]').value = statement;
 
-                if (this.isArrayStatement(statement))
+                if (this.arrayStatement(statement))
                 {
                     modal.querySelector('input[name="min"]').value = condition[statement][0];
                     modal.querySelector('input[name="max"]').value = condition[statement][1];
@@ -1543,7 +1538,7 @@ class Automation
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
                 condition[item] = form[item];
-                condition[form.statement] = this.isArrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
+                condition[form.statement] = this.arrayStatement(form.statement) ? [this.parseValue(form.min), this.parseValue(form.max)] : this.parseValue(form.value);
                 condition.active = form.active;
 
                 if (append)
@@ -1580,7 +1575,7 @@ class Automation
 
                 modal.querySelector('select[name="statement"]').value = statement;
 
-                if (this.isArrayStatement(statement))
+                if (this.arrayStatement(statement))
                 {
                     modal.querySelector('input[name="start"]').value = condition[statement][0];
                     modal.querySelector('input[name="end"]').value = condition[statement][1];
@@ -1600,7 +1595,7 @@ class Automation
 
                 this.conditionStatement.forEach(statement => delete condition[statement]);
 
-                condition[form.statement] = this.isArrayStatement(form.statement) ? [form.start, form.end] : form.value;
+                condition[form.statement] = this.arrayStatement(form.statement) ? [form.start, form.end] : form.value;
                 condition.active = form.active;
 
                 if (append)

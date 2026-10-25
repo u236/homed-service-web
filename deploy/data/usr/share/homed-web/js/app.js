@@ -421,6 +421,7 @@ class Controller
         let devices = this.deviceList();
         let list = new Object();
         Object.keys(devices).forEach(name => { let device = devices[name]; if (device.info.active && device.availability == 'offline') list[this.searchTitle('Device', name) + ' <span class="flag">offline</span>'] = device.service + '?device=' + device.id; });
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].broken(automation)) list[this.searchTitle('Automation', automation.name) + ' <span class="flag">broken</span>'] = service + '?uuid=' + automation.uuid; }); });
         return list;
     }
 

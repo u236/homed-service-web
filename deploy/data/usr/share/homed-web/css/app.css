@@ -522,7 +522,7 @@ th:last-child, td:last-child {
     text-align: right;
 }
 
-.offline, .incomplete {
+.offline, .broken {
     background-color: var(--background-error);
 }
 
