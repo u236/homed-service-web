@@ -65,6 +65,11 @@ class Controller
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
     services = {dashboard: new Dashboard(this)};
 
+    constructor()
+    {
+        setInterval(function() { this.updateHealth(); }.bind(this), 1000);
+    }
+
     onopen()
     {
         console.log('socket successfully connected');
@@ -235,7 +240,7 @@ class Controller
 
                 separator.classList.add('separator');
 
-                if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 350)
+                if (menu.offsetWidth > document.querySelector('.header .container').offsetWidth - 370)
                 {
                     let item = document.createElement('span');
                     let element = document.createElement('div');
@@ -250,6 +255,7 @@ class Controller
                 }
 
                 menu.append(separator, search);
+                this.updateHealth();
             }
         }
 
@@ -597,11 +603,12 @@ class Controller
 
     showSearch()
     {
+        let list = this.healthList();
+        let issues = Object.keys(list).length;
         let scenes = this.sceneList();
         let dashboard = this.services.dashboard;
         let devices = this.deviceList();
         let names = new Object();
-        let list = new Object();
 
         Object.keys(scenes).forEach(item => { let scene = scenes[item]; list[this.searchTitle('Scene', scene)] = {scene: scene}; });
         dashboard.status.dashboards?.forEach((item, index) => { list[this.searchTitle('Dashboard', dashboard.dashboardName(item, false))] = 'dashboard?index=' + index; });
@@ -618,7 +625,7 @@ class Controller
             let element = modal.querySelector('.search');
             let input = modal.querySelector('input');
 
-            Object.keys(list).forEach(key =>
+            Object.keys(list).forEach((key, index) =>
             {
                 let item = document.createElement('div');
 
@@ -626,11 +633,17 @@ class Controller
                 item.classList.add('item');
                 item.addEventListener('click', function() { dropdown = undefined; showModal(false); list[key].scene ? this.callScene(list[key].scene) : this.showPage(list[key]); }.bind(this));
 
+                if (index < issues)
+                    item.classList.add('issue');
+
                 if (names[key]?.length)
                 {
                     item.key = key;
                     item.names = names[key];
                 }
+
+                if (issues && index == issues)
+                    element.append(document.createElement('hr'));
 
                 element.append(item);
             });
@@ -639,7 +652,7 @@ class Controller
             {
                 dropdown.setIndex(-1);
 
-                element.querySelectorAll('.item').forEach(item =>
+                element.querySelectorAll('.item, hr').forEach(item =>
                 {
                     let names = new Array();
 
@@ -649,7 +662,7 @@ class Controller
                         item.innerHTML = item.key + (names.length ? ' <i class="mdi-arrow-right shade"></i> <span class="shade">' + names.join(', ') + '</span>' : '');
                     }
 
-                    item.style.display = input.value && !names.length && !searchMatch(item.textContent, input.value) ? 'none' : 'block';
+                    item.style.display = input.value && (item.classList.contains('issue') || (!names.length && !searchMatch(item.textContent, input.value))) ? 'none' : 'block';
                 });
             });
 
@@ -659,6 +672,25 @@ class Controller
             modal.querySelector('.close').addEventListener('click', function() { dropdown = undefined; showModal(false); });
             showModal(true, 'input');
         });
+    }
+
+    healthList()
+    {
+        let devices = this.deviceList();
+        let list = new Object();
+        Object.keys(devices).forEach(name => { let device = devices[name]; if (device.info.active && device.availability == 'offline') list[this.searchTitle('Device', name) + ' <span class="flag">offline</span>'] = device.service + '?device=' + device.id; });
+        return list;
+    }
+
+    updateHealth()
+    {
+        let element = document.querySelector('.header .search');
+        let count = Object.keys(this.healthList()).length;
+
+        if (!element)
+            return;
+
+        element.innerHTML = '<i class="mdi-magnify"></i>' + (count ? ' <span class="value">' + count + '</span>' : '');
     }
 }
 
@@ -1724,7 +1756,15 @@ function addDropdown(element, options, callback, separator, trigger)
         search = document.createElement('input');
         search.type = 'text';
         search.placeholder = 'Type to search';
-        search.addEventListener('input', function() { dropdown.setIndex(-1); list.querySelectorAll('.item').forEach(item => { item.style.display = search.value && !searchMatch(item.textContent, search.value) ? 'none' : 'block'; }); });
+
+        search.addEventListener('input', function()
+        {
+            let items = Array.from(list.querySelectorAll('.item'));
+            dropdown.setIndex(-1);
+            items.forEach(item => { item.style.display = search.value && !searchMatch(item.textContent, search.value) ? 'none' : 'block'; });
+            list.querySelectorAll('hr').forEach(item => { item.style.display = items.slice(0, separator).some(item => item.style.display != 'none') && items.slice(separator).some(item => item.style.display != 'none') ? 'block' : 'none'; });
+        });
+
         list.append(search);
     }
 
@@ -1787,17 +1827,17 @@ function showModal(show, focus, type)
         {
             case 'trigger':
                 list = controller.patternList(['name', 'meta', 'light', 'camera']);
-                separator = 9;
+                separator = 10;
                 break;
 
             case 'condition':
                 list = controller.patternList(['light', 'camera']);
-                separator = 12;
+                separator = 13;
                 break;
 
             case 'action':
                 list = controller.patternList();
-                separator = 14;
+                separator = 15;
                 break;
         }
 
