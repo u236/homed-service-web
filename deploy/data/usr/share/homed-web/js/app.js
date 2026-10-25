@@ -1410,7 +1410,7 @@ window.onload = function()
 
     window.addEventListener('hashchange', function() { let page = decodeURI(location.hash).slice(1); if (controller.page != page) controller.showPage(page); });
 
-    document.addEventListener('mousedown', function(event) { if (event.target == modal) showModal(false); });
+    document.addEventListener('mousedown', function(event) { if (event.target == modal) { modal.querySelector('button.cancel')?.click(); modal.querySelector('button.close')?.click(); } });
     document.addEventListener('click', function(event) { if (dropdown && !dropdown.trigger.contains(event.target)) { dropdown.close(); dropdown = undefined; } });
 
     document.querySelector('#hotkeys').addEventListener('click', function()

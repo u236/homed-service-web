@@ -367,8 +367,8 @@ class Dashboard
             menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
             menu.innerHTML += '<span id="import" class="mobileHidden"><i class="mdi-upload"></i> Import</span>';
 
-            menu.querySelector('#sort').addEventListener('click', function() { this.showDashboardSort(); }.bind(this));
-            menu.querySelector('#add').addEventListener('click', function() { this.showDashboardEdit(); }.bind(this));
+            menu.querySelector('#sort').addEventListener('click', function() { this.backup = structuredClone(this.status.dashboards); this.showDashboardSort(); }.bind(this));
+            menu.querySelector('#add').addEventListener('click', function() { this.backup = structuredClone(this.status.dashboards); this.showDashboardEdit(); }.bind(this));
 
             menu.querySelector('#import').addEventListener('click', function()
             {
@@ -423,7 +423,7 @@ class Dashboard
 
             if (!guest)
             {
-                this.content.querySelector('.edit').addEventListener('click', function() { this.showDashboardEdit(dashboard); }.bind(this));
+                this.content.querySelector('.edit').addEventListener('click', function() { this.backup = structuredClone(this.status.dashboards); this.showDashboardEdit(this.status.dashboards[this.index]); }.bind(this));
                 this.content.querySelector('.remove').addEventListener('click', function() { this.showDashboardRemove(dashboard); }.bind(this));
 
                 this.content.querySelector('.export').addEventListener('click', function()
@@ -503,7 +503,7 @@ class Dashboard
                         else
                             element.querySelector('.control').innerHTML += '<span class="edit"><i class="mdi-pencil"></i></span>';
 
-                        element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(dashboard, index); }.bind(this));
+                        element.querySelector('.edit').addEventListener('click', function() { this.showBlockEdit(this.status.dashboards[this.index], index); }.bind(this));
                     }
 
                     if (block.note)
@@ -679,7 +679,7 @@ class Dashboard
         loadHTML('html/dashboard/dashboardSort.html', this, modal.querySelector('.data'), function()
         {
             modal.querySelector('.save').addEventListener('click', function() { this.storeDashboards(); }.bind(this));
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.cancel').addEventListener('click', function() { this.status.dashboards = this.backup; showModal(false); }.bind(this));
 
             showTable(modal.querySelector('table.dashboards'));
             showModal(true);
@@ -796,7 +796,7 @@ class Dashboard
 
             }.bind(this));
 
-            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            modal.querySelector('.cancel').addEventListener('click', function() { this.status.dashboards = this.backup; showModal(false); }.bind(this));
 
             showTable(modal.querySelector('table.blocks'), dashboard, dashboard.overview);
             showModal(true, 'input[name="name"]');
@@ -814,7 +814,7 @@ class Dashboard
         });
     }
 
-    showBlockEdit(dashboard, blockIndex, callback)
+    showBlockEdit(dashboard, blockIndex, callback, block)
     {
         let showTable = function(table, dashboard, block)
         {
@@ -844,7 +844,7 @@ class Dashboard
                             cell.innerHTML = '<span class="name"></span><div class="note">' + this.itemString(item) + '</div>';
                             cell.classList.toggle('history', item.shift ? true : false);
                             cell.classList.add('edit');
-                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
+                            cell.addEventListener('click', function() { this.showItemEdit(dashboard, block, item, function() { this.showBlockEdit(dashboard, blockIndex, callback, block); }.bind(this)); }.bind(this));
                             this.devicePromise(item, cell.querySelector('span'), false);
                             break;
 
@@ -871,10 +871,8 @@ class Dashboard
 
         }.bind(this);
 
-        let block = isNaN(blockIndex) ? new Object() : dashboard.blocks[blockIndex];
-
         if (!block)
-            block = {name: 'New block', items: new Array(), add: true};
+            block = structuredClone(dashboard.blocks[blockIndex]) ?? {name: 'New block', items: new Array(), add: true};
 
         loadHTML('html/dashboard/blockEdit.html', this, modal.querySelector('.data'), function()
         {
@@ -885,18 +883,22 @@ class Dashboard
             this.status.dashboards.forEach((dashboard, index) =>
             {
                 let option = document.createElement('option');
+
+                if (dashboard.overview)
+                    return;
+
                 option.innerHTML = this.dashboardName(dashboard, false);
                 option.value = index;
                 modal.querySelector('select[name="dashboard"]').append(option);
             });
 
-            modal.querySelector('.edit').style.display = block.add ? 'none' : 'block';
+            modal.querySelector('.edit').style.display = block.add || dashboard.add ? 'none' : 'block';
             modal.querySelector('select[name="dashboard"]').value = this.index;
             modal.querySelector('select[name="chart"]').value = block.chart ?? 'default';
             modal.querySelector('select[name="interval"]').value = block.interval ?? '24h';
             modal.querySelector('select[name="height"]').value = block.height ?? 'normal';
             modal.querySelector('select[name="camera"]').value = block.camera ?? 'full';
-            modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, blockIndex, callback); }.bind(this)); }.bind(this));
+            modal.querySelector('.add').addEventListener('click', function() { this.showItemEdit(dashboard, block, null, function() { this.showBlockEdit(dashboard, blockIndex, callback, block); }.bind(this)); }.bind(this));
             modal.querySelector('.break').addEventListener('click', function() { block.items.push({break: true}); showTable(modal.querySelector('table.items'), dashboard, block); });
 
             modal.querySelector('.save').addEventListener('click', function()
@@ -929,8 +931,10 @@ class Dashboard
                         this.setIndex(form.dashboard);
 
                     dashboard.blocks.splice(blockIndex, 1);
-                    this.status.dashboards[form.dashboard].blocks.splice(blockIndex, 0, block);
+                    this.status.dashboards[form.dashboard].blocks.push(block);
                 }
+                else
+                    dashboard.blocks[blockIndex] = block;
 
                 if (callback)
                 {
