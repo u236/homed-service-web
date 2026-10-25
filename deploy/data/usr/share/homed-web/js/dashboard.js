@@ -57,7 +57,7 @@ class Dashboard
             {
                 device = this.controller.findDevice(item);
 
-                if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes)
+                if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || Object.values(this.controller.services).find(service => service.devices && !service.ready)))
                 {
                     setTimeout(wait.bind(this, resolve), 10);
                     return;
@@ -68,8 +68,8 @@ class Dashboard
 
             new Promise(wait.bind(this)).then(function()
             {
-                let name = item.name ?? (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
-                cell.innerHTML = (icon ? exposeIcon(device, item.endpoint, item.expose ?? item.property) + '<span class="name">' + name + '</span>' : name);
+                let name = item.name ?? (device.info?.name ?? item.endpoint) + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+                cell.innerHTML = (icon ? (device.info ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '<span class="mdi-ghost exposeIcon error"></span>') + '<span class="name">' + name + '</span>' : name);
 
             }.bind(this));
         }
@@ -263,8 +263,8 @@ class Dashboard
         let cell = row.insertCell();
         let video;
 
-        label.classList.add('label');
         this.devicePromise(item, label);
+        label.classList.add('label');
 
         if (['large', 'small'].includes(size))
             row.dataset.size = size;
@@ -556,6 +556,9 @@ class Dashboard
                         {
                             device = this.controller.findDevice(item);
 
+                            if (element.parentNode && !row.isConnected)
+                                return;
+
                             if (!device.endpoints?.[endpointId]?.exposes)
                             {
                                 setTimeout(wait.bind(this, resolve), 10);
@@ -591,6 +594,7 @@ class Dashboard
                                 cell.dataset.unit = option.unit;
 
                             Object.keys(properties).forEach(property => { updateExpose(device, endpointId, property, properties[property]); });
+                            this.devicePromise(item, row.querySelector('td.label'));
 
                         }.bind(this));
 
