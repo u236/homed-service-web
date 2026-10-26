@@ -716,13 +716,14 @@ class Recorder
 
     devicePromise(data, cell, icon = false, info = false, table)
     {
+        let deadline = Date.now() + 5000;
         let device;
 
         function wait(resolve)
         {
             device = this.controller.findDevice(data);
 
-            if (!device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes)
+            if (deadline > Date.now() && !device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || Object.values(this.controller.services).find(service => service.devices && !service.ready)))
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;
@@ -735,10 +736,10 @@ class Recorder
         {
             let title = exposeTitle(device, data.endpoint, data.property);
 
-            this.status.items.filter(item => item.endpoint == data.endpoint && item.property == data.property && !item.name).forEach(item => { item.name = device.info.name + ' - ' + title; });
-            cell.innerHTML = (icon ? exposeIcon(device, data.endpoint, data.property) : '') + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
+            this.status.items.filter(item => device.info && item.endpoint == data.endpoint && item.property == data.property && !item.name).forEach(item => { item.name = device.info.name + ' - ' + title; });
+            cell.innerHTML = (icon ? (device.info ? exposeIcon(device, data.endpoint, data.property) : '<span class="mdi-ghost exposeIcon error"></span>') : '') + '<span>' + (device.info?.name ?? data.endpoint) + '</span> <i class="mdi-arrow-right"></i> ' + title + (info && !device.info ? ' <span class="value error">NOT FOUND</span>' : '');
 
-            if (!guest && info)
+            if (!guest && info && device.info)
             {
                 cell.querySelector('span').classList.add('info');
                 cell.querySelector('span').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); }.bind(this));

@@ -479,6 +479,10 @@ th:last-child, td:last-child {
     color: var(--color-shade);
 }
 
+.exposeIcon.error {
+    opacity: var(--issue-opacity);
+}
+
 .toggleIcon {
     display: inline-block;
     top: 3px;
@@ -607,8 +611,7 @@ th:last-child, td:last-child {
 }
 
 .title .value {
-    position: relative;
-    bottom: 3px;
+    top: -2px;
 }
 
 .title .interval {
@@ -1070,10 +1073,6 @@ th:last-child, td:last-child {
 
 .dashboardBlock .missing td.value, .dashboardBlock .missing .name {
     opacity: 0.5;
-}
-
-.dashboardBlock .missing .exposeIcon {
-    opacity: var(--issue-opacity);
 }
 
 .tiled .column.b {
