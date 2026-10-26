@@ -862,7 +862,7 @@ class DeviceService
             service.status.automations?.filter(automation => service.deviceList(automation).includes(device)).forEach(automation =>
             {
                 let row = table.insertRow();
-                row.insertCell().innerHTML = automation.name;
+                row.insertCell().innerHTML = '<span class="mdi-script exposeIcon"></span>' + automation.name;
                 row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
             });
         });

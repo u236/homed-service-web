@@ -1338,7 +1338,7 @@ th:last-child, td:last-child {
     min-width: 150px;
 }
 
-.deviceInfo td:last-child {
+.deviceInfo table:not(.automations) td:last-child {
     font-family: var(--font-mono);
     font-size: var(--font-size-mono);
 }
@@ -1348,6 +1348,14 @@ th:last-child, td:last-child {
 }
 
 .deviceInfo .exposes .label .name:hover {
+    color: var(--color-highlight);
+}
+
+.deviceInfo .automations td {
+    cursor: pointer;
+}
+
+.deviceInfo .automations td:hover {
     color: var(--color-highlight);
 }
 
