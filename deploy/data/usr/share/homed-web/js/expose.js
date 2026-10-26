@@ -85,21 +85,16 @@ function iconList()
 {
     let list = new Object();
 
-    Array.from(document.styleSheets).forEach(sheet =>
+    Array.from(document.styleSheets).filter(sheet => sheet.href?.endsWith('css/mdi.css')).forEach(sheet => { Array.from(sheet.cssRules).forEach(rule =>
     {
-        if (!sheet.href?.endsWith('css/mdi.css'))
+        let icon = rule.selectorText?.match(/^\.mdi-([a-z0-9-]+)::?before$/)?.[1];
+
+        if (!icon)
             return;
 
-        Array.from(sheet.cssRules).forEach(rule =>
-        {
-            let icon = rule.selectorText?.match(/^\.mdi-([a-z0-9-]+)::?before$/)?.[1];
+        list['<i class="mdi-' + icon + '"></i>mdi:' + icon] = 'mdi:' + icon;
 
-            if (!icon)
-                return;
-
-            list['<i class="mdi-' + icon + '"></i>mdi:' + icon] = 'mdi:' + icon;
-        });
-    });
+    }); });
 
     return list;
 }
@@ -429,11 +424,8 @@ function addExpose(table, device, endpointId, expose, names = true)
             labelCell.innerHTML += ' <i class="mdi-chart-line-variant shade"></i>';
             element = labelCell.querySelector('i');
 
-            recorder.status.items?.forEach(data =>
+            recorder.status.items?.filter(data => data.endpoint == endpoint && data.property == property).forEach(data =>
             {
-                if (data.endpoint != endpoint || data.property != property)
-                    return;
-
                 element.addEventListener('click', function() { controller.showPage('recorder?item=' + data.endpoint + '/' + data.property); showModal(false); });
                 check = true;
             });

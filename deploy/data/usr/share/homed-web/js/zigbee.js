@@ -246,11 +246,8 @@ class ZigBee extends DeviceService
                 this.names = message.names;
                 this.version = message.version;
 
-                message.devices.forEach(device =>
+                message.devices.filter(device => !device.removed).forEach(device =>
                 {
-                    if (device.removed)
-                        return;
-
                     if (!device.name)
                         device.name = device.ieeeAddress;
 
@@ -291,13 +288,8 @@ class ZigBee extends DeviceService
                     this.updateOtaData(this.device);
                 });
 
-                Object.keys(this.devices).forEach(id =>
+                Object.keys(this.devices).filter(id => !message.devices.find(device => device.ieeeAddress == id && !device.removed)).forEach(id =>
                 {
-                    let device = message.devices.filter(device => device.ieeeAddress == id)[0];
-
-                    if (device && !device.removed)
-                        return;
-
                     delete this.devices[id];
                     check = true;
                 });
@@ -537,25 +529,10 @@ class ZigBee extends DeviceService
             width = parseInt(map.style('width'));
             height = parseInt(map.style('height'));
 
-            Object.keys(this.devices).forEach(ieeeAddress =>
+            Object.values(this.devices).filter(device => !device.info.hasOwnProperty('active') || device.info.active).forEach(device =>
             {
-                let device = this.devices[ieeeAddress];
-
-                if (device.info.hasOwnProperty('active') && !device.info.active)
-                    return;
-
                 data.nodes.push({id: device.info.networkAddress, name: device.info.name, type: device.info.logicalType});
-
-                if (!device.info.neighbors)
-                    return;
-
-                device.info.neighbors.forEach(neighbor =>
-                {
-                    if (!Object.values(this.devices).find(item => item.info.networkAddress == neighbor.networkAddress && (!item.info.hasOwnProperty('active') || item.info.active)))
-                        return;
-
-                    data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.info.networkAddress});
-                });
+                device.info.neighbors?.filter(neighbor => Object.values(this.devices).find(item => item.info.networkAddress == neighbor.networkAddress && (!item.info.hasOwnProperty('active') || item.info.active))).forEach(neighbor => { data.links.push({linkQuality: neighbor.linkQuality, source: neighbor.networkAddress, target: device.info.networkAddress}); });
             });
 
             link = map.selectAll('.link').data(data.links).enter().append('path').attr('class', 'link').attr('id', function(d, i) { return 'link' + i; });
@@ -716,13 +693,9 @@ class ZigBee extends DeviceService
 
             modal.querySelector('.name').innerHTML = device.info.name;
 
-            device.info.endpoints?.forEach(item =>
+            device.info.endpoints?.filter(item => item.inClusters?.includes(4)).forEach(item =>
             {
                 let option = document.createElement('option');
-
-                if (!item.inClusters || !item.inClusters.includes(4))
-                    return;
-
                 option.innerHTML = item.endpointId;
                 select.append(option);
             });
@@ -794,12 +767,9 @@ class ZigBee extends DeviceService
 
             select.innerHTML = null;
 
-            Object.keys(deviceList).forEach(id =>
+            Object.keys(deviceList).filter(id => id != device.id).forEach(id =>
             {
                 let info = deviceList[id].info;
-
-                if (id == device.id)
-                    return;
 
                 info.endpoints?.forEach(item =>
                 {

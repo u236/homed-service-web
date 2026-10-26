@@ -52,11 +52,8 @@ class Custom extends DeviceService
                     this.showDeviceInfo(this.device);
                 });
 
-                Object.keys(this.devices).forEach(id =>
+                Object.keys(this.devices).filter(id => !message.devices.filter(device => device.id == id).length).forEach(id =>
                 {
-                    if (message.devices.filter(device => device.id == id).length)
-                        return;
-
                     delete this.devices[id];
                     check = true;
                 });

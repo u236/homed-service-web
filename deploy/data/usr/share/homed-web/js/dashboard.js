@@ -159,24 +159,16 @@ class Dashboard
                 default:          block.name = expose.charAt(0).toUpperCase() + expose.slice(1); break;
             }
 
-            Object.keys(devices).forEach(name =>
+            Object.values(devices).forEach(device => { Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).filter(item => item.split('_')[0] == expose || device.options(endpointId)[item]?.class == expose).forEach(item =>
             {
-                let device = devices[name];
+                let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: item};
 
-                Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(item =>
-                {
-                    let data = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: item};
+                if (endpointId != 'common')
+                    data.endpoint += '/' + endpointId;
 
-                    if (item.split('_')[0] != expose && device.options(endpointId)[item]?.class != expose)
-                        return;
+                block.items.push(data);
 
-                    if (endpointId != 'common')
-                        data.endpoint += '/' + endpointId;
-
-                    block.items.push(data);
-
-                }); });
-            });
+            }); }); });
 
             dashboard.blocks.push(block);
         });
@@ -984,12 +976,9 @@ class Dashboard
         {
             let device = devices[name];
 
-            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose =>
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).filter(expose => expose != 'thermostatProgram').forEach(expose =>
             {
                 let value = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
-
-                if (expose == 'thermostatProgram')
-                    return;
 
                 if (endpointId != 'common')
                     value.endpoint += '/' + endpointId;
@@ -1205,11 +1194,8 @@ class Dashboard
 
             modal.querySelector('.item').addEventListener('click', function()
             {
-                this.controller.services.recorder?.status.items?.forEach(data =>
+                this.controller.services.recorder?.status.items?.filter(data => data.endpoint == items[0].endpoint && data.property == items[0].property).forEach(data =>
                 {
-                    if (data.endpoint != items[0].endpoint || data.property != items[0].property)
-                        return;
-
                     this.controller.showPage('recorder?item=' + data.endpoint + '/' + data.property);
                     showModal(false);
                 });

@@ -451,14 +451,7 @@ class Controller
             camera:   this.cameraList()
         };
 
-        Object.keys(groups).forEach(group =>
-        {
-            if (exclude.includes(group))
-                return;
-
-            list = {...list, ...groups[group]};
-        });
-
+        Object.keys(groups).filter(group => !exclude.includes(group)).forEach(group => { list = {...list, ...groups[group]}; });
         return list;
     }
 
@@ -862,12 +855,9 @@ class DeviceService
     {
         let table = this.content.querySelector('table.automations');
 
-        Object.keys(this.controller.services).forEach(key =>
+        Object.keys(this.controller.services).filter(key => key.startsWith('automation')).forEach(key =>
         {
             let service = this.controller.services[key];
-
-            if (!key.startsWith('automation'))
-                return;
 
             service.status.automations?.filter(automation => service.deviceList(automation).includes(device)).forEach(automation =>
             {
@@ -942,11 +932,8 @@ class DeviceService
                 {
                     let item = this.names ? device.info.name : device.id;
 
-                    Object.keys(message).forEach(endpointId =>
+                    Object.keys(message).filter(endpointId => message[endpointId]?.items?.length && (endpointId == 'common' || (endpointId % 1 == 0 && endpointId >= 1 && endpointId <= 255))).forEach(endpointId =>
                     {
-                        if (!message[endpointId]?.items?.length || (endpointId != 'common' && (endpointId % 1 != 0 || endpointId < 1 || endpointId > 255)))
-                            return;
-
                         this.controller.socket.subscribe('fd/' + this.service + '/' + (endpointId != 'common' ? item + '/' + endpointId : item));
                         device.setExposes(endpointId, message[endpointId]);
                     });

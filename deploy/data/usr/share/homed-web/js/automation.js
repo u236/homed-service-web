@@ -199,22 +199,14 @@ class Automation
     {
         let list = new Array();
 
-        Object.values(item).forEach(value =>
+        Object.values(item).filter(value => Array.isArray(value)).forEach(value => { value.filter(element => typeof element == 'object').forEach(element =>
         {
-            if (!Array.isArray(value))
-                return;
+            if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
+                list.push(this.controller.findDevice(element));
 
-            value.forEach(element =>
-            {
-                if (typeof element != 'object')
-                    return;
+            list.push(...this.deviceList(element));
 
-                if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
-                    list.push(this.controller.findDevice(element));
-
-                list.push(...this.deviceList(element));
-            });
-        });
+        }); });
 
         return list.filter((device, index) => list.indexOf(device) == index);
     }

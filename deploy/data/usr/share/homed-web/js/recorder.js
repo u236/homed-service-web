@@ -735,14 +735,7 @@ class Recorder
         {
             let title = exposeTitle(device, data.endpoint, data.property);
 
-            this.status.items.forEach(item =>
-            {
-                if (item.endpoint != data.endpoint || item.property != data.property || item.name)
-                    return;
-
-                item.name = device.info.name + ' - ' + title;
-            });
-
+            this.status.items.filter(item => item.endpoint == data.endpoint && item.property == data.property && !item.name).forEach(item => { item.name = device.info.name + ' - ' + title; });
             cell.innerHTML = (icon ? exposeIcon(device, data.endpoint, data.property) : '') + '<span>' + device.info.name + '</span> <i class="mdi-arrow-right"></i> ' + title;
 
             if (!guest && info)
