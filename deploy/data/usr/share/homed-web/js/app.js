@@ -432,7 +432,7 @@ class Controller
             list[this.searchTitle('Device', name, device.availability == 'offline' ? 'cube error' : 'battery-charging ' + status)] = device.service + '?device=' + device.id;
         });
 
-        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].broken(automation)) list[this.searchTitle('Automation', automation.name, 'script error')] = service + '?uuid=' + automation.uuid; }); });
+        Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].brokenItem(automation)) list[this.searchTitle('Automation', automation.name, 'script error')] = service + '?uuid=' + automation.uuid; }); });
         return list;
     }
 
@@ -858,6 +858,31 @@ class DeviceService
         handleArrowButtons(this.content, list, list.indexOf(device.id), function(id) { this.controller.showPage(this.service + '?device=' + id); }.bind(this));
     }
 
+    updateAutomations(device)
+    {
+        let table = this.content.querySelector('table.automations');
+
+        Object.keys(this.controller.services).forEach(key =>
+        {
+            let service = this.controller.services[key];
+
+            if (!key.startsWith('automation'))
+                return;
+
+            service.status.automations?.filter(automation => service.deviceList(automation).includes(device)).forEach(automation =>
+            {
+                let row = table.insertRow();
+                row.insertCell().innerHTML = automation.name;
+                row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
+            });
+        });
+
+        if (table.rows.length)
+            return;
+
+        this.content.querySelectorAll('.automations').forEach(item => item.remove());
+    }
+
     parseMessage(list, message)
     {
         switch (list[0])
@@ -1016,6 +1041,7 @@ class DeviceService
 
             this.updateDeviceInfo(device);
             this.updateArrowButtons(device);
+            this.updateAutomations(device);
 
             if (!device.info.active)
             {

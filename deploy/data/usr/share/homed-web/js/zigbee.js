@@ -616,11 +616,12 @@ class ZigBee extends DeviceService
 
             if (!device.info.logicalType)
             {
-                this.content.querySelectorAll('.edit, .remove, .upgrade, .previous, .next, .exposes').forEach(item => item.remove());
+                this.content.querySelectorAll('.edit, .remove, .upgrade, .previous, .next, .exposes, .automations').forEach(item => item.remove());
                 return;
             }
 
             this.updateArrowButtons(device);
+            this.updateAutomations(device);
 
             if (!device.info.active)
             {

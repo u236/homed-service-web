@@ -195,22 +195,33 @@ class Automation
         }
     }
 
-    broken(item)
+    deviceList(item)
     {
-        let check = false;
+        let list = new Array();
 
-        if (Object.values(this.controller.services).find(service => service.devices && !service.ready))
-            return false;
-
-        Object.keys(item).forEach(key =>
+        Object.values(item).forEach(value =>
         {
-            if (!Array.isArray(item[key]))
+            if (!Array.isArray(value))
                 return;
 
-            item[key].forEach(element => { if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty' && !this.controller.findDevice(element).info) check = true; });
+            value.forEach(element =>
+            {
+                if (typeof element != 'object')
+                    return;
+
+                if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
+                    list.push(this.controller.findDevice(element));
+
+                list.push(...this.deviceList(element));
+            });
         });
 
-        return check;
+        return list.filter((device, index) => list.indexOf(device) == index);
+    }
+
+    brokenItem(item)
+    {
+        return Object.values(this.controller.services).find(service => service.devices && !service.ready) || !this.deviceList(item).some(device => !device.info) ? false : true;
     }
 
     checkDevices()
@@ -218,7 +229,7 @@ class Automation
         if (this.controller.page != this.service || !this.status.automations)
             return;
 
-        this.status.automations.forEach((item, index) => { document.querySelector('tr[data-index="' + index + '"]')?.classList.toggle('broken', this.broken(item)); });
+        this.status.automations.forEach((item, index) => { document.querySelector('tr[data-index="' + index + '"]')?.classList.toggle('broken', this.brokenItem(item)); });
     }
 
     shieldValue(value)
