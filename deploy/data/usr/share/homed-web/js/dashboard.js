@@ -559,6 +559,7 @@ class Dashboard
                             status = false;
 
                         row.classList.add('inactive');
+                        row.addEventListener('click', function() { if (row.classList.contains('missing')) this.showItemMissing(dashboard, block, item); }.bind(this));
 
                         function wait(resolve)
                         {
@@ -1094,6 +1095,23 @@ class Dashboard
 
             modal.querySelector('.cancel').addEventListener('click', function() { callback ? callback() : showModal(false); });
             showModal(true, 'input[name="name"]');
+        });
+    }
+
+    showItemMissing(dashboard, block, item)
+    {
+        loadHTML('html/dashboard/itemMissing.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('.name').innerHTML = item.name ?? item.endpoint + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(this.controller.findDevice(item), item.endpoint, item.expose ?? item.property);
+            modal.querySelector('.endpoint').innerHTML = item.endpoint;
+
+            if (!guest)
+                modal.querySelector('.edit').addEventListener('click', function() { this.showItemEdit(dashboard, block, item); }.bind(this));
+            else
+                modal.querySelector('.edit').remove();
+
+            modal.querySelector('.close').addEventListener('click', function() { showModal(false); });
+            showModal(true);
         });
     }
 
