@@ -6,12 +6,15 @@ class Automation
 
     triggerType = ['property', 'mqtt', 'state', 'scene', 'telegram', 'time', 'interval', 'startup'];
     triggerStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside', 'changes', 'updates'];
+    triggerPattern = ['name'];
 
     conditionType = ['property', 'mqtt', 'state', 'date', 'time', 'week', 'pattern', 'AND', 'OR', 'NOT'];
     conditionStatement = ['equals', 'differs', 'above', 'below', 'between', 'outside'];
+    conditionPattern = ['equals', 'differs', 'above', 'below', 'pattern'];
 
     actionType = ['property', 'mqtt', 'state', 'scene', 'telegram', 'shell', 'condition', 'loop', 'delay', 'exit'];
     actionStatement = ['value', 'increase', 'decrease'];
+    actionPattern = ['value', 'increase', 'decrease', 'message', 'file', 'keyboard', 'scene', 'command', 'count', 'delay'];
     actionNested = ['condition', 'loop'];
 
     status = new Object();
@@ -199,25 +202,29 @@ class Automation
     {
         let list = new Array();
 
-        Object.values(item).filter(value => Array.isArray(value)).forEach(value => { value.filter(element => typeof element == 'object').forEach(element =>
+        Object.entries(item).filter(([key, value]) => Array.isArray(value)).forEach(([key, value]) =>
         {
-            if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
+            let items = key == 'triggers' ? this.triggerPattern : key == 'conditions' ? this.conditionPattern : this.actionPattern;
+
+            value.filter(element => typeof(element) == 'object').forEach(element =>
             {
-                let device = this.controller.findDevice(element);
-                list.push({device: device, valid: device.info ? true : false});
-            }
+                if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
+                {
+                    let device = this.controller.findDevice(element);
+                    list.push({device: device, valid: device.info ? true : false});
+                }
 
-            Object.values(element).filter(value => typeof value == 'string').forEach(value => { patternIndex(value).forEach(pattern => { list.push({...this.controller.patternData(value.slice(pattern.start, pattern.end)), pattern: true}); }); });
-            list.push(...this.deviceList(element));
-
-        }); });
+                items.filter(name => typeof(element[name]) == 'string').forEach(name => { patternIndex(element[name]).forEach(pattern => { list.push({...this.controller.patternData(element[name].slice(pattern.start, pattern.end)), pattern: true}); }); });
+                list.push(...this.deviceList(element));
+            });
+        });
 
         return list;
     }
 
     brokenItem(item)
     {
-        return Object.values(this.controller.services).find(service => service.devices && !service.ready) || !this.deviceList(item).some(data => !data.valid) ? false : true;
+        return !this.controller.devicesReady() || !this.deviceList(item).some(data => !data.valid) ? false : true;
     }
 
     checkDevices()
@@ -228,10 +235,10 @@ class Automation
         this.status.automations.forEach((item, index) => { document.querySelector('tr[data-index="' + index + '"]')?.classList.toggle('broken', this.brokenItem(item)); });
     }
 
-    valueString(value, pattern = true)
+    valueString(value, check = false)
     {
         let string = typeof(value) == 'string';
-        let error = pattern && string  && !Object.values(this.controller.services).find(service => service.devices && !service.ready) && patternIndex(value).some(pattern => !this.controller.patternData(value.slice(pattern.start, pattern.end)).valid);
+        let error = check && string && this.controller.devicesReady() && patternIndex(value).some(pattern => !this.controller.patternData(value.slice(pattern.start, pattern.end)).valid);
 
         if (string)
             value = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -311,30 +318,30 @@ class Automation
                     if (!trigger.hasOwnProperty(statement))
                         continue;
 
-                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : trigger.type == 'state' ? '<span class="value">' + trigger.state + '</span> ' : '<span class="value">' + trigger.topic + '</span> ' + (trigger.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + trigger.property + '</span> ' : '')) + this.statementString(statement);
+                    data = (trigger.type == 'property' ? this.itemProperty(trigger) + ' ' : trigger.type == 'state' ? this.valueString(trigger.state) + ' ' : this.valueString(trigger.topic) + ' ' + (trigger.property ? '<i class="mdi-arrow-right"></i> ' + this.valueString(trigger.property) + ' ' : '')) + this.statementString(statement);
 
                     if (statement == 'updates')
                         break;
 
-                    data += ' ' + (this.arrayStatement(statement) && Array.isArray(trigger[statement]) ? '<span class="value">' + trigger[statement].join('</span> and <span class="value">') + '</span>' : this.valueString(trigger[statement], false)); // TODO: valueString for array statements
+                    data += ' ' + (this.arrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement] : [trigger[statement]]).map(item => this.valueString(item)).join(' and ');
                 }
 
                 break;
 
             case 'scene':
-                data = this.valueString(trigger.scene, false);
+                data = this.valueString(trigger.scene);
                 break;
 
             case 'telegram':
-                data = this.valueString(trigger.message, false) + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>' : '');
+                data = this.valueString(trigger.message) + (trigger.chats ? ' from ' + this.valueString(trigger.chats.join(', ')) : '');
                 break;
 
             case 'time':
-                data = '<span class="value">' + trigger.time + '</span>';
+                data = this.valueString(trigger.time);
                 break;
 
             case 'interval':
-                data = 'every <span class="value">' + trigger.interval + '</span> ' + (trigger.interval != 1 ? 'minutes' : 'minute');
+                data = 'every ' + this.valueString(trigger.interval) + ' ' + (trigger.interval != 1 ? 'minutes' : 'minute');
                 break;
 
             case 'startup':
@@ -343,10 +350,10 @@ class Automation
         }
 
         if (trigger.offset)
-            data += ' with <span class="value">' + trigger.offset + '</span> ' + (trigger.offset != 1 ? 'minutes' : 'minute') + ' offset';
+            data += ' with ' + this.valueString(trigger.offset) + ' ' + (trigger.offset != 1 ? 'minutes' : 'minute') + ' offset';
 
         if (trigger.name)
-            data += (trigger.offset ? ' and ' : ' with ') + 'name <span class="value">' + trigger.name + '</span>';
+            data += (trigger.offset ? ' and ' : ' with ') + 'name ' + this.valueString(trigger.name, true);
 
         if (trigger.startup == false)
             data += ' <span class="flag">skip startup</span>';
@@ -362,7 +369,7 @@ class Automation
     conditionInfo(condition)
     {
         if (condition.type == 'week')
-            return '<span class="value">' + condition.days.join(', ') + '</span>';
+            return this.valueString(condition.days.join(', '));
 
         for (let i = 0; i < this.conditionStatement.length; i++)
         {
@@ -372,17 +379,17 @@ class Automation
             if (!condition.hasOwnProperty(statement))
                 continue;
 
-            value = this.arrayStatement(statement) && Array.isArray(condition[statement]) ? '<span class="value">' + condition[statement].join('</span> and <span class="value">') + '</span>' : this.valueString(condition[statement]); // TODO: valueString for array statements
+            value = (this.arrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement] : [condition[statement]]).map(item => this.valueString(item, !Array.isArray(condition[statement]))).join(' and ');
 
             switch (condition.type)
             {
                 case 'property':
                 case 'mqtt':
-                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + this.statementString(statement) + ' ' + value;
+                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : this.valueString(condition.topic) + ' ' + (condition.property ? '<i class="mdi-arrow-right"></i> ' + this.valueString(condition.property) + ' ' : '')) + this.statementString(statement) + ' ' + value;
 
                 case 'state':
                 case 'pattern':
-                    return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + this.statementString(statement) + ' ' + value;
+                    return this.valueString(condition[condition.type == 'state' ? 'name' : 'pattern'], condition.type == 'pattern') + ' ' + this.statementString(statement) + ' ' + value;
 
                 case 'date':
                     return this.statementString(statement) + ' ' + value;
@@ -408,29 +415,29 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = this.itemProperty(action) + ' <i class="mdi-arrow-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + this.valueString(action[statement]);
+                    data = this.itemProperty(action) + ' <i class="mdi-arrow-right"></i> ' + (statement == 'increase' ? this.valueString('+') + ' ' : statement == 'decrease' ? this.valueString('-') + ' ' : '') + this.valueString(action[statement], true);
                 }
 
                 break;
 
             case 'mqtt':
-                data = this.valueString(action.message) + ' to <span class="value">' + action.topic + '</span> topic';
+                data = this.valueString(action.message, true) + ' to ' + this.valueString(action.topic) + ' topic';
                 break;
 
             case 'state':
-                data = (action.value || action.value == false ? 'set' : 'remove') + ' <span class="value">' + action.name + '</span>' + (action.value || action.value == false ? ' to ' + this.valueString(action.value) : '');
+                data = (action.value || action.value == false ? 'set' : 'remove') + ' ' + this.valueString(action.name) + (action.value || action.value == false ? ' to ' + this.valueString(action.value, true) : '');
                 break;
 
             case 'scene':
-                data = this.valueString(action.scene);
+                data = this.valueString(action.scene, true);
                 break;
 
             case 'telegram':
-                data = (action.message ? this.valueString(action.message) : 'empty message') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>' : '');
+                data = (action.message ? this.valueString(action.message, true) : 'empty message') + (action.chats ? ' to ' + this.valueString(action.chats.join(', ')) : '');
                 break;
 
             case 'shell':
-                data = this.valueString(action.command);
+                data = this.valueString(action.command, true);
                 break;
 
             case 'condition':
@@ -439,16 +446,16 @@ class Automation
                 break;
 
             case 'loop':
-                data = this.valueString(action.count) + ' times';
+                data = this.valueString(action.count, true) + ' times';
                 break;
 
             case 'delay':
-                data = this.valueString(action.delay) + ' seconds';
+                data = this.valueString(action.delay, true) + ' seconds';
                 break;
         }
 
         if (action.triggerName)
-            data += ' when trigger is <span class="value">' + action.triggerName + '</span>';
+            data += ' when trigger is ' + this.valueString(action.triggerName);
 
         if (action.retain)
             data += ' <span class="flag">retain</span>';
@@ -457,10 +464,10 @@ class Automation
             data += ' <span class="flag">rich</span>';
 
         if (action.file)
-            data += ' <span class="flag">file</span>';
+            data += ' <span class="flag">file</span>'; // TODO: show broken patterns
 
         if (action.keyboard)
-            data += ' <span class="flag">keyboard</span>';
+            data += ' <span class="flag">keyboard</span>'; // TODO: show broken patterns
 
         if (action.silent)
             data += ' <span class="flag">silent</span>';
@@ -704,7 +711,7 @@ class Automation
 
             function wait(resolve)
             {
-                if (deadline > Date.now() && Object.values(this.controller.services).find(service => service.devices && !service.ready))
+                if (deadline > Date.now() && !this.controller.devicesReady())
                 {
                     setTimeout(wait.bind(this, resolve), 10);
                     return;

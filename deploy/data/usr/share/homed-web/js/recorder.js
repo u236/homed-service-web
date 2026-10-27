@@ -723,7 +723,7 @@ class Recorder
         {
             device = this.controller.findDevice(data);
 
-            if (deadline > Date.now() && !device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || Object.values(this.controller.services).find(service => service.devices && !service.ready)))
+            if (deadline > Date.now() && !device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || !this.controller.devicesReady()))
             {
                 setTimeout(wait.bind(this, resolve), 10);
                 return;

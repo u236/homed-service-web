@@ -65,7 +65,7 @@ class Controller
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
     services = {dashboard: new Dashboard(this)};
 
-    patternType = ['colorTemperature', 'file', 'level', 'loopIndex', 'mqtt', 'property', 'shellOutput', 'state', 'sunrise', 'sunset', 'timestamp', 'triggerEndpoint', 'triggerMessage', 'triggerName', 'triggerProperty', 'triggerTopic'];
+    patternType = ['camera', 'colorTemperature', 'file', 'level', 'loopIndex', 'mqtt', 'property', 'shellOutput', 'state', 'sunrise', 'sunset', 'timestamp', 'triggerEndpoint', 'triggerMessage', 'triggerName', 'triggerProperty', 'triggerTopic'];
 
     constructor()
     {
@@ -303,6 +303,11 @@ class Controller
         this.showPage(this.serviceList[index]);
     }
 
+    devicesReady()
+    {
+        return !Object.values(this.services).find(service => service.devices && !service.ready);
+    }
+
     findDevice(item)
     {
         let list = item.endpoint.split('/');
@@ -325,8 +330,23 @@ class Controller
 
     patternData(pattern)
     {
+        let item = pattern.slice(2, -2);
         let list = pattern.match(/^\{\{\s*([^|{}]*?)\s*(?:\|\s*([^|]*?)\s*)?(?:\|\s*([^|]*?)\s*)?(?:\|.*)?\}\}$/);
         let data = {type: list?.[1], valid: this.patternType.includes(list?.[1])};
+
+        while (item.match(/\{\{[^{}]*\}\}/))
+            item = item.replace(/\{\{[^{}]*\}\}/g, '*');
+
+        if (item.match(/^\s*(('[^']*'|\S+)\s+if\s+('[^']*'|\S+)\s+(is|not|contains|excludes|==|!=|>=?|<=?)\s+('[^']*'|\S+)\s+else\s+)+('[^']*'|\S+)\s*$/))
+            return {type: 'condition', valid: true};
+
+        if (data.type == 'camera')
+        {
+            if (!this.services.camera || this.services.camera.ready)
+                data.valid = this.services.camera?.status.devices?.some(device => device.id == list[2]) ? true : false;
+
+            return data;
+        }
 
         if (data.type != 'property' || !data.valid)
             return data;
@@ -778,7 +798,7 @@ class Device
 
     items(endpointId)
     {
-        return this.exposes(endpointId).items?.filter(item => typeof item == 'string') ?? new Array();
+        return this.exposes(endpointId).items?.filter(item => typeof(item) == 'string') ?? new Array();
     }
 
     options(endpointId)
@@ -913,14 +933,14 @@ class DeviceService
         {
             let service = this.controller.services[key];
 
-            service.status.automations?.forEach(automation =>
+            service.status.automations?.slice().sort(function(a, b) { return compareStrings(a.name, b.name); }).forEach(automation =>
             {
                 let list = service.deviceList(automation).filter(item => item.device == device);
 
                 if (list.length)
                 {
                     let row = table.insertRow();
-                    row.insertCell().innerHTML = '<span class="mdi-script exposeIcon' + (list.find(item => !item.valid) ? ' error' : '') + '"></span>' + automation.name + (list.find(item => item.pattern) ? ' <span class="flag">pattern</span>' : '');
+                    row.insertCell().innerHTML = '<span class="mdi-script exposeIcon' + (list.some(item => !item.valid) ? ' error' : '') + '"></span>' + automation.name + (list.some(item => item.pattern) ? ' <span class="flag">pattern</span>' : '');
                     row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
                 }
             });
@@ -1997,7 +2017,7 @@ function showModal(show, focus, type)
 
         if (list)
         {
-            modal.querySelectorAll('label .dropdown').forEach(element =>
+            Array.from(modal.querySelectorAll('label .dropdown')).filter(element => element.style.display != 'none').forEach(element =>
             {
                 let input = modal.querySelector('textarea[name="' + element.id + '"]');
 
@@ -2005,7 +2025,7 @@ function showModal(show, focus, type)
                 {
                     let data = patternIndex(text);
 
-                    if (!Object.values(controller.services).find(service => service.devices && !service.ready))
+                    if (controller.devicesReady())
                         data.forEach(item => { if (!controller.patternData(text.slice(item.start, item.end)).valid) item.class = 'error'; });
 
                     return data;

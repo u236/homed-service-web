@@ -70,6 +70,7 @@ class Camera
                     this.updatePage();
                 }
 
+                this.ready = true;
                 break;
             }
 

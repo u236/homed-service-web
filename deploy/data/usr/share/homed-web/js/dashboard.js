@@ -57,7 +57,7 @@ class Dashboard
             {
                 device = this.controller.findDevice(item);
 
-                if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || Object.values(this.controller.services).find(service => service.devices && !service.ready)))
+                if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || !this.controller.devicesReady()))
                 {
                     setTimeout(wait.bind(this, resolve), 10);
                     return;

@@ -113,7 +113,7 @@ function iconName(device, endpoint, itemName, icons = true)
     if (option.icon)
         return option.icon.replace(/^mdi:/, '');
 
-    if (typeof option == 'string' && defaultIcons[option])
+    if (typeof(option) == 'string' && defaultIcons[option])
         return defaultIcons[option];
 
     if (meta.name == 'status')
@@ -127,7 +127,7 @@ function iconName(device, endpoint, itemName, icons = true)
             if (!device.items(endpointId).includes(name))
                 continue;
 
-            return options[name]?.icon ? options[name].icon.replace(/^mdi:/, '') : defaultIcons[typeof options[name] == 'string' ? options[name] : list[i]];
+            return options[name]?.icon ? options[name].icon.replace(/^mdi:/, '') : defaultIcons[typeof(options[name]) == 'string' ? options[name] : list[i]];
         }
     }
 
@@ -738,7 +738,7 @@ function updateExpose(device, endpointId, property, data)
                     if (['battery', 'batteryLow'].includes(name))
                         checkBattery(cell, value);
 
-                    if (cell.dataset.type == 'binary' && typeof value == 'boolean')
+                    if (cell.dataset.type == 'binary' && typeof(value) == 'boolean')
                     {
                         cell.dataset.binary = value;
 
@@ -777,13 +777,13 @@ function updateExpose(device, endpointId, property, data)
                         case 'select': row.querySelector('td.control select').value = value; break;
                     }
 
-                    if (name == 'uptime' && cell.dataset.unit == 'sec' && typeof value == 'number')
+                    if (name == 'uptime' && cell.dataset.unit == 'sec' && typeof(value) == 'number')
                     {
                         cell.innerHTML = parseInt(value / 86400) + 'd ' + new Date(value * 1000).toISOString().slice(11, 19);
                         break;
                     }
 
-                    if (typeof value == 'number' && cell.dataset.round)
+                    if (typeof(value) == 'number' && cell.dataset.round)
                         value = parseFloat(value.toFixed(parseInt(cell.dataset.round)));
 
                     if (cell.dataset.value == value)
