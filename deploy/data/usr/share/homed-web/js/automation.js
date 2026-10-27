@@ -202,18 +202,22 @@ class Automation
         Object.values(item).filter(value => Array.isArray(value)).forEach(value => { value.filter(element => typeof element == 'object').forEach(element =>
         {
             if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
-                list.push(this.controller.findDevice(element));
+            {
+                let device = this.controller.findDevice(element);
+                list.push({device: device, valid: device.info ? true : false});
+            }
 
+            Object.values(element).filter(value => typeof value == 'string').forEach(value => { patternIndex(value).forEach(pattern => { list.push({...this.controller.patternData(value.slice(pattern.start, pattern.end)), pattern: true}); }); });
             list.push(...this.deviceList(element));
 
         }); });
 
-        return list.filter((device, index) => list.indexOf(device) == index);
+        return list;
     }
 
     brokenItem(item)
     {
-        return Object.values(this.controller.services).find(service => service.devices && !service.ready) || !this.deviceList(item).some(device => !device.info) ? false : true;
+        return Object.values(this.controller.services).find(service => service.devices && !service.ready) || !this.deviceList(item).some(data => !data.valid) ? false : true;
     }
 
     checkDevices()
@@ -224,12 +228,15 @@ class Automation
         this.status.automations.forEach((item, index) => { document.querySelector('tr[data-index="' + index + '"]')?.classList.toggle('broken', this.brokenItem(item)); });
     }
 
-    shieldValue(value)
+    valueString(value, pattern = true)
     {
-        if (typeof(value) == 'string')
+        let string = typeof(value) == 'string';
+        let error = pattern && string  && !Object.values(this.controller.services).find(service => service.devices && !service.ready) && patternIndex(value).some(pattern => !this.controller.patternData(value.slice(pattern.start, pattern.end)).valid);
+
+        if (string)
             value = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-        return value;
+        return '<span class="value' + (error ? ' error' : '') + '">' + value + '</span>';
     }
 
     itemProperty(item, form = false)
@@ -309,17 +316,17 @@ class Automation
                     if (statement == 'updates')
                         break;
 
-                    data += ' <span class="value">' + (this.arrayStatement(statement) && Array.isArray(trigger[statement]) ? trigger[statement].join('</span> and <span class="value">') : this.shieldValue(trigger[statement])) + '</span>'; // TODO: shieldValue for array statements
+                    data += ' ' + (this.arrayStatement(statement) && Array.isArray(trigger[statement]) ? '<span class="value">' + trigger[statement].join('</span> and <span class="value">') + '</span>' : this.valueString(trigger[statement], false)); // TODO: valueString for array statements
                 }
 
                 break;
 
             case 'scene':
-                data = '<span class="value">' + this.shieldValue(trigger.scene) + '</span>';
+                data = this.valueString(trigger.scene, false);
                 break;
 
             case 'telegram':
-                data = '<span class="value">' + this.shieldValue(trigger.message) + '</span>' + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>' : '');
+                data = this.valueString(trigger.message, false) + (trigger.chats ? ' from <span class="value">' + trigger.chats.join(', ') + '</span>' : '');
                 break;
 
             case 'time':
@@ -365,23 +372,23 @@ class Automation
             if (!condition.hasOwnProperty(statement))
                 continue;
 
-            value = this.arrayStatement(statement) && Array.isArray(condition[statement]) ? condition[statement].join('</span> and <span class="value">') : this.shieldValue(condition[statement]); // TODO: parseString for array statements
+            value = this.arrayStatement(statement) && Array.isArray(condition[statement]) ? '<span class="value">' + condition[statement].join('</span> and <span class="value">') + '</span>' : this.valueString(condition[statement]); // TODO: valueString for array statements
 
             switch (condition.type)
             {
                 case 'property':
                 case 'mqtt':
-                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + this.statementString(statement) + ' <span class="value">' + value + '</span>';
+                    return (condition.type == 'property' ? this.itemProperty(condition) + ' ' : '<span class="value">' + condition.topic + '</span> ' + (condition.property ? '<i class="mdi-arrow-right"></i> <span class="value">' + condition.property + '</span> ' : '')) + this.statementString(statement) + ' ' + value;
 
                 case 'state':
                 case 'pattern':
-                    return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + this.statementString(statement) + ' <span class="value">' + value + '</span>';
+                    return '<span class="value">' + condition[condition.type == 'state' ? 'name' : 'pattern'] + '</span> ' + this.statementString(statement) + ' ' + value;
 
                 case 'date':
-                    return this.statementString(statement) + ' <span class="value">' + value + '</span>';
+                    return this.statementString(statement) + ' ' + value;
 
                 case 'time':
-                    return this.statementString(statement) + ' <span class="value">' + value + '</span>';
+                    return this.statementString(statement) + ' ' + value;
             }
         }
     }
@@ -401,29 +408,29 @@ class Automation
                     if (!action.hasOwnProperty(statement))
                         continue;
 
-                    data = this.itemProperty(action) + ' <i class="mdi-arrow-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + '<span class="value">' + this.shieldValue(action[statement]) + '</span>';
+                    data = this.itemProperty(action) + ' <i class="mdi-arrow-right"></i> ' + (statement == 'increase' ? '<span class="value">+</span> ' : statement == 'decrease' ? '<span class="value">-</span> ' : '') + this.valueString(action[statement]);
                 }
 
                 break;
 
             case 'mqtt':
-                data = '<span class="value">' + this.shieldValue(action.message) + '</span> to <span class="value">' + action.topic + '</span> topic';
+                data = this.valueString(action.message) + ' to <span class="value">' + action.topic + '</span> topic';
                 break;
 
             case 'state':
-                data = (action.value || action.value == false ? 'set' : 'remove') + ' <span class="value">' + action.name + '</span>' + (action.value || action.value == false ? ' to <span class="value">' + this.shieldValue(action.value) + '</span>' : '');
+                data = (action.value || action.value == false ? 'set' : 'remove') + ' <span class="value">' + action.name + '</span>' + (action.value || action.value == false ? ' to ' + this.valueString(action.value) : '');
                 break;
 
             case 'scene':
-                data = '<span class="value">' + this.shieldValue(action.scene) + '</span>';
+                data = this.valueString(action.scene);
                 break;
 
             case 'telegram':
-                data = (action.message ? '<span class="value">' + this.shieldValue(action.message) + '</span>' : 'empty message') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>' : '');
+                data = (action.message ? this.valueString(action.message) : 'empty message') + (action.chats ? ' to <span class="value">' + action.chats.join(', ') + '</span>' : '');
                 break;
 
             case 'shell':
-                data = '<span class="value">' + this.shieldValue(action.command) + '</span>';
+                data = this.valueString(action.command);
                 break;
 
             case 'condition':
@@ -432,11 +439,11 @@ class Automation
                 break;
 
             case 'loop':
-                data = '<span class="value">' + this.shieldValue(action.count) + '</span> times';
+                data = this.valueString(action.count) + ' times';
                 break;
 
             case 'delay':
-                data = '<span class="value">' + this.shieldValue(action.delay) + '</span> seconds';
+                data = this.valueString(action.delay) + ' seconds';
                 break;
         }
 

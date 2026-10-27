@@ -913,11 +913,16 @@ class DeviceService
         {
             let service = this.controller.services[key];
 
-            service.status.automations?.filter(automation => service.deviceList(automation).includes(device)).forEach(automation =>
+            service.status.automations?.forEach(automation =>
             {
-                let row = table.insertRow();
-                row.insertCell().innerHTML = '<span class="mdi-script exposeIcon"></span>' + automation.name;
-                row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
+                let list = service.deviceList(automation).filter(item => item.device == device);
+
+                if (list.length)
+                {
+                    let row = table.insertRow();
+                    row.insertCell().innerHTML = '<span class="mdi-script exposeIcon' + (list.find(item => !item.valid) ? ' error' : '') + '"></span>' + automation.name + (list.find(item => item.pattern) ? ' <span class="flag">pattern</span>' : '');
+                    row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
+                }
             });
         });
 
