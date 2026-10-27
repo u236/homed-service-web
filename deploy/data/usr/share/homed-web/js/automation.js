@@ -227,7 +227,7 @@ class Automation
     shieldValue(value)
     {
         if (typeof(value) == 'string')
-            value = value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            value = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         return value;
     }

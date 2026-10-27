@@ -1,4 +1,4 @@
-let modal, controller, dropdown, drag, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', cache = new Object(), plugins = new Array();
+let modal, controller, drag, dropdown, guest = true, icons = localStorage.getItem('homedIcons') ?? 'on', theme = localStorage.getItem('homedTheme') ?? 'dark', wide = localStorage.getItem('homedWide') ?? 'off', empty = '<span class="shade">&bull;</span>', cache = new Object(), plugins = new Array();
 
 class Socket
 {
@@ -1079,76 +1079,6 @@ class DeviceService
     }
 }
 
-class Dropdown
-{
-    mouse = true;
-    index = -1;
-
-    constructor(list, trigger)
-    {
-        this.items = list.querySelectorAll('.item');
-        this.items.forEach((item, index) => item.addEventListener('mouseover', function() { if (this.mouse) this.setIndex(index); }.bind(this)));
-
-        this.list = list;
-        this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
-        this.list.addEventListener('mouseout', function() { if (this.mouse) this.setIndex(-1); }.bind(this));
-
-        this.trigger = trigger;
-    }
-
-    setIndex(index, scroll)
-    {
-        this.index = index;
-        this.items.forEach((item, index) => item.classList.toggle('current', index == this.index));
-
-        if (index >= 0 && scroll)
-        {
-            let list = this.list.getBoundingClientRect();
-            let item = this.items[this.index].getBoundingClientRect();
-
-            if (list.top <= item.top && list.bottom >= item.bottom)
-                return;
-
-            this.items[this.index].scrollIntoView(list.top > item.top);
-        }
-    }
-
-    handleKey(event)
-    {
-        let key = event.key.toLowerCase();
-
-        if (['arrowdown', 'arrowup', 'enter'].includes(key))
-            event.preventDefault();
-
-        this.mouse = false;
-
-        switch (key)
-        {
-            case 'arrowdown': for (let i = this.index + 1; i < this.items.length; i++) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
-            case 'arrowup':   for (let i = this.index - 1; i >= 0; i--) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
-            case 'enter':     if (this.index >= 0 && this.index < this.items.length) this.items[this.index].click(); break;
-
-            case 'esc':
-            case 'escape':
-                this.close();
-                return false;
-        }
-
-        return true;
-    }
-
-    open()
-    {
-        this.setIndex(-1);
-        this.list.style.display = 'block';
-    }
-
-    close()
-    {
-        this.list.style.display = 'none';
-    }
-}
-
 class Drag
 {
     events = ['pointermove', 'pointerup', 'pointercancel', 'touchmove'];
@@ -1424,6 +1354,115 @@ class Drag
     }
 }
 
+class Dropdown
+{
+    mouse = true;
+    index = -1;
+
+    constructor(list, trigger)
+    {
+        this.items = list.querySelectorAll('.item');
+        this.items.forEach((item, index) => item.addEventListener('mouseover', function() { if (this.mouse) this.setIndex(index); }.bind(this)));
+
+        this.list = list;
+        this.list.addEventListener('mousemove', function() { this.mouse = true; }.bind(this));
+        this.list.addEventListener('mouseout', function() { if (this.mouse) this.setIndex(-1); }.bind(this));
+
+        this.trigger = trigger;
+    }
+
+    setIndex(index, scroll)
+    {
+        this.index = index;
+        this.items.forEach((item, index) => item.classList.toggle('current', index == this.index));
+
+        if (index >= 0 && scroll)
+        {
+            let list = this.list.getBoundingClientRect();
+            let item = this.items[this.index].getBoundingClientRect();
+
+            if (list.top <= item.top && list.bottom >= item.bottom)
+                return;
+
+            this.items[this.index].scrollIntoView(list.top > item.top);
+        }
+    }
+
+    handleKey(event)
+    {
+        let key = event.key.toLowerCase();
+
+        if (['arrowdown', 'arrowup', 'enter'].includes(key))
+            event.preventDefault();
+
+        this.mouse = false;
+
+        switch (key)
+        {
+            case 'arrowdown': for (let i = this.index + 1; i < this.items.length; i++) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
+            case 'arrowup':   for (let i = this.index - 1; i >= 0; i--) { if (this.items[i].style.display != 'none') { this.setIndex(i, true); break; } } break;
+            case 'enter':     if (this.index >= 0 && this.index < this.items.length) this.items[this.index].click(); break;
+
+            case 'esc':
+            case 'escape':
+                this.close();
+                return false;
+        }
+
+        return true;
+    }
+
+    open()
+    {
+        this.setIndex(-1);
+        this.list.style.display = 'block';
+    }
+
+    close()
+    {
+        this.list.style.display = 'none';
+    }
+}
+
+class Mark
+{
+    constructor(textarea, callback)
+    {
+        let element = document.createElement('div');
+
+        this.textarea = textarea;
+        this.callback = callback;
+
+        this.layer = document.createElement('div');
+        this.layer.classList.add('layer');
+
+        textarea.before(element);
+        textarea.addEventListener('scroll', function() { this.layer.scrollTop = textarea.scrollTop; }.bind(this));
+        textarea.addEventListener('input', function() { this.update(); }.bind(this));
+
+        element.classList.add('mark');
+        element.append(this.layer, textarea);
+
+        this.update();
+    }
+
+    update()
+    {
+        let text = this.textarea.value;
+        let list = this.callback(text);
+        let data = text.split('').map(char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'})[char] ?? char);
+
+        list.sort((a, b) => (a.end - a.start) - (b.end - b.start)).forEach(item =>
+        {
+            data[item.start] = '<mark' + (item.class ? ' class="' + item.class + '"' : '') + '>' + data[item.start];
+            data[item.end - 1] += '</mark>';
+        });
+
+        this.layer.innerHTML = data.join('') + ' ';
+        this.layer.scrollTop = this.textarea.scrollTop;
+    }
+}
+
 window.onload = function()
 {
     let date = new Date();
@@ -1650,6 +1689,29 @@ function compareStrings(a, b)
     return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
 }
 
+function patternIndex(text)
+{
+    let data = new Array();
+    let list = new Array();
+
+    for (let i = 0; i < text.length - 1; i++)
+    {
+        if (text.startsWith('{{', i))
+        {
+            data.push(i++);
+            continue;
+        }
+
+        if (text.startsWith('}}', i) && data.length)
+        {
+            list.push({start: data.pop(), end: i + 2});
+            i++;
+        }
+    }
+
+    return list;
+}
+
 function searchMatch(value, search)
 {
     let en = 'qwertyuiop[]asdfghjkl;\'zxcvbnm,.';
@@ -1745,7 +1807,7 @@ function addTableSearch(table, plural, single, colspan, cells = [0])
 
         table.querySelectorAll('tbody tr').forEach(row => { row.style.display = 'table-row'; });
         search.style.display = 'none';
-        input.value = '';
+        input.value = null;
 
         showTableTotal(table, single, plural, colspan, total);
     });
@@ -1763,6 +1825,13 @@ function addTableSearch(table, plural, single, colspan, cells = [0])
 
         showTableTotal(table, single, plural, colspan, count, input.value ? false : true);
     });
+}
+
+function addDrag(cell, callback)
+{
+    cell.innerHTML = '<i class="mdi-reorder-horizontal"></i>';
+    cell.classList.add('move');
+    cell.addEventListener('pointerdown', function(event) { if (event.button) return; event.preventDefault(); drag = new Drag(cell.parentNode, event, callback); });
 }
 
 function addDropdown(element, options, callback, separator, trigger)
@@ -1836,13 +1905,6 @@ function addDropdown(element, options, callback, separator, trigger)
     list.dropdown = new Dropdown(list, trigger);
 }
 
-function addDrag(cell, callback)
-{
-    cell.innerHTML = '<i class="mdi-reorder-horizontal"></i>';
-    cell.classList.add('move');
-    cell.addEventListener('pointerdown', function(event) { if (event.button) return; event.preventDefault(); drag = new Drag(cell.parentNode, event, callback); });
-}
-
 function closeModal()
 {
     modal.removeEventListener('animationend', closeModal);
@@ -1879,7 +1941,17 @@ function showModal(show, focus, type)
         modal.classList.add('fade-in');
 
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
-        modal.querySelectorAll('label .dropdown').forEach(item => { if (list) addDropdown(item, Object.keys(list), function(key) { let input = modal.querySelector('textarea[name="' + item.id + '"]'); input.value += list[key]; input.classList.remove('error'); input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); }, separator); });
+
+        if (list)
+        {
+            modal.querySelectorAll('label .dropdown').forEach(item =>
+            {
+                let input = modal.querySelector('textarea[name="' + item.id + '"]');
+                let mark = new Mark(input, patternIndex);
+                addDropdown(item, Object.keys(list), function(key) { input.value += list[key]; input.classList.remove('error'); input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); mark.update(); }, separator);
+            });
+        }
+
         modal.querySelectorAll('input, textarea').forEach(item => item.addEventListener('input', function() { item.classList.remove('error'); }));
         modal.querySelector(focus)?.focus();
 
