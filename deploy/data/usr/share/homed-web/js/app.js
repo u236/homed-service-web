@@ -65,6 +65,8 @@ class Controller
     socket = new Socket(this.onopen.bind(this), this.onclose.bind(this), this.onmessage.bind(this));
     services = {dashboard: new Dashboard(this)};
 
+    patternType = ['colorTemperature', 'file', 'level', 'loopIndex', 'mqtt', 'property', 'shellOutput', 'state', 'sunrise', 'sunset', 'timestamp', 'triggerEndpoint', 'triggerMessage', 'triggerName', 'triggerProperty', 'triggerTopic'];
+
     constructor()
     {
         setInterval(function() { this.updateHealth(); }.bind(this), 1000);
@@ -321,6 +323,58 @@ class Controller
         return device ?? new Device();
     }
 
+    patternData(pattern)
+    {
+        let list = pattern.match(/^\{\{\s*([^|{}]*?)\s*(?:\|\s*([^|]*?)\s*)?(?:\|\s*([^|]*?)\s*)?(?:\|.*)?\}\}$/);
+        let data = {type: list?.[1], valid: this.patternType.includes(list?.[1])};
+
+        if (data.type != 'property' || !data.valid)
+            return data;
+
+        data.endpoint = list[2];
+
+        if (!data.endpoint)
+        {
+            data.valid = false;
+            return data;
+        }
+
+        if (data.endpoint == 'triggerEndpoint' || data.endpoint.includes('{{') || data.endpoint.includes('}}'))
+            return data;
+
+        data.device = this.findDevice({endpoint: data.endpoint});
+        data.property = list[3];
+        data.valid = data.device.info && data.property ? true : false;
+
+        if (!data.valid || data.property.includes('{{') || data.property.includes('}}'))
+            return data;
+
+        if (data.property != 'deviceName')
+        {
+            let items = data.property.split(' ');
+            let endpointId = Number(items[items.length - 1]) ? items.pop() : data.endpoint.split('/')[2] ?? 'common';
+            let properties = data.device.endpoints[endpointId]?.properties ?? new Object();
+            let property = items.join('').toLowerCase();
+
+            if (!Object.keys(properties).length && endpointId != 'common')
+            {
+                properties = data.device.endpoints.common?.properties ?? new Object();
+                property += '_' + endpointId;
+            }
+
+            if (!Object.values(data.device.endpoints).some(endpoint => Object.keys(endpoint.properties).length))
+                return data;
+
+            properties = Object.fromEntries(Object.entries(properties).filter(([key]) => key.toLowerCase() == property));
+            data.valid = Object.keys(properties).length ? true : false;
+            data.value = Object.values(properties)[0] ?? null;
+        }
+        else
+            data.value = data.device.info.name;
+
+        return data;
+    }
+
     sceneList()
     {
         let scenes = new Object();
@@ -377,7 +431,7 @@ class Controller
                 let value = {endpoint: endpoint, property: property};
                 let meta = exposeMeta(property);
 
-                if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$'))
+                if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$') || (pattern && ['action', 'event', 'scene'].includes(property.split('_')[0])))
                     return;
 
                 if (endpointId != 'common')
@@ -1936,22 +1990,31 @@ function showModal(show, focus, type)
                 break;
         }
 
+        if (list)
+        {
+            modal.querySelectorAll('label .dropdown').forEach(element =>
+            {
+                let input = modal.querySelector('textarea[name="' + element.id + '"]');
+
+                let mark = new Mark(input, function(text)
+                {
+                    let data = patternIndex(text);
+
+                    if (!Object.values(controller.services).find(service => service.devices && !service.ready))
+                        data.forEach(item => { if (!controller.patternData(text.slice(item.start, item.end)).valid) item.class = 'error'; });
+
+                    return data;
+                });
+
+                addDropdown(element, Object.keys(list), function(key) { input.value += list[key]; input.classList.remove('error'); input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); mark.update(); }, separator);
+            });
+        }
+
         modal.style.display = 'block';
         modal.classList.remove('fade-out');
         modal.classList.add('fade-in');
 
         modal.querySelectorAll('label .extend').forEach(item => item.addEventListener('click', function() { modal.querySelector('textarea[name="' + item.id + '"]').style.height = '300px'; item.style.display = 'none'; }));
-
-        if (list)
-        {
-            modal.querySelectorAll('label .dropdown').forEach(item =>
-            {
-                let input = modal.querySelector('textarea[name="' + item.id + '"]');
-                let mark = new Mark(input, patternIndex);
-                addDropdown(item, Object.keys(list), function(key) { input.value += list[key]; input.classList.remove('error'); input.focus(); input.setSelectionRange(input.value.length - list[key].length, input.value.length); mark.update(); }, separator);
-            });
-        }
-
         modal.querySelectorAll('input, textarea').forEach(item => item.addEventListener('input', function() { item.classList.remove('error'); }));
         modal.querySelector(focus)?.focus();
 
