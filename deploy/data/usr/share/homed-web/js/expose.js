@@ -74,6 +74,26 @@ const coverIcons =
     window:            {cover: 'window-closed-variant',  position: 'arrow-up-down'}
 };
 
+const abbreviations =
+{
+    co2:               'CO2',
+    cpu:               'CPU',
+    dhcp:              'DHCP',
+    ec:                'EC',
+    eco2:              'eCO2',
+    id:                'ID',
+    ir:                'IR',
+    pm:                'PM',
+    pm1:               'PM1',
+    pm4:               'PM4',
+    pm10:              'PM10',
+    pm25:              'PM2.5',
+    sg:                'SG',
+    tds:               'TDS',
+    uv:                'UV',
+    voc:               'VOC'
+};
+
 function itemProperty(endpoint, itemName)
 {
     let meta = exposeMeta(itemName);
@@ -209,27 +229,25 @@ function exposeTitle(device, endpoint, itemName, names = true)
     {
         let list = meta.name.replace(/([A-Z])/g, ' $1').toLowerCase().split(' ');
 
-        switch (list[0])
-        {
-            case 'co2':  list[0] = 'CO2'; break;
-            case 'cpu':  list[0] = 'CPU'; break;
-            case 'ec':   list[0] = 'EC'; break;
-            case 'eco2': list[0] = 'eCO2'; break;
-            case 'pm':   list[0] = 'PM'; break;
-            case 'pm1':  list[0] = 'PM1'; break;
-            case 'pm4':  list[0] = 'PM4'; break;
-            case 'pm10': list[0] = 'PM10'; break;
-            case 'pm25': list[0] = 'PM2.5'; break;
-            case 'sg':   list[0] = 'SG'; break;
-            case 'tds':  list[0] = 'TDS'; break;
-            case 'uv':   list[0] = 'UV'; break;
-            case 'voc':  list[0] = 'VOC'; break;
-            default:     list[0] = list[0].charAt(0).toUpperCase() + list[0].slice(1).toLowerCase(); break;
-        }
-
         for (let i = 0; i < list.length; i++)
-            if (['id', 'ir'].includes(list[i].toLowerCase()) || list[i]?.match('^[pt][0-9]+$'))
+        {
+            if (abbreviations[list[i]])
+            {
+                list[i] = abbreviations[list[i]];
+                continue;
+            }
+
+            if (list[i].match('^[pt][0-9]+$'))
+            {
                 list[i] = list[i].toUpperCase();
+                continue;
+            }
+
+            if (i)
+                continue;
+
+            list[i] = list[i].charAt(0).toUpperCase() + list[i].slice(1);
+        }
 
         title = list.join(' ');
     }
