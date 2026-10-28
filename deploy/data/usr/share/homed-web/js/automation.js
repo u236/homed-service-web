@@ -1,6 +1,6 @@
 class Automation
 {
-    intervals = [setInterval(function() { this.checkDevices(); this.updateLastTriggered(); }.bind(this), 100)];
+    intervals = [setInterval(function() { this.updateLastTriggered(); this.checkDevices(); }.bind(this), 100)];
     content = document.querySelector('.content .container');
     service = 'automation';
 
@@ -211,7 +211,7 @@ class Automation
                 if (element.type == 'property' && element.endpoint != 'triggerEndpoint' && element.property != 'triggerProperty')
                 {
                     let device = this.controller.findDevice(element);
-                    list.push({device: device, valid: device.info ? true : false});
+                    list.push({device: device, valid: device.info?.active ? true : false});
                 }
 
                 items.filter(name => typeof(element[name]) == 'string').forEach(name => { patternIndex(element[name]).forEach(pattern => { list.push({...this.controller.patternData(element[name].slice(pattern.start, pattern.end)), pattern: true}); }); });
@@ -229,6 +229,16 @@ class Automation
 
     checkDevices()
     {
+        if (this.controller.service == this.service && this.content.querySelector('.automationInfo') && modal.style.display != 'block')
+        {
+            let broken = this.brokenItem(this.data);
+
+            if (broken != this.broken)
+                this.showAutomationInfo(this.updated == true);
+
+            this.broken = broken;
+        }
+
         if (this.controller.page != this.service || !this.status.automations)
             return;
 
@@ -255,9 +265,9 @@ class Automation
             let title = exposeTitle(device, check ? item.endpoint.slice(0, -4) : item.endpoint, item.property) + (check ? ' (any)' : '');
 
             if (form)
-                return (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + title;
+                return '<span' + (device.info?.active ? '' : ' class="error"') + '>' + (device.info?.name ?? item.endpoint) + '</span> <i class="mdi-arrow-right"></i> ' + title;
 
-            return '<span class="value">' + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + '</span> <i class="mdi-arrow-right"></i> <span class="value">' + title + '</span>';
+            return '<span class="value' + (device.info?.active ? '' : ' error') + '">' + (device.info?.name ?? item.endpoint) + '</span> <i class="mdi-arrow-right"></i> <span class="value">' + title + '</span>';
         }
 
         return form ? '<i>Trigger Property</i>' : '<span class="value"><i>Trigger Property</i></span>';
@@ -941,6 +951,7 @@ class Automation
             this.conditionList(this, this.data.conditions, conditions);
             this.actionList(this, this.data.actions, actions);
 
+            this.broken = this.brokenItem(this.data);
             showModal(false);
         });
     }
@@ -1038,11 +1049,18 @@ class Automation
     {
         loadHTML('html/automation/propertyItem.html', this, modal.querySelector('.data'), function()
         {
+            let device = append ? new Device() : this.controller.findDevice(item);
             let properties = this.controller.propertyList(type != 'trigger', false, type == 'trigger');
             let data;
 
             modal.querySelector('.name').innerHTML = 'Property ' + type;
             modal.querySelector('.property').innerHTML = append ? 'Select property there <i class="mdi-arrow-right"></i>' : this.itemProperty(item, true);
+
+            if (device.info)
+            {
+                modal.querySelector('.property span').classList.add('info');
+                modal.querySelector('.property span').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
+            }
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(properties), function(key)
             {

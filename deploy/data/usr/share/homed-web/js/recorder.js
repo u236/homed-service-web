@@ -2,7 +2,7 @@ class Recorder
 {
     duration = {second: 1000, minute: 60000, hour: 3600000, day: 86400000};
 
-    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.interval != 'custom' && Date.now() - canvas.timestamp >= this.updatePeriod(canvas)) this.dataRequest(canvas); }); }.bind(this), 5000)];
+    intervals = [setInterval(function() { document.querySelectorAll('canvas').forEach(canvas => { if (canvas.interval != 'custom' && Date.now() - canvas.timestamp >= this.updatePeriod(canvas)) this.dataRequest(canvas); }); }.bind(this), 5000), setInterval(function() { this.checkDevices(); }.bind(this), 100)];
     content = document.querySelector('.content .container');
 
     status = new Object();
@@ -524,6 +524,32 @@ class Recorder
         }
     }
 
+    checkDevices()
+    {
+        if (this.controller.service != 'recorder')
+            return;
+
+        Array.from(this.content.querySelectorAll('.itemList tbody tr')).filter(row => row.querySelector('.exposeIcon') && row.classList.contains('broken') != (this.controller.findDevice(row.item).info ? false : true)).forEach(row =>
+        {
+            let device = this.controller.findDevice(row.item);
+
+            if (!device.info)
+                row.classList.remove('online', 'offline', 'inactive');
+
+            row.classList.toggle('broken', !device.info);
+            row.querySelector('.exposeIcon').className = device.info ? 'mdi-' + iconName(device, row.item.endpoint, row.item.property) + ' exposeIcon' : 'mdi-ghost error exposeIcon';
+        });
+
+        this.content.querySelectorAll('.itemInfo .title .name .value').forEach(element =>
+        {
+            let device = this.controller.findDevice(this.data);
+            let status = !device.info ? 'not found' : !device.info.active ? 'inactive' : device.availability == 'offline' ? 'offline' : null;
+            element.className = 'value ' + (status != 'inactive' ? 'error' : 'shade');
+            element.innerHTML = status ? status.toUpperCase() : null;
+            element.style.display = status ? null : 'none';
+        });
+    }
+
     timestampString(timestamp, seconds = true)
     {
         let date = new Date(timestamp);
@@ -737,7 +763,7 @@ class Recorder
             let title = exposeTitle(device, data.endpoint, data.property);
 
             this.status.items.filter(item => device.info && item.endpoint == data.endpoint && item.property == data.property && !item.name).forEach(item => { item.name = device.info.name + ' - ' + title; });
-            cell.innerHTML = (icon ? (device.info ? exposeIcon(device, data.endpoint, data.property) : '<span class="mdi-ghost exposeIcon error"></span>') : '') + '<span>' + (device.info?.name ?? data.endpoint) + '</span> <i class="mdi-arrow-right"></i> ' + title + (info && !device.info ? ' <span class="value error">NOT FOUND</span>' : '');
+            cell.innerHTML = (icon ? (device.info ? exposeIcon(device, data.endpoint, data.property) : '<span class="mdi-ghost exposeIcon error"></span>') : '') + '<span>' + (device.info?.name ?? data.endpoint) + '</span> <i class="mdi-arrow-right"></i> ' + title + (info ? ' <span class="value" style="display: none;"></span>' : '');
 
             if (!guest && info && device.info)
             {
@@ -747,6 +773,9 @@ class Recorder
 
             if (!table)
                 return;
+
+            if (device.info)
+                cell.closest('tr').dataset.device = device.service + '/' + device.id;
 
             sortTable(table, 0);
 
@@ -805,6 +834,7 @@ class Recorder
             {
                 let row = table.querySelector('tbody').insertRow();
 
+                row.item = item;
                 row.addEventListener('click', function() { this.controller.showPage('recorder?item=' + item.endpoint + '/' + item.property); }.bind(this));
 
                 for (let i = 0; i < 3; i++)

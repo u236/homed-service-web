@@ -611,7 +611,7 @@ th:last-child, td:last-child {
 
 .title .name .info:hover {
     cursor: pointer;
-    color: var(--color-highlight);
+    color: var(--color-warning);
 }
 
 .title .value {
@@ -1638,6 +1638,11 @@ th:last-child, td:last-child {
     overflow: hidden;
     max-width: 100px;
     text-overflow: ellipsis;
+}
+
+#modal table.select .info:hover {
+    cursor: pointer;
+    color: var(--color-warning);
 }
 
 #modal table.exposes td:first-child {

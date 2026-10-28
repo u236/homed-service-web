@@ -364,7 +364,7 @@ class Controller
 
         data.device = this.findDevice({endpoint: data.endpoint});
         data.property = list[3];
-        data.valid = data.device.info && data.property ? true : false;
+        data.valid = data.device.info?.active && data.property ? true : false;
 
         if (!data.valid || data.property.includes('{{') || data.property.includes('}}'))
             return data;
@@ -439,7 +439,7 @@ class Controller
         if (triggerProperty)
             list['<i>Trigger Property</i>'] = {endpoint: 'triggerEndpoint', property: 'triggerProperty'};
 
-        Object.keys(devices).forEach(name =>
+        Object.keys(devices).filter(name => devices[name].info.active).forEach(name =>
         {
             let device = devices[name];
             let endpoint = device.service.split('/')[0] + '/' + device.id;
@@ -507,6 +507,7 @@ class Controller
         });
 
         Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].brokenItem(automation)) list[this.searchTitle('Automation', automation.name, 'script error')] = service + '?uuid=' + automation.uuid; }); });
+        this.services.recorder?.status.items?.filter(item => this.devicesReady() && !this.findDevice(item).info).forEach(item => { list[this.searchTitle('Recorder', this.services.dashboard.itemString(item, false), 'chart-line-variant error')] = 'recorder?item=' + item.endpoint + '/' + item.property; });
         return list;
     }
 
@@ -881,6 +882,11 @@ class DeviceService
                 }
             }
         });
+
+        if (this.controller.service != this.service || !this.device || !this.content.querySelector('table.automations'))
+            return;
+
+        this.updateAutomations(this.device);
     }
 
     updateDeviceInfo(device)
@@ -928,8 +934,19 @@ class DeviceService
     updateAutomations(device)
     {
         let table = this.content.querySelector('table.automations');
+        let services = Object.keys(this.controller.services).filter(key => key.startsWith('automation'));
+        let status = services.map(key => this.controller.services[key].status.automations);
 
-        Object.keys(this.controller.services).filter(key => key.startsWith('automation')).forEach(key =>
+        if (table.status && status.length == table.status.length && status.every((item, index) => item == table.status[index]))
+        {
+            Array.from(table.rows).forEach(row => { row.querySelector('.exposeIcon').classList.toggle('error', row.automation.service.brokenItem(row.automation.item)); });
+            return;
+        }
+
+        table.innerHTML = null;
+        table.status = status;
+
+        services.forEach(key =>
         {
             let service = this.controller.services[key];
 
@@ -940,16 +957,14 @@ class DeviceService
                 if (list.length)
                 {
                     let row = table.insertRow();
-                    row.insertCell().innerHTML = '<span class="mdi-script exposeIcon' + (list.some(item => !item.valid) ? ' error' : '') + '"></span>' + automation.name + (list.some(item => item.pattern) ? ' <span class="flag">pattern</span>' : '');
+                    row.automation = {service: service, item: automation};
+                    row.insertCell().innerHTML = '<span class="mdi-script exposeIcon' + (service.brokenItem(automation) ? ' error' : '') + '"></span>' + automation.name + (list.some(item => item.pattern) ? ' <span class="flag">pattern</span>' : '');
                     row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
                 }
             });
         });
 
-        if (table.rows.length)
-            return;
-
-        this.content.querySelectorAll('.automations').forEach(item => item.remove());
+        this.content.querySelectorAll('.automations').forEach(item => { item.style.display = table.rows.length ? null : 'none'; });
     }
 
     parseMessage(list, message)
@@ -1073,6 +1088,9 @@ class DeviceService
             case 'slaveId':
                 return '<span class="value">' + value + '</span>';
 
+            case 'name':
+                return value + (summary && data.active == false ? ' <span class="value shade">INACTIVE</span>' : '');
+
             case 'pollInterval':
             case 'replyTimeout':
             case 'requestTimeout':
@@ -1111,7 +1129,7 @@ class DeviceService
 
             if (!device.info.active)
             {
-                this.content.querySelector('.exposes').remove();
+                this.content.querySelectorAll('.exposes').forEach(item => item.remove());
                 return;
             }
 

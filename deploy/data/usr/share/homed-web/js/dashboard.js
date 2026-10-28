@@ -1,5 +1,6 @@
 class Dashboard
 {
+    intervals = [setInterval(function() { this.checkDevices(); }.bind(this), 100)];
     content = document.querySelector('.content .container');
     index = parseInt(localStorage.getItem('homedDashboardIndex'));
 
@@ -40,6 +41,23 @@ class Dashboard
 
                 break;
         }
+    }
+
+    checkDevices()
+    {
+        if (this.controller.service != 'dashboard')
+            return;
+
+        Array.from(this.content.querySelectorAll('tr[data-device]')).filter(row => row.querySelector('td.label .exposeIcon') && row.classList.contains('missing') != (this.controller.findDevice(row.item).info ? false : true)).forEach(row =>
+        {
+            let device = this.controller.findDevice(row.item);
+
+            if (!device.info)
+                row.classList.remove('online', 'offline', 'inactive');
+
+            row.classList.toggle('missing', !device.info);
+            row.querySelector('td.label .exposeIcon').className = device.info ? 'mdi-' + iconName(device, row.item.endpoint, row.item.expose ?? row.item.property) + ' exposeIcon' : 'mdi-ghost error exposeIcon';
+        });
     }
 
     devicePromise(item, cell, icon = true)
@@ -99,7 +117,7 @@ class Dashboard
             return (edit ? 'Camera <i class="mdi-arrow-right"></i> ' : '') + this.cameraTitle(item.camera);
 
         device = this.controller.findDevice(item);
-        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (device.info ? device.info.name : '<span class="error">' + item.endpoint + '</span>') + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+        return (edit ? (item.expose ? 'Device' : 'Recorder') + ' <i class="mdi-arrow-right"></i> ' : '') + (edit ? '<span' + (device.info?.active ? '' : ' class="error"') + '>' + (device.info?.name ?? item.endpoint) + '</span>' : device.info?.name ?? item.endpoint) + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
     }
 
     dashboardName(dashboard, icon = true)
@@ -575,6 +593,7 @@ class Dashboard
                             let option = device.options(endpointId)[item.expose ?? item.property] ?? new Object();
                             let properties = device.properties(endpointId);
 
+                            row.item = item;
                             row.dataset.device = device.service + '/' + device.id;
                             row.dataset.endpointId = endpointId;
                             row.classList.remove('missing');
@@ -972,7 +991,7 @@ class Dashboard
             list['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene};
         });
 
-        Object.keys(devices).forEach(name =>
+        Object.keys(devices).filter(name => devices[name].info.active).forEach(name =>
         {
             let device = devices[name];
 
@@ -1010,6 +1029,7 @@ class Dashboard
 
         loadHTML('html/dashboard/itemEdit.html', this, modal.querySelector('.data'), function()
         {
+            let device = item.endpoint ? this.controller.findDevice(item) : new Device();
             let name = modal.querySelector('.name');
             let data;
 
@@ -1019,6 +1039,12 @@ class Dashboard
                 this.devicePromise(item, name.querySelector('span'), false);
 
             modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.itemString(item);
+
+            if (device.info)
+            {
+                modal.querySelector('.item span').classList.add('info');
+                modal.querySelector('.item span').addEventListener('click', function() { this.controller.showPage(item.expose ? device.service + '?device=' + device.id : 'recorder?item=' + item.endpoint + '/' + item.property); showModal(false); }.bind(this));
+            }
 
             addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
             {
