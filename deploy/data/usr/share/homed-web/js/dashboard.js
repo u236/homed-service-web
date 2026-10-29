@@ -463,6 +463,11 @@ class Dashboard
 
             handleArrowButtons(this.content, Array.from(this.status.dashboards.keys()), this.index, function(index) { this.setIndex(index); this.showDashboard(); }.bind(this));
 
+            if (document.fullscreenEnabled)
+                this.content.querySelector('.fullscreen').addEventListener('click', function() { document.documentElement.requestFullscreen(); });
+            else
+                this.content.querySelector('.fullscreen').remove();
+
             this.status.dashboards.forEach((dashboard, index) =>
             {
                 let element = document.createElement('span');

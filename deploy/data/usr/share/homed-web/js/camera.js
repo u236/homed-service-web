@@ -64,7 +64,7 @@ class Camera
             {
                 this.status = message;
 
-                if (this.controller.service == 'camera')
+                if (this.controller.service == 'camera' && !document.fullscreenElement)
                 {
                     this.controller.showPage(this.controller.page);
                     this.updatePage();
@@ -126,6 +126,24 @@ class Camera
         element.append(alert);
 
         return video;
+    }
+
+    addItem(element, device, subStream)
+    {
+        let title = document.createElement('span');
+        let item = document.createElement('div');
+        let video = this.addVideo(item);
+
+        title.innerHTML = '<span class="mdi-video exposeIcon"></span>' + device.name;
+        title.classList.add('title');
+
+        item.classList.add('cameraItem');
+        item.append(title);
+
+        element.append(item);
+        this.play(video, device.id, subStream);
+
+        return item;
     }
 
     play(video, id, subStream = false)
@@ -193,9 +211,15 @@ class Camera
 
         menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';
         menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
+        menu.innerHTML += '<span id="wall"><i class="mdi-fullscreen"></i> Wall</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('camera'); }.bind(this));
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
+
+        if (document.fullscreenEnabled)
+            menu.querySelector('#wall').addEventListener('click', function() { this.showWall(); }.bind(this));
+        else
+            menu.querySelector('#wall').remove();
 
         if (!this.status.version)
             return;
@@ -224,27 +248,59 @@ class Camera
 
         loadHTML('html/camera/deviceList.html', this, this.content, function()
         {
-            let list = this.content.querySelector('.cameraList');
-
-            this.status.devices.forEach(device =>
-            {
-                let title = document.createElement('span');
-                let item = document.createElement('div');
-                let video = this.addVideo(item);
-
-                title.innerHTML = '<span class="mdi-video exposeIcon"></span>' + device.name;
-                title.classList.add('title');
-
-                item.classList.add('cameraItem');
-                item.addEventListener('click', function() { this.controller.showPage('camera?device=' + device.id); }.bind(this));
-
-                item.append(title);
-                list.append(item);
-
-                this.play(video, device.id, true);
-            });
+            let element = this.content.querySelector('.cameraList');
+            this.status.devices.forEach(device => { this.addItem(element, device, true).addEventListener('click', function() { this.controller.showPage('camera?device=' + device.id); }.bind(this)); });
 
         }.bind(this));
+    }
+
+    showWall()
+    {
+        let list = this.status.devices; // TODO: filter enabled
+        let element;
+
+        if (!list?.length)
+        {
+            this.controller.showToast('No cameras to show in wall mode', 'warning', 1000);
+            return;
+        }
+
+        element = document.createElement('div');
+        element.classList.add('cameraWall');
+
+        element.addEventListener('fullscreenchange', function()
+        {
+            let columns = 1;
+            let width = 0;
+
+            if (!document.fullscreenElement)
+            {
+                element.remove();
+                this.controller.showPage(this.controller.page);
+                return;
+            }
+
+            for (let i = 1; i <= list.length; i++)
+            {
+                let rows = Math.ceil(list.length / i);
+                let size = Math.min((screen.width - (i + 1) * 10) / i, (screen.height - (rows + 1) * 10) / rows * 16 / 9);
+
+                if (size <= width)
+                    continue;
+
+                columns = i;
+                width = size;
+            }
+
+            element.style.gridTemplateColumns = 'repeat(' + columns + ', ' + Math.floor(width) + 'px)';
+
+            this.stop();
+            list.forEach(device => { this.addItem(element, device); });
+
+        }.bind(this));
+
+        document.body.append(element);
+        element.requestFullscreen().catch(function() { element.remove(); });
     }
 
     showDeviceInfo(device)

@@ -133,7 +133,7 @@ html[icons="off"] .exposeIcon {
     display: none;
 }
 
-html[wide="on"] .container {
+html[wide="on"] .container, html:fullscreen .container {
     max-width: none;
 }
 
@@ -141,6 +141,14 @@ html body.drag, html body.drag * {
     cursor: grabbing;
     user-select: none;
     -webkit-user-select: none;
+}
+
+html:fullscreen .header, html:fullscreen .footer, html:fullscreen .dashboardMenu, html:fullscreen #toast {
+    display: none;
+}
+
+html:fullscreen .content {
+    padding: 20px 15px;
 }
 
 body {
@@ -967,6 +975,24 @@ th:last-child, td:last-child {
     display: block;
     cursor: pointer;
     width: 100%;
+}
+
+.cameraWall {
+    display: grid;
+    align-content: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #000000;
+    box-sizing: border-box;
+}
+
+.cameraWall:not(:fullscreen), .cameraWall .cameraItem .title {
+    display: none;
+}
+
+.cameraWall .cameraItem {
+    cursor: default;
 }
 
 .streamAlert {
