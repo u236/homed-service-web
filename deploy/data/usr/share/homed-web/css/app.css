@@ -1323,6 +1323,10 @@ th:last-child, td:last-child {
     display: inline;
 }
 
+.automationInfo {
+    padding-bottom: 200px;
+}
+
 .automationInfo table, .itemInfo table, .deviceInfo table {
     margin-bottom: 20px;
 }
@@ -1345,12 +1349,20 @@ th:last-child, td:last-child {
     text-overflow: ellipsis;
 }
 
-.automationInfo .title, .itemInfo .title, .deviceInfo .title {
-    margin: 10px 5px 10px 4px;
+.automationInfo .negative {
+    width: 0.4em;
+    margin-left: 1px;
+    text-align: center;
+    color: var(--color-error);
 }
 
-.automationInfo {
-    padding-bottom: 200px;
+.automationInfo .operator {
+    width: 1.15em;
+    text-align: center;
+}
+
+.automationInfo .title, .itemInfo .title, .deviceInfo .title {
+    margin: 10px 5px 10px 4px;
 }
 
 .automationInfo .title a {

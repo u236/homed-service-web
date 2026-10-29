@@ -174,13 +174,13 @@ class Automation
         return value ? value == 'true' || value == 'false' ? value == 'true' : parseFloat(value) == value ? parseFloat(value) : value : null;
     }
 
-    levelIndent(cell, level, current = true)
+    levelIndent(cell, level, current = true, negative, operator)
     {
         if (!level)
             return;
 
         cell.style.paddingLeft = 18 * (level - 1) + 5 + 'px';
-        cell.innerHTML += '<span class="small ' + (current ? 'warning' : 'shade') + '"><i class="mdi-subdirectory-arrow-right"></i></span> ';
+        cell.innerHTML += '<span class="small ' + (current ? 'warning' : 'shade') + '">' + (operator ? '<span class="operator">' + operator + '</span>' : '<i class="mdi-subdirectory-arrow-right"></i>') + (negative ? '<span class="negative">!</span>' : '') + '</span> ';
     }
 
     arrayStatement(statement)
@@ -500,7 +500,7 @@ class Automation
         automation.showCondition({type: type}, list, true);
     }
 
-    conditionList(automation, list, table, level = 0, inactive = false)
+    conditionList(automation, list, table, type, level = 0, inactive = false)
     {
         let items = !list?.length && level ? new Array(new Object()) : list;
 
@@ -523,7 +523,7 @@ class Automation
                 switch (i)
                 {
                     case 0:
-                        automation.levelIndent(cell, level);
+                        automation.levelIndent(cell, level, true, type == 'NOT', index ? type == 'OR' ? '|' : '&' : null);
                         cell.innerHTML += ['AND', 'OR', 'NOT'].includes(condition.type) ? '<span class="value">' + condition.type + '</span>' : condition.type ?? '<span class="shade"><i>no conditions</i></span>';
                         break;
 
@@ -537,7 +537,7 @@ class Automation
                             cell.innerHTML = '<div class="dropdown right"><i class="mdi-plus"></i></div>';
                             cell.classList.add('right');
                             addDropdown(cell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, condition.conditions, type); }, 7);
-                            automation.conditionList(automation, condition.conditions, table, level + 1, inactive);
+                            automation.conditionList(automation, condition.conditions, table, condition.type, level + 1, inactive);
                             break;
                         }
 
@@ -635,7 +635,7 @@ class Automation
                                     actionRow.drag = {type: 'condition', list: action.conditions, index: 0, level: level + 1, header: true};
                                     nameCell.innerHTML += '<span class="value">' + (action.type == 'loop' ? 'WHILE' : 'IF') + '</span> <span class="value">' + action.conditionType + '</span>';
                                     addDropdown(actionCell.querySelector('.dropdown'), automation.conditionType, function(type) { automation.conditionDropdown(automation, action.conditions, type); }, 7);
-                                    automation.conditionList(automation, action.conditions, table, level + 1, disabled);
+                                    automation.conditionList(automation, action.conditions, table, action.conditionType, level + 1, disabled);
                                     break;
 
                                 case 1:
