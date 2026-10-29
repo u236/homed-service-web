@@ -795,7 +795,7 @@ function updateExpose(device, endpointId, property, data)
                         case 'select': row.querySelector('td.control select').value = value; break;
                     }
 
-                    if (name == 'uptime' && ['s', 'sec'].includes(cell.dataset.unit) && typeof(value) == 'number')
+                    if ((name == 'uptime' || device.options(endpointId)[property]?.title == 'Uptime') && ['s', 'sec'].includes(cell.dataset.unit) && typeof(value) == 'number')
                     {
                         cell.innerHTML = parseInt(value / 86400) + 'd ' + new Date(value * 1000).toISOString().slice(11, 19);
                         break;
