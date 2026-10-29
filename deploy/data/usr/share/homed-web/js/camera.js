@@ -134,7 +134,7 @@ class Camera
         let item = document.createElement('div');
         let video = this.addVideo(item);
 
-        title.innerHTML = '<span class="mdi-video exposeIcon"></span>' + device.name;
+        title.innerHTML = '<span class="mdi-video exposeIcon"></span>' + device.name + (device.hide ? '<i class="mdi-eye-off hideIcon"></i>' : '');
         title.classList.add('title');
 
         item.classList.add('cameraItem');
@@ -210,10 +210,15 @@ class Camera
         let device;
 
         menu.innerHTML  = '<span id="list"><i class="mdi-menu"></i> List</span>';
+        menu.innerHTML += '<span id="sort"><i class="mdi-swap-horizontal-bold"></i> Sort</span>';
         menu.innerHTML += '<span id="add"><i class="mdi-plus"></i> Add</span>';
         menu.innerHTML += '<span id="wall"><i class="mdi-fullscreen"></i> Wall</span>';
 
         menu.querySelector('#list').addEventListener('click', function() { this.controller.showPage('camera'); }.bind(this));
+
+        menu.querySelector('#sort').style.display = this.status.devices?.length > 1 ? 'inline-block' : 'none';
+        menu.querySelector('#sort').addEventListener('click', function() { this.showDeviceSort(); }.bind(this));
+
         menu.querySelector('#add').addEventListener('click', function() { this.showDeviceEdit(); }.bind(this));
 
         if (document.fullscreenEnabled)
@@ -254,9 +259,56 @@ class Camera
         }.bind(this));
     }
 
+    showDeviceSort()
+    {
+        let list = this.status.devices.slice();
+
+        let showTable = function(table)
+        {
+            table.innerHTML = null;
+
+            list.forEach((device, index) =>
+            {
+                let row = table.insertRow();
+
+                row.drag = {type: 'device', list: list, index: index, level: 0};
+
+                for (let i = 0; i < 2; i++)
+                {
+                    let cell = row.insertCell();
+
+                    switch (i)
+                    {
+                        case 0: cell.innerHTML = device.name; break;
+
+                        case 1:
+
+                            if (list.length < 2)
+                            {
+                                cell.innerHTML = empty;
+                                cell.classList.add('empty');
+                                break;
+                            }
+
+                            addDrag(cell, function() { showTable(table); });
+                            break;
+                    }
+                }
+            });
+        };
+
+        loadHTML('html/camera/deviceSort.html', this, modal.querySelector('.data'), function()
+        {
+            modal.querySelector('.save').addEventListener('click', function() { this.controller.socket.publish('command/camera', {action: 'updateOrder', order: list.map(device => device.id)}); showModal(false); }.bind(this));
+            modal.querySelector('.cancel').addEventListener('click', function() { showModal(false); });
+            showTable(modal.querySelector('table.devices'));
+            showModal(true);
+        });
+    }
+
     showWall()
     {
-        let list = this.status.devices; // TODO: filter enabled
+        let list = this.status.devices?.filter(device => !device.hide);
         let element;
 
         if (!list?.length)
@@ -318,6 +370,7 @@ class Camera
             this.content.querySelector('.subStream').innerHTML = device.subStream ?? '<i class="mdi-close-circle shade"></i>';
             this.content.querySelector('.frame').innerHTML = list.length ? '<a href="' + list[0] + '" target="_blank">' + list[0] + '</a>' + (list[1] ? ' <span class="shade">| ' + list[1] + '</span>' : '') : '<i class="mdi-close-circle shade"></i>';
             this.content.querySelector('.preload').innerHTML = '<i class="mdi-' + (device.preload ? 'check-circle success' : 'close-circle shade') + '"></i>';
+            this.content.querySelector('.hide').innerHTML = '<i class="mdi-' + (device.hide ? 'check-circle success' : 'close-circle shade') + '"></i>';
 
             this.content.querySelector('.edit').addEventListener('click', function() { this.showDeviceEdit(device); }.bind(this));
             this.content.querySelector('.remove').addEventListener('click', function() { this.showDeviceRemove(device); }.bind(this));
@@ -348,6 +401,7 @@ class Camera
             modal.querySelector('input[name="subStream"]').value = device.subStream ?? '';
             modal.querySelector('input[name="frame"]').value = device.frame ?? '';
             modal.querySelector('input[name="preload"]').checked = device.preload ?? false;
+            modal.querySelector('input[name="hide"]').checked = device.hide ?? false;
 
             modal.querySelector('.save').addEventListener('click', function()
             {

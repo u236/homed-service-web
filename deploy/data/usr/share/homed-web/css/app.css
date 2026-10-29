@@ -958,13 +958,21 @@ th:last-child, td:last-child {
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 15px 8px 5px 8px;
+    padding: 20px 8px 5px 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
     color: #ffffff;
 }
 
 .cameraItem .title .exposeIcon {
     color: inherit;
+}
+
+.cameraItem .title .hideIcon {
+    position: absolute;
+    top: auto;
+    right: 8px;
+    bottom: 5px;
+    line-height: 1;
 }
 
 .cameraView {

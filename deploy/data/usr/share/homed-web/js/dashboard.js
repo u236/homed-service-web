@@ -706,7 +706,6 @@ class Dashboard
         {
             modal.querySelector('.save').addEventListener('click', function() { this.storeDashboards(); }.bind(this));
             modal.querySelector('.cancel').addEventListener('click', function() { this.status.dashboards = this.backup; showModal(false); }.bind(this));
-
             showTable(modal.querySelector('table.dashboards'));
             showModal(true);
         });
