@@ -224,7 +224,7 @@ class Automation
 
     brokenItem(item)
     {
-        return !this.controller.devicesReady() || !this.deviceList(item).some(data => !data.valid) ? false : true;
+        return !item.active || !this.controller.devicesReady() || !this.deviceList(item).some(data => !data.valid) ? false : true;
     }
 
     checkDevices()
@@ -887,7 +887,7 @@ class Automation
 
             }.bind(this));
 
-            this.content.querySelector('.name').innerHTML = this.data.name + (this.uuid ? '' : ' <span class="value warning">NEW</span>');
+            this.content.querySelector('.name').innerHTML = this.data.name + (this.uuid ? '' : ' <span class="value warning">NEW</span>') + (this.data.active ? '' : ' <span class="value shade">INACTIVE</span>');
             this.content.querySelector('.note').innerHTML = this.data.note ?? '';
             this.content.querySelector('.mode').innerHTML = '<span class="value">' + this.data.mode + '</span>';
             this.content.querySelector('.debounce').innerHTML = '<span class="value">' + (this.data.debounce ?? 0) + '</span> seconds';

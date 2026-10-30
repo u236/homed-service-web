@@ -957,6 +957,10 @@ class DeviceService
                 if (list.length)
                 {
                     let row = table.insertRow();
+
+                    if (!automation.active)
+                        row.classList.add('inactive');
+
                     row.automation = {service: service, item: automation};
                     row.insertCell().innerHTML = '<span class="mdi-script exposeIcon' + (service.brokenItem(automation) ? ' error' : '') + '"></span>' + automation.name + (list.some(item => item.pattern) ? ' <span class="flag">pattern</span>' : '');
                     row.addEventListener('click', function() { this.controller.showPage(key + '?uuid=' + automation.uuid); }.bind(this));
