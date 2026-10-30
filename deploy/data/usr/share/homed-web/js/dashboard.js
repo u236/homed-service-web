@@ -33,6 +33,9 @@ class Dashboard
                 if (!this.status.names)
                     this.status.names = new Object();
 
+                if (guest)
+                    this.status.dashboards = this.status.dashboards.filter(dashboard => !dashboard.hide);
+
                 if (this.controller.service == 'dashboard')
                 {
                     this.controller.showPage('dashboard');
@@ -768,16 +771,20 @@ class Dashboard
             modal.querySelector('input[name="name"]').value = dashboard.name ?? '';
             modal.querySelector('select[name="mode"]').value = dashboard.mode ?? 'default';
             modal.querySelector('select[name="columnPriority"]').value = dashboard.columnPriority ?? 'equal';
-
-            modal.querySelector('input[name="overview"]').closest('label').style.display = dashboard.overview || dashboard.add ? 'block' : 'none';
+            modal.querySelector('input[name="hide"]').checked = dashboard.hide ?? false;
             modal.querySelector('input[name="overview"]').checked = dashboard.overview;
 
-            modal.querySelector('input[name="overview"]').addEventListener('click', function()
+            if (dashboard.overview || dashboard.add)
             {
-                modal.querySelector('.overview').style.display = this.checked ? 'block' : 'none';
-                modal.querySelector('.add').disabled = this.checked;
-                showTable(modal.querySelector('table.blocks'), dashboard, this.checked);
-            });
+                modal.querySelector('input[name="overview"]').addEventListener('click', function()
+                {
+                    modal.querySelector('.overview').style.display = this.checked ? 'block' : 'none';
+                    modal.querySelector('.add').disabled = this.checked;
+                    showTable(modal.querySelector('table.blocks'), dashboard, this.checked);
+                });
+            }
+            else
+                modal.querySelector('input[name="overview"]').closest('label').remove();
 
             modal.querySelector('.overview').style.display = dashboard.overview ? 'block' : 'none';
             modal.querySelectorAll('.overview input').forEach(item => { if (dashboard.exposes?.includes(item.name)) item.checked = true; });
@@ -797,6 +804,11 @@ class Dashboard
                     dashboard.name = form.name;
                 else
                     delete dashboard.name;
+
+                if (form.hide)
+                    dashboard.hide = true;
+                else
+                    delete dashboard.hide;
 
                 if (dashboard.overview)
                 {
