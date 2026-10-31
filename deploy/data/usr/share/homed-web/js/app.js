@@ -586,7 +586,13 @@ class Controller
 
     setPage(page)
     {
+        let service = page.split(/\?(.*)/)[0];
+
+        if (this.service != service)
+            this.services.camera?.stop();
+
         history.replaceState(null, null, '#' + encodeURI(page));
+        this.service = service;
         this.page = page;
     }
 
