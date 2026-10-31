@@ -943,6 +943,9 @@ class DeviceService
         let services = Object.keys(this.controller.services).filter(key => key.startsWith('automation'));
         let status = services.map(key => this.controller.services[key].status.automations);
 
+        if (!table)
+            return;
+
         if (table.status && status.length == table.status.length && status.every((item, index) => item == table.status[index]))
         {
             Array.from(table.rows).forEach(row => { row.querySelector('.exposeIcon').classList.toggle('error', row.automation.service.brokenItem(row.automation.item)); });
