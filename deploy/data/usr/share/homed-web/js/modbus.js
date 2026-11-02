@@ -186,7 +186,7 @@ class Modbus extends DeviceService
                 row.dataset.device = this.service + '/' + device.id;
                 row.addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
 
-                for (let i = 0; i < 6; i++)
+                for (let i = 0; i < 7; i++)
                 {
                     let cell = row.insertCell();
 
@@ -205,15 +205,16 @@ class Modbus extends DeviceService
                         case 1: cell.innerHTML = this.deviceType[device.info.type] ?? '<span class="shade">' + device.info.type + '</span>'; cell.classList.add('mobileHidden'); break;
                         case 2: cell.innerHTML = '<span class="value">' + device.info.portId + '</span>'; cell.classList.add('center'); break;
                         case 3: cell.innerHTML = '<span class="value">' + device.info.slaveId + '</span>'; cell.classList.add('center'); break;
-                        case 4: cell.innerHTML = this.parseValue(device.info, 'discovery'); cell.classList.add('center', 'mobileHidden'); break;
-                        case 5: cell.innerHTML = this.parseValue(device.info, 'cloud'); cell.classList.add('center', 'mobileHidden'); break;
+                        case 4: cell.innerHTML = '<span class="value">' + device.info.baudRate / 100 + '</span>'; cell.classList.add('center'); break;
+                        case 5: cell.innerHTML = this.parseValue(device.info, 'discovery'); cell.classList.add('center', 'mobileHidden'); break;
+                        case 6: cell.innerHTML = this.parseValue(device.info, 'cloud'); cell.classList.add('center', 'mobileHidden'); break;
                     }
                 }
             });
 
             table.querySelectorAll('th.sort').forEach(cell => cell.addEventListener('click', function() { sortTable(table, this.dataset.index); localStorage.setItem('homedModbusSort', this.dataset.index); }) );
             sortTable(table, localStorage.getItem('homedModbusSort') ?? 0);
-            addTableSearch(table, 'devices', 'device', 7, [0, 1]);
+            addTableSearch(table, 'devices', 'device', 8, [0, 1]);
         });
     }
 
