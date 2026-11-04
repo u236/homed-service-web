@@ -112,6 +112,10 @@ void Controller::fileResponse(QTcpSocket *socket, const QString &fileName)
         headers.insert("Cache-Control", "no-cache, no-store");
         data = QString(data).arg(m_title, includeList("/plugin/css", "css", "<link rel=\"stylesheet\" href=\"%1\">"), includeList("/plugin/js", "js", "<script src=\"%1\"></script>"), SERVICE_VERSION, m_auth ? "<span id=\"logout\"><i class=\"mdi-logout\"></i> LOGOUT</span>" : QString()).remove(QRegExp("\n[ ]+(?=\n)")).toUtf8();
     }
+    else if (fileName == "/login.html")
+    {
+        data = QString(data).arg(m_title).toUtf8();
+    }
 
     headers.insert("Content-Type", type);
     headers.insert("Content-Length", QString::number(data.length()));
