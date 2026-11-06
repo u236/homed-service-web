@@ -640,7 +640,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
                     case 'toggle':
                         controlCell.innerHTML = '<span>enable</span>/<span>disable</span>';
-                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { let value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property]: value}); } }) );
+                        controlCell.querySelectorAll('span').forEach(item => item.addEventListener('click', function() { let value = item.innerHTML == 'enable' ? 'true' : 'false'; if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property]: value == 'true'}); } }) );
                         break;
 
                     default:
