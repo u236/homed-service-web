@@ -449,15 +449,15 @@ class Dashboard
 
                 this.content.querySelector('.export').addEventListener('click', function()
                 {
-                    let item = document.createElement('a');
+                    let element = document.createElement('a');
                     let data = {...dashboard};
 
                     if (data.overview)
                         delete data.blocks;
 
-                    item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
-                    item.download = this.dashboardName(dashboard, false) + '.json';
-                    item.click();
+                    element.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+                    element.download = this.dashboardName(dashboard, false) + '.json';
+                    element.click();
 
                 }.bind(this));
             }

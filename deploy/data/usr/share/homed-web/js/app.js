@@ -128,6 +128,7 @@ class Controller
                     case 'matter':     this.services[service] = new Matter(this, list[2]); break;
                     case 'modbus':     this.services[service] = new Modbus(this, list[2]); break;
                     case 'zigbee':     this.services[service] = new ZigBee(this, list[2]); break;
+                    case 'display':    this.services[service] = new Display(this); break;
                     case 'camera':     this.services[service] = new Camera(this); break;
                     case 'recorder':   this.services[service] = new Recorder(this); break;
 
@@ -204,8 +205,8 @@ class Controller
 
         if (redraw)
         {
-            let names = ['dashboard', 'recorder', 'camera', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
-            let short = ['dash', 'rec', 'cam', 'auto', 'zbee', 'mttr', 'mbus', 'cust'];
+            let names = ['dashboard', 'display', 'recorder', 'camera', 'automation', 'zigbee', 'matter', 'modbus', 'custom'];
+            let short = ['dash', 'disp', 'rec', 'cam', 'auto', 'zbee', 'mttr', 'mbus', 'cust'];
             let services = Object.keys(this.services).filter(service => !guest || ['dashboard', 'recorder'].includes(service));
 
             plugins.forEach(item => { if (names.includes(item.serviceName)) return; names.push(item.serviceName); short.push(item.shortName); });
@@ -649,8 +650,7 @@ class Controller
         if (warning)
         {
             let element = content.querySelector('.warning');
-            console.log(warning);
-            setTimeout(function() { element.innerHTML = warning; }, 1000);
+            setTimeout(function() { if (element.isConnected) { element.innerHTML = warning; console.log(warning); } }, 1000);
         }
 
         showModal(false);
@@ -1097,9 +1097,14 @@ class DeviceService
                 return value != undefined ? '<i class="mdi-' + (value ? 'check-circle' : 'close-circle') + ' ' + (value ? 'success' : 'shade') + '"></i>' : empty;
 
             case 'baudRate':
+            case 'home':
             case 'portId':
             case 'slaveId':
                 return '<span class="value">' + value + '</span>';
+
+            case 'height':
+            case 'width':
+                return '<span class="value">' + value + '</span> px';
 
             case 'name':
                 return value + (summary && data.active == false ? ' <span class="value shade">INACTIVE</span>' : '');
@@ -1149,29 +1154,20 @@ class DeviceService
             table = this.content.querySelector('table.exposes');
             Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { addExpose(table, device, endpointId, expose); }); });
 
-            if (!this.service.startsWith('custom'))
+            if (!this.service.startsWith('custom') && this.service != 'display')
                 return;
 
             this.content.querySelector('.export').addEventListener('click', function()
             {
-                let data = {exposes: device.info.exposes, real: device.info.real};
-                let item = document.createElement('a');
+                let list = this.service != 'display' ? ['options', 'bindings', 'availabilityTopic', 'availabilityPattern'] : ['home', 'pages'];
+                let data = this.service != 'display' ? {exposes: device.info.exposes, real: device.info.real} : {width: device.info.width, height: device.info.height};
+                let element = document.createElement('a');
 
-                if (device.info.options)
-                    data.options = device.info.options;
+                list.forEach(item => { if (device.info[item]) data[item] = device.info[item]; });
 
-                if (device.info.bindings)
-                    data.bindings = device.info.bindings;
-
-                if (device.info.availabilityTopic)
-                    data.availabilityTopic = device.info.availabilityTopic;
-
-                if (device.info.availabilityPattern)
-                    data.availabilityPattern = device.info.availabilityPattern;
-
-                item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
-                item.download = device.info.name + '.json';
-                item.click();
+                element.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+                element.download = device.info.name + '.json';
+                element.click();
 
             }.bind(this));
         });

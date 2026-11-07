@@ -872,7 +872,7 @@ class Automation
             this.content.querySelector('.export').addEventListener('click', function()
             {
                 let data = structuredClone(this.data);
-                let item = document.createElement('a');
+                let element = document.createElement('a');
 
                 delete data.active;
                 delete data.lastTriggered;
@@ -881,9 +881,9 @@ class Automation
 
                 data.actions.forEach(action => delete action.uuid);
 
-                item.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
-                item.download = this.data.name + '.json';
-                item.click();
+                element.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+                element.download = this.data.name + '.json';
+                element.click();
 
             }.bind(this));
 
