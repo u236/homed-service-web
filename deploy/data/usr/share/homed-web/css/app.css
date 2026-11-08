@@ -1036,18 +1036,18 @@ th:last-child, td:last-child {
     top: -1px;
 }
 
-.dashboardData {
+.dashboardData, .layoutData {
     display: flex;
     flex-wrap: wrap;
 }
 
-.dashboardData .column {
+.dashboardData .column, .layoutData .column {
     flex: 1;
     min-width: 330px;
     padding: 0 5px;
 }
 
-.dashboardBlock {
+.dashboardBlock, .layoutPage {
     margin-bottom: 10px;
     padding: 10px 5px;
     border: 1px solid var(--border-main);
@@ -1055,7 +1055,7 @@ th:last-child, td:last-child {
     background-color: var(--background-shade);
 }
 
-.dashboardBlock .title {
+.dashboardBlock .title, .layoutPage .title {
     margin: 0 5px 10px 5px;
 }
 
@@ -1075,12 +1075,12 @@ th:last-child, td:last-child {
     padding-bottom: 0;
 }
 
-.dashboardBlock td {
+.dashboardBlock td, .layoutPage td {
     border-top: 1px solid var(--border-main);
     vertical-align: top;
 }
 
-.dashboardBlock td.label {
+.dashboardBlock td.label, .layoutPage td.label {
     white-space: normal;
 }
 
@@ -1131,12 +1131,12 @@ th:last-child, td:last-child {
     color: var(--color-shade);
 }
 
-.dashboardBlock .edit, .dashboardBlock .toggle {
+.dashboardBlock .edit, .dashboardBlock .toggle, .layoutPage .edit {
     cursor: pointer;
     color: var(--color-shade);
 }
 
-.dashboardBlock .edit:hover {
+.dashboardBlock .edit:hover, .layoutPage .edit:hover {
     color: var(--color-warning);
 }
 
@@ -1153,8 +1153,14 @@ th:last-child, td:last-child {
     opacity: 0.5;
 }
 
-.dashboardBlock .missing td.value, .dashboardBlock .missing .name {
+.dashboardBlock .missing td.value, .dashboardBlock .missing .name, .layoutPage .missing .name {
     opacity: 0.5;
+}
+
+.layoutPage .title span.flag {
+    top: -2px;
+    background-color: var(--background-main);
+    text-transform: none;
 }
 
 .tiled .column.b {
@@ -1395,7 +1401,7 @@ th:last-child, td:last-child {
     text-align: center;
 }
 
-.automationInfo .title, .itemInfo .title, .deviceInfo .title {
+.automationInfo .title, .itemInfo .title, .deviceInfo .title, .deviceLayout .title {
     margin: 10px 5px 10px 4px;
 }
 

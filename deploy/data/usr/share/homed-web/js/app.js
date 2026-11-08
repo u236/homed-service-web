@@ -233,7 +233,7 @@ class Controller
                     }
 
                     if (services.length > 7)
-                        itemName = itemName.replace(name, short[index]);
+                        itemName = itemName.replace(name, services.length > 10 && itemName.match(/^(zigbee|matter|modbus)\//) ? short[index].substring(0, 2) : short[index]);
 
                     item.innerHTML = itemName;
                     item.dataset.service = service;
@@ -452,6 +452,30 @@ class Controller
         return list;
     }
 
+    exposeList(filter)
+    {
+        let devices = this.deviceList();
+        let list = new Object();
+
+        Object.keys(devices).filter(name => devices[name].info.active).forEach(name =>
+        {
+            let device = devices[name];
+
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).filter(expose => filter(expose, device)).forEach(expose =>
+            {
+                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
+
+                if (endpointId != 'common')
+                    value.endpoint += '/' + endpointId;
+
+                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="mdi-arrow-right"></i> ' + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
+
+            }); });
+        });
+
+        return list;
+    }
+
     propertyList(triggerProperty, pattern, any)
     {
         let devices = this.deviceList();
@@ -472,7 +496,7 @@ class Controller
                 let value = {endpoint: endpoint, property: property};
                 let meta = exposeMeta(property);
 
-                if (property.match('^[a-z]+P[0-9]+(Temperature|Time)$') || (pattern && ['action', 'event', 'scene'].includes(property.split('_')[0])))
+                if (property.match(/^[a-z]+P[0-9]+(Temperature|Time)$/) || (pattern && ['action', 'event', 'scene'].includes(property.split('_')[0])))
                     return;
 
                 if (endpointId != 'common')
@@ -504,30 +528,6 @@ class Controller
         return list;
     }
 
-    exposeList(filter)
-    {
-        let devices = this.deviceList();
-        let list = new Object();
-
-        Object.keys(devices).filter(name => devices[name].info.active).forEach(name =>
-        {
-            let device = devices[name];
-
-            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).filter(filter).forEach(expose =>
-            {
-                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
-
-                if (endpointId != 'common')
-                    value.endpoint += '/' + endpointId;
-
-                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="mdi-arrow-right"></i> ' + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
-
-            }); });
-        });
-
-        return list;
-    }
-
     cameraList()
     {
         let list = new Object();
@@ -551,6 +551,7 @@ class Controller
             list[this.searchTitle('Device', name, device.availability == 'offline' ? 'cube error' : 'battery-charging ' + status)] = device.service + '?device=' + device.id;
         });
 
+        Object.values(this.services.display?.devices ?? new Object()).filter(device => this.services.display.brokenLayout(device)).forEach(device => { list[this.searchTitle('Display', device.info.name, 'view-dashboard error')] = 'display?layout=' + device.id; });
         Object.keys(this.services).forEach(service => { if (service.startsWith('automation')) this.services[service].status.automations?.forEach(automation => { if (this.services[service].brokenItem(automation)) list[this.searchTitle('Automation', automation.name, 'script error')] = service + '?uuid=' + automation.uuid; }); });
         this.services.recorder?.status.items?.filter(item => this.devicesReady() && !this.findDevice(item).info).forEach(item => { list[this.searchTitle('Recorder', this.services.dashboard.itemString(item, false), 'chart-line-variant error')] = 'recorder?item=' + item.endpoint + '/' + item.property; });
         return list;
@@ -1200,6 +1201,9 @@ class DeviceService
 
             if (!this.service.startsWith('custom') && this.service != 'display')
                 return;
+
+            if (this.service == 'display')
+                this.content.querySelector('.layout').addEventListener('click', function() { this.controller.showPage(this.service + '?layout=' + device.id); }.bind(this));
 
             this.content.querySelector('.export').addEventListener('click', function()
             {

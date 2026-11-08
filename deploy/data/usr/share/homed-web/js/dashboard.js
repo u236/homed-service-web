@@ -975,7 +975,6 @@ class Dashboard
 
     showItemEdit(dashboard, block, item, callback)
     {
-        let scenes = this.controller.sceneList();
         let recorder = this.controller.services.recorder;
         let camera = this.controller.services.camera;
         let list = new Object();
@@ -983,12 +982,7 @@ class Dashboard
         if (!item)
             item = {add: true};
 
-        Object.keys(scenes).forEach(item =>
-        {
-            let scene = scenes[item];
-            list['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene};
-        });
-
+        Object.values(this.controller.sceneList()).forEach(scene => { list['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene}; });
         Object.assign(list, this.controller.exposeList(expose => expose != 'thermostatProgram'));
 
         if (recorder?.status?.items?.length)
@@ -1039,9 +1033,7 @@ class Dashboard
 
             }.bind(this));
 
-            modal.querySelector('input[name="name"]').placeholder = 'Default name';
             modal.querySelector('input[name="name"]').value = item.name ?? '';
-
             modal.querySelector('select[name="shift"]').value = item.shift ?? 'none';
             modal.querySelector('.shift').style.display = item.property ? 'block' : 'none';
 

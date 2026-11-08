@@ -237,7 +237,7 @@ function exposeTitle(device, endpoint, itemName, names = true)
                 continue;
             }
 
-            if (list[i].match('^[pt][0-9]+$'))
+            if (list[i].match(/^[pt][0-9]+$/))
             {
                 list[i] = list[i].toUpperCase();
                 continue;
@@ -644,7 +644,7 @@ function addExpose(table, device, endpointId, expose, names = true)
 
                     default:
 
-                        if (property.match('^[a-z]+P[0-9]+(Start|End)$'))
+                        if (property.match(/^[a-z]+P[0-9]+(Start|End)$/))
                         {
                             controlCell.innerHTML = '<input type="time" value="00:00" step="' + (options.programType != 2 ? 60 : 600) + '"><button>Set</button>';
                             controlCell.querySelector('button').addEventListener('click', function() { let value = controlCell.querySelector('input[type="time"]').value; let data = value.split(':'); if (valueCell.dataset.value != value) { valueCell.innerHTML = '<span class="shade">' + value + '</span>'; deviceCommand(device, endpointId, {[property.replace(options.programType != 2 ? 'Start' : 'End', 'Hour')]: parseInt(data[0]), [property.replace(options.programType != 2 ? 'Start' : 'End', 'Minute')]: parseInt(data[1])}); } });
@@ -673,7 +673,7 @@ function updateExpose(device, endpointId, property, data)
         let value = row.value ?? data;
         let cell;
 
-        if (property.match('^[a-z]+P[0-9]+(Hour|Minute)$'))
+        if (property.match(/^[a-z]+P[0-9]+(Hour|Minute)$/))
         {
             let item = property.replace('Hour', 'Start').replace('Minute', 'Start');
 
