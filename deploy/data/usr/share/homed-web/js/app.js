@@ -309,6 +309,26 @@ class Controller
         return !Object.values(this.services).find(service => service.devices && !service.ready);
     }
 
+    devicePromise(item)
+    {
+        let deadline = Date.now() + 5000;
+
+        function wait(resolve)
+        {
+            let device = this.findDevice(item);
+
+            if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || !this.devicesReady()))
+            {
+                setTimeout(wait.bind(this, resolve), 10);
+                return;
+            }
+
+            resolve(device);
+        }
+
+        return new Promise(wait.bind(this));
+    }
+
     findDevice(item)
     {
         let list = item.endpoint.split('/');
@@ -447,7 +467,7 @@ class Controller
             let groups = new Array();
             let items = new Array();
 
-            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { exposeList(expose, device.options(endpointId)).forEach(property =>
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).forEach(expose => { exposeProperties(expose, device.options(endpointId)).forEach(property =>
             {
                 let value = {endpoint: endpoint, property: property};
                 let meta = exposeMeta(property);
@@ -479,6 +499,30 @@ class Controller
             }
 
             items.sort(function(a, b) { return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }).forEach(item => list[item[3]] = item[4]);
+        });
+
+        return list;
+    }
+
+    exposeList(filter)
+    {
+        let devices = this.deviceList();
+        let list = new Object();
+
+        Object.keys(devices).filter(name => devices[name].info.active).forEach(name =>
+        {
+            let device = devices[name];
+
+            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).filter(filter).forEach(expose =>
+            {
+                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
+
+                if (endpointId != 'common')
+                    value.endpoint += '/' + endpointId;
+
+                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="mdi-arrow-right"></i> ' + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
+
+            }); });
         });
 
         return list;
@@ -527,7 +571,7 @@ class Controller
             camera:   this.cameraList()
         };
 
-        Object.keys(groups).filter(group => !exclude.includes(group)).forEach(group => { list = {...list, ...groups[group]}; });
+        Object.keys(groups).filter(group => !exclude.includes(group)).forEach(group => { Object.assign(list, groups[group]); });
         return list;
     }
 

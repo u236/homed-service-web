@@ -69,39 +69,22 @@ class Dashboard
 
         cell.innerHTML = icon ? (item.scene ? '<span class="mdi-play exposeIcon"></span>' : item.camera ? '<span class="mdi-video exposeIcon"></span>' : item.endpoint ? exposeIcon(this.controller.findDevice(item), item.endpoint, item.expose ?? item.property) : '') + '<span class="name">' + name + '</span>' : name;
 
-        if (item.endpoint)
+        if (!item.endpoint)
+            return;
+
+        this.controller.devicePromise(item).then(function(device)
         {
-            let deadline = Date.now() + 5000;
-            let device;
+            let name = item.name ?? (device.info?.name ?? item.endpoint) + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
+            let row = cell.closest('tr');
 
-            function wait(resolve)
+            cell.innerHTML = (icon ? (device.info ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '<span class="mdi-ghost exposeIcon error"></span>') + '<span class="name">' + name + '</span>' : name);
+
+            if (row && !device.info)
             {
-                device = this.controller.findDevice(item);
-
-                if (deadline > Date.now() && !device.endpoints?.[item.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || !this.controller.devicesReady()))
-                {
-                    setTimeout(wait.bind(this, resolve), 10);
-                    return;
-                }
-
-                resolve();
+                row.classList.remove('inactive');
+                row.classList.add('missing');
             }
-
-            new Promise(wait.bind(this)).then(function()
-            {
-                let name = item.name ?? (device.info?.name ?? item.endpoint) + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, item.endpoint, item.expose ?? item.property);
-                let row = cell.closest('tr');
-
-                cell.innerHTML = (icon ? (device.info ? exposeIcon(device, item.endpoint, item.expose ?? item.property) : '<span class="mdi-ghost exposeIcon error"></span>') + '<span class="name">' + name + '</span>' : name);
-
-                if (row && !device.info)
-                {
-                    row.classList.remove('inactive');
-                    row.classList.add('missing');
-                }
-
-            }.bind(this));
-        }
+        });
     }
 
     sleep(timeout)
@@ -993,7 +976,6 @@ class Dashboard
     showItemEdit(dashboard, block, item, callback)
     {
         let scenes = this.controller.sceneList();
-        let devices = this.controller.deviceList();
         let recorder = this.controller.services.recorder;
         let camera = this.controller.services.camera;
         let list = new Object();
@@ -1007,21 +989,7 @@ class Dashboard
             list['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene};
         });
 
-        Object.keys(devices).filter(name => devices[name].info.active).forEach(name =>
-        {
-            let device = devices[name];
-
-            Object.keys(device.endpoints).forEach(endpointId => { device.items(endpointId).filter(expose => expose != 'thermostatProgram').forEach(expose =>
-            {
-                let value = {endpoint: device.service.split('/')[0] + '/' + device.id, expose: expose};
-
-                if (endpointId != 'common')
-                    value.endpoint += '/' + endpointId;
-
-                list[exposeIcon(device, value.endpoint, expose) + 'Device <i class="mdi-arrow-right"></i> ' + name + ' <i class="mdi-arrow-right"></i> ' + exposeTitle(device, value.endpoint, expose)] = value;
-
-            }); });
-        });
+        Object.assign(list, this.controller.exposeList(expose => expose != 'thermostatProgram'));
 
         if (recorder?.status?.items?.length)
         {
@@ -1089,7 +1057,7 @@ class Dashboard
                     delete item.expose;
                     delete item.property;
 
-                    Object.keys(data).forEach(key => item[key] = data[key]);
+                    Object.assign(item, data);
                 }
 
                 if (form.name)

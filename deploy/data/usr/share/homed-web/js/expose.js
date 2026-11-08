@@ -258,7 +258,7 @@ function exposeTitle(device, endpoint, itemName, names = true)
     return !isNaN(endpointId) ? (endpointName ? endpointName + ' ' + title : title + ' ' + endpointId) : title;
 }
 
-function exposeList(expose, options)
+function exposeProperties(expose, options)
 {
     let meta = exposeMeta(expose);
     let list = new Array();
@@ -395,12 +395,11 @@ function addExpose(table, device, endpointId, expose, names = true)
 {
     let options = device.options(endpointId);
     let properties = device.properties(endpointId);
-    let list = exposeList(expose, options);
 
     if (device.items(endpointId).includes('thermostat') && ['fanMode', 'swingMode', 'heatMode'].includes(expose))
         return;
 
-    list.forEach(property =>
+    exposeProperties(expose, options).forEach(property =>
     {
         let meta = exposeMeta(property);
         let recorder = controller.services.recorder;

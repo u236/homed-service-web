@@ -742,23 +742,7 @@ class Recorder
 
     devicePromise(data, cell, icon = false, info = false, table)
     {
-        let deadline = Date.now() + 5000;
-        let device;
-
-        function wait(resolve)
-        {
-            device = this.controller.findDevice(data);
-
-            if (deadline > Date.now() && !device.endpoints?.[data.endpoint.split('/')[2] ?? 'common']?.exposes && (device.info || !this.controller.devicesReady()))
-            {
-                setTimeout(wait.bind(this, resolve), 10);
-                return;
-            }
-
-            resolve();
-        }
-
-        new Promise(wait.bind(this)).then(function()
+        this.controller.devicePromise(data).then(function(device)
         {
             let title = exposeTitle(device, data.endpoint, data.property);
 
