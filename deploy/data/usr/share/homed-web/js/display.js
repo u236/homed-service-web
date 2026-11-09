@@ -89,6 +89,12 @@ class Display extends DeviceService
         return page.name?.trim() || 'Page ' + ((index < 0 ? device.info.pages.length : index) + 1);
     }
 
+    itemName(page, item)
+    {
+        let index = page.items.indexOf(item);
+        return item.name || 'Item ' + ((index < 0 ? page.items.length : index) + 1);
+    }
+
     showPage(data)
     {
         let menu = document.querySelector('.menu');
@@ -283,7 +289,7 @@ class Display extends DeviceService
                     if (index >= count)
                         row.classList.add('inactive');
 
-                    this.controller.services.dashboard.devicePromise(item, cell);
+                    this.controller.services.dashboard.devicePromise({...item, name: this.itemName(page, item)}, cell);
                     cell.classList.add('label');
                 });
 
@@ -385,7 +391,7 @@ class Display extends DeviceService
                             cell.innerHTML = '<span class="name"></span><div class="note">' + this.controller.services.dashboard.itemString(item) + '</div>';
                             cell.classList.add('edit');
                             cell.addEventListener('click', function() { this.showItemEdit(device, page, item, function() { this.showPageEdit(device, pageIndex, callback, page); }.bind(this)); }.bind(this));
-                            this.controller.services.dashboard.devicePromise(item, cell.querySelector('span'), false);
+                            this.controller.services.dashboard.devicePromise({...item, name: this.itemName(page, item)}, cell.querySelector('span'), false);
                             break;
 
                         case 1:
@@ -482,14 +488,9 @@ class Display extends DeviceService
         loadHTML('html/display/itemEdit.html', this, modal.querySelector('.data'), function()
         {
             let device = item.endpoint ? this.controller.findDevice(item) : new Device();
-            let name = modal.querySelector('.name');
             let data;
 
-            name.innerHTML = display.info.name + ' <i class="mdi-arrow-right"></i> ' + this.pageName(display, page) + ' <i class="mdi-arrow-right"></i> <span>New item</span>';
-
-            if (!item.add)
-                this.controller.services.dashboard.devicePromise(item, name.querySelector('span'), false);
-
+            modal.querySelector('.name').innerHTML = display.info.name + ' <i class="mdi-arrow-right"></i> ' + this.pageName(display, page) + ' <i class="mdi-arrow-right"></i> ' + this.itemName(page, item);
             modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.controller.services.dashboard.itemString(item);
 
             if (device.info)
