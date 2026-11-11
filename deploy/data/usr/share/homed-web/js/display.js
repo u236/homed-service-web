@@ -307,8 +307,10 @@ class Display extends DeviceService
                     if (index >= count)
                         row.classList.add('inactive');
 
-                    this.controller.services.dashboard.devicePromise({...item, name: this.itemName(page, item)}, cell);
+                    cell.innerHTML = '<span class="mdi-' + (item.icon ?? 'mdi:' + this.defaultIcon(item)).replace(/^mdi:/, '') + ' exposeIcon"></span><span class="name"></span>';
                     cell.classList.add('label');
+
+                    this.controller.services.dashboard.devicePromise({...item, name: this.itemName(page, item)}, cell.querySelector('.name'), false);
                 });
 
                 if (!table.rows.length)
