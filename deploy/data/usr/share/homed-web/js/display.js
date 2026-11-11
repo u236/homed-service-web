@@ -1,6 +1,18 @@
 class Display extends DeviceService
 {
-    exposes = ['co2', 'contact', 'humidity', 'light', 'occupancy', 'power', 'switch', 'temperature', 'thermostat', 'waterLeak'];
+    exposes =
+    {
+        co2:         'leaf',
+        contact:     'door-closed',
+        humidity:    'water-percent',
+        light:       'lightbulb',
+        occupancy:   'account',
+        power:       'lightning-bolt',
+        switch:      'power',
+        temperature: 'thermometer',
+        thermostat:  'fire',
+        waterLeak:   'water'
+    };
 
     constructor(controller)
     {
@@ -20,6 +32,7 @@ class Display extends DeviceService
             {
                 let check = Object.keys(this.devices).length ? false : true;
 
+                this.icons = message.icons ?? new Array();
                 this.names = message.names;
                 this.version = message.version;
 
@@ -93,6 +106,11 @@ class Display extends DeviceService
     {
         let index = page.items.indexOf(item);
         return item.name || 'Item ' + ((index < 0 ? page.items.length : index) + 1);
+    }
+
+    defaultIcon(item)
+    {
+        return item.scene ? 'play' : this.exposes[item.expose?.split('_')[0]];
     }
 
     showPage(data)
@@ -477,18 +495,36 @@ class Display extends DeviceService
 
     showItemEdit(display, page, item, callback)
     {
-        let list = new Object();
+        let items = new Object();
+        let icons = new Object();
 
         if (!item)
             item = {add: true};
 
-        Object.values(this.controller.sceneList()).forEach(scene => { list['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene}; });
-        Object.assign(list, this.controller.exposeList((expose, device) => this.exposes.includes(expose.split('_')[0]) && device.service != 'display'));
+        Object.values(this.controller.sceneList()).forEach(scene => { items['<i class="mdi-play exposeIcon"></i>Scene <i class="mdi-arrow-right"></i> ' + scene] = {scene: scene}; });
+        Object.assign(items, this.controller.exposeList((expose, device) => this.exposes[expose.split('_')[0]] && device.service != 'display'));
+
+        this.icons.forEach(icon => { icons['<i class="mdi-' + icon.replace(/^mdi:/, '') + '"></i>' + icon] = icon; });
 
         loadHTML('html/display/itemEdit.html', this, modal.querySelector('.data'), function()
         {
             let device = item.endpoint ? this.controller.findDevice(item) : new Device();
+            let icon = item.icon;
             let data;
+
+            let showIcon = function()
+            {
+                let value = this.defaultIcon(data ?? item);
+
+                modal.querySelector('.iconData').style.display = value ? 'block' : 'none';
+
+                if (!value)
+                    return;
+
+                modal.querySelector('.icon').innerHTML = icon ? '<i class="mdi-' + icon.replace(/^mdi:/, '') + '"></i>' + icon : '<i class="mdi-' + value + '"></i><span class="shade">mdi:' + value + ' [default]</span>';
+                modal.querySelector('.restore').style.display = icon ? 'table-cell' : 'none';
+
+            }.bind(this);
 
             modal.querySelector('.name').innerHTML = display.info.name + ' <i class="mdi-arrow-right"></i> ' + this.pageName(display, page) + ' <i class="mdi-arrow-right"></i> ' + this.itemName(page, item);
             modal.querySelector('.item').innerHTML = item.add ? 'Select item there <i class="mdi-arrow-right"></i>' : this.controller.services.dashboard.itemString(item);
@@ -499,15 +535,23 @@ class Display extends DeviceService
                 modal.querySelector('.item span').addEventListener('click', function() { this.controller.showPage(device.service + '?device=' + device.id); showModal(false); }.bind(this));
             }
 
-            addDropdown(modal.querySelector('.dropdown'), Object.keys(list), function(key)
+            addDropdown(modal.querySelector('.itemData .dropdown'), Object.keys(items), function(key)
             {
-                data = list[key];
+                data = items[key];
                 modal.querySelector('.item').innerHTML = this.controller.services.dashboard.itemString(data);
                 modal.querySelector('.item').classList.remove('error');
+                showIcon();
 
             }.bind(this));
 
+            addDropdown(modal.querySelector('.iconData .dropdown'), Object.keys(icons), function(key)
+            {
+                icon = icons[key];
+                showIcon();
+            });
+
             modal.querySelector('input[name="name"]').value = item.name ?? '';
+            modal.querySelector('.restore').addEventListener('click', function() { icon = null; showIcon(); });
 
             modal.querySelector('.save').addEventListener('click', function()
             {
@@ -521,6 +565,11 @@ class Display extends DeviceService
 
                     Object.assign(item, data);
                 }
+
+                if (icon)
+                    item.icon = icon;
+                else
+                    delete item.icon;
 
                 if (form.name)
                     item.name = form.name;
@@ -543,6 +592,8 @@ class Display extends DeviceService
             });
 
             modal.querySelector('.cancel').addEventListener('click', function() { callback(); });
+
+            showIcon();
             showModal(true, 'input[name="name"]');
         });
     }
