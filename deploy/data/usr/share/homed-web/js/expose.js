@@ -50,6 +50,7 @@ const defaultIcons =
     motion:           'motion-sensor',
     occupancy:        'home',
     power:            'flash',
+    powerFactor:      'angle-acute',
     pressure:         'gauge',
     smoke:            'smoke-detector',
     tamper:           'shield-alert',
