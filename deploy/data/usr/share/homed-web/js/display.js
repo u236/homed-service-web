@@ -266,6 +266,8 @@ class Display extends DeviceService
             this.content.querySelector('.info').addEventListener('click', function() { this.controller.showPage(this.service + '?device=' + device.id); }.bind(this));
             this.content.querySelector('.edit').addEventListener('click', function() { this.backup = structuredClone(device.info.pages); this.showLayoutEdit(device); }.bind(this));
 
+            this.updateArrowButtons(device, 'layout');
+
             if (!pages.length)
             {
                 let element = this.content.querySelector('.layoutData');

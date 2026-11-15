@@ -965,7 +965,7 @@ class DeviceService
         });
     }
 
-    updateArrowButtons(device)
+    updateArrowButtons(device, page = 'device')
     {
         let devices = new Array();
         let list = new Array();
@@ -979,7 +979,7 @@ class DeviceService
         });
 
         devices.sort(function(a, b) { return compareStrings(a[1], b[1]); }).forEach(item => { list.push(item[0]); });
-        handleArrowButtons(this.content, list, list.indexOf(device.id), function(id) { this.controller.showPage(this.service + '?device=' + id); }.bind(this));
+        handleArrowButtons(this.content, list, list.indexOf(device.id), function(id) { this.controller.showPage(this.service + '?' + page + '=' + id); }.bind(this));
     }
 
     updateAutomations(device)
