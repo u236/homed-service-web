@@ -261,34 +261,55 @@ class Dashboard
 
     addCamera(table, item, size)
     {
-        let camera = this.controller.services.camera;
         let label = document.createElement('div');
+        let placeholder = document.createElement('div');
         let row = table.insertRow();
         let cell = row.insertCell();
-        let video;
+        let deadline = Date.now() + 5000;
 
-        this.devicePromise(item, label);
         label.classList.add('label');
+        placeholder.classList.add('placeholder');
 
         if (['large', 'small'].includes(size))
             row.dataset.size = size;
 
         cell.colSpan = 2;
         cell.classList.add('camera');
-        cell.append(label);
+        cell.append(label, placeholder);
 
-        if (!camera?.findDevice(item.camera))
+        function wait(resolve)
         {
-            let placeholder = document.createElement('div');
-            placeholder.classList.add('placeholder');
-            row.classList.add('inactive');
-            cell.append(placeholder);
-            return;
+            if (deadline > Date.now() && !this.controller.services.camera?.ready)
+            {
+                setTimeout(wait.bind(this, resolve), 10);
+                return;
+            }
+
+            resolve();
         }
 
-        video = camera.addVideo(cell);
-        cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen().catch(function() {}) : video.webkitEnterFullscreen(); });
-        camera.play(video, item.camera);
+        new Promise(wait.bind(this)).then(function()
+        {
+            let camera = this.controller.services.camera;
+            let video;
+
+            if (!cell.isConnected)
+                return;
+
+            this.devicePromise(item, label);
+
+            if (!camera?.findDevice(item.camera))
+            {
+                row.classList.add('inactive');
+                return;
+            }
+
+            video = camera.addVideo(cell);
+            cell.addEventListener('click', function() { video.requestFullscreen ? video.requestFullscreen().catch(function() {}) : video.webkitEnterFullscreen(); });
+            camera.play(video, item.camera);
+            placeholder.remove();
+
+        }.bind(this));
     }
 
     addCharts(table, row, items, interval, height, overlay, tiled)
