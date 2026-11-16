@@ -358,6 +358,8 @@ class Controller
         while (item.match(/\{\{[^{}]*\}\}/))
             item = item.replace(/\{\{[^{}]*\}\}/g, '*');
 
+        item = item.replace(/\[\[.*?\]\]/g, '*');
+
         if (item.match(/^\s*(('[^']*'|\S+)\s+if\s+('[^']*'|\S+)\s+(is|not|contains|excludes|==|!=|>=?|<=?)\s+('[^']*'|\S+)\s+else\s+)+('[^']*'|\S+)\s*$/))
             return {type: 'condition', valid: true};
 
