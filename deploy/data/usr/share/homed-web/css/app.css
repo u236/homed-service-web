@@ -1801,8 +1801,13 @@ th:last-child, td:last-child {
     width: 120px;
 }
 
-#modal .legend td:last-child, #modal .log td:last-child, #modal .states td:last-child {
+#modal .legend td:last-child, #modal .log td:last-child {
     text-align: left;
+}
+
+#modal .states td span.value {
+    display: inline-block;
+    vertical-align: bottom;
 }
 
 #modal .dropdown .list {

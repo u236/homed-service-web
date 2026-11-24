@@ -93,11 +93,33 @@ class Automation
         });
 
         table.querySelectorAll('tr').forEach(row => { if (!list.includes(row.dataset.state)) row.remove(); });
-
-        modal.querySelector('.empty').style.display = list.length ? 'none' : 'block';
-        table.parentNode.style.display = list.length ? 'block' : 'none';
-
         sortTable(table, 0);
+
+        ['sunrise', 'sunset'].filter(item => this.status[item]).forEach((item, index) =>
+        {
+            let row = table.insertRow();
+
+            for (let i = 0; i < 3; i++)
+            {
+                let cell = row.insertCell();
+
+                switch (i)
+                {
+                    case 0: cell.innerHTML = '<i>' + item.charAt(0).toUpperCase() + item.slice(1) + '</i>'; break;
+                    case 1: cell.innerHTML = '<span class="value">' + this.status[item] + '</span>'; break;
+
+                    case 2:
+                        cell.innerHTML = '<i class="mdi-weather-sunset-' + (item == 'sunrise' ? 'up' : 'down') + '"></i>';
+                        cell.classList.add('shade');
+                        break;
+                }
+
+                if (!list.length || index)
+                    continue;
+
+                cell.classList.add('edge');
+            }
+        });
     }
 
     parseMessage(list, message)
